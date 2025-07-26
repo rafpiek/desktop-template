@@ -86,7 +86,7 @@ export const EditorKit = [
 
   // UI
   ...BlockPlaceholderKit,
-  ...FixedToolbarKit,
+  // ...FixedToolbarKit,
   ...FloatingToolbarKit,
 ];
 

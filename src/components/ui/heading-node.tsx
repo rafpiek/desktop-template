@@ -24,11 +24,18 @@ export function HeadingElement({
   variant = 'h1',
   ...props
 }: PlateElementProps & VariantProps<typeof headingVariants>) {
+  const headingId = props.element.id as string;
+
   return (
     <PlateElement
       as={variant!}
       className={headingVariants({ variant })}
       {...props}
+      attributes={{
+        ...props.attributes,
+        id: headingId,
+        'data-heading-id': headingId,
+      }}
     >
       {props.children}
     </PlateElement>

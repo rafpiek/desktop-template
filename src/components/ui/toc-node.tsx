@@ -33,17 +33,23 @@ export function TocElement(props: PlateElementProps) {
       <div contentEditable={false}>
         {headingList.length > 0 ? (
           headingList.map((item) => (
-            <Button
+            <a
               key={item.id}
-              variant="ghost"
+              href={`#${item.id}`}
               className={headingItemVariants({
                 depth: item.depth as 1 | 2 | 3,
               })}
-              onClick={(e) => btnProps.onClick(e, item, 'smooth')}
-              aria-current
+              onClick={(e) => {
+                e.preventDefault();
+                const element = document.getElementById(item.id);
+                if (element) {
+                  element.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+              }}
+              data-heading-id={item.id}
             >
               {item.title}
-            </Button>
+            </a>
           ))
         ) : (
           <div className="text-sm text-gray-500">
