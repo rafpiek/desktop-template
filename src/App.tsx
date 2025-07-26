@@ -1,8 +1,10 @@
+import { Routes, Route, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { ThemeToggle } from "@/components/theme-toggle"
+import Editor from "./pages/Editor"
 
-function App() {
+function HomePage() {
   return (
     <div className="min-h-screen bg-background text-foreground">
       <div className="container mx-auto px-4 py-8">
@@ -49,9 +51,11 @@ function App() {
                 </CardDescription>
               </CardHeader>
               <CardContent>
-                <Button className="w-full" variant="outline">
-                  Open Editor
-                </Button>
+                <Link to="/editor">
+                  <Button className="w-full" variant="outline">
+                    Open Editor
+                  </Button>
+                </Link>
               </CardContent>
             </Card>
 
@@ -81,6 +85,15 @@ function App() {
         </main>
       </div>
     </div>
+  )
+}
+
+function App() {
+  return (
+    <Routes>
+      <Route path="/" element={<HomePage />} />
+      <Route path="/editor" element={<Editor />} />
+    </Routes>
   )
 }
 
