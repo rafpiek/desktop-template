@@ -8,24 +8,9 @@ import { EditorKit } from '@/components/editor/editor-kit';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 
-export function PlateEditor() {
-  const editor = usePlateEditor({
-    plugins: EditorKit,
-    value,
-  });
+const STORAGE_KEY = 'plate-editor-content';
 
-  return (
-    <Plate editor={editor}>
-      <EditorContainer>
-        <Editor variant="demo" />
-      </EditorContainer>
-
-      <SettingsDialog />
-    </Plate>
-  );
-}
-
-const value = [
+const defaultValue = [
   {
     children: [{ text: 'Welcome to the Plate Playground!' }],
     type: 'h1',
@@ -581,3 +566,51 @@ const value = [
     type: 'p',
   },
 ];
+
+export function PlateEditor() {
+  // Load content from localStorage, fallback to default value
+  const [editorValue, setEditorValue] = React.useState(() => {
+    if (typeof window === 'undefined') return defaultValue;
+
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        return JSON.parse(saved);
+      }
+    } catch (error) {
+      console.error('Failed to load editor content:', error);
+    }
+
+    return defaultValue;
+  });
+
+  // Save to localStorage whenever editor value changes
+  React.useEffect(() => {
+    console.log("saving editor")
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(editorValue));
+    } catch (error) {
+      console.error('Failed to save editor content:', error);
+    }
+  }, [editorValue]);
+
+  const editor = usePlateEditor({
+    plugins: EditorKit,
+    value: editorValue,
+  });
+
+  return (
+    <Plate
+      editor={editor}
+      onChange={({ value }) => {
+        setEditorValue(value);
+      }}
+    >
+      <EditorContainer>
+        <Editor variant="demo" />
+      </EditorContainer>
+
+      <SettingsDialog />
+    </Plate>
+  );
+}
