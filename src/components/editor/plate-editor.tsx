@@ -3,10 +3,14 @@
 import * as React from 'react';
 
 import { Plate, usePlateEditor } from 'platejs/react';
+import { Maximize2, Minimize2 } from 'lucide-react';
 
 import { EditorKit } from '@/components/editor/editor-kit';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
+import { Button } from '@/components/ui/button';
+import { useIsTauri } from '@/hooks/use-is-tauri';
+import { cn } from '@/lib/utils';
 
 const STORAGE_KEY = 'plate-editor-content';
 
@@ -568,6 +572,9 @@ const defaultValue = [
 ];
 
 export function PlateEditor() {
+  const [isZenMode, setIsZenMode] = React.useState(false);
+  const isTauriApp = useIsTauri();
+
   // Load content from localStorage, fallback to default value
   const [editorValue, setEditorValue] = React.useState(() => {
     if (typeof window === 'undefined') return defaultValue;
@@ -584,7 +591,7 @@ export function PlateEditor() {
     return defaultValue;
   });
 
-  // Save to localStorage whenever editor value changes
+    // Save to localStorage whenever editor value changes
   React.useEffect(() => {
     console.log("saving editor")
     try {
@@ -594,23 +601,124 @@ export function PlateEditor() {
     }
   }, [editorValue]);
 
+  // Handle zen mode toggle
+  const toggleZenMode = React.useCallback(async () => {
+    console.log('toggleZenMode called, isTauriApp:', isTauriApp, 'current isZenMode:', isZenMode);
+
+    if (isTauriApp) {
+      // Use Tauri native fullscreen
+      try {
+        const { Window } = await import('@tauri-apps/api/window');
+        const currentWindow = Window.getCurrent();
+
+        console.log('Current window object:', currentWindow);
+
+        const newFullscreenState = !isZenMode;
+        console.log('Setting fullscreen to:', newFullscreenState);
+
+        await currentWindow.setFullscreen(newFullscreenState);
+        console.log('Fullscreen set successfully');
+
+        setIsZenMode(newFullscreenState);
+      } catch (error) {
+        console.error('Failed to toggle fullscreen:', error);
+        console.error('Error details:', error);
+        // Fallback to CSS fullscreen if Tauri fails
+        setIsZenMode(!isZenMode);
+      }
+    } else {
+      // Use CSS fullscreen for web
+      console.log('Using CSS fullscreen for web');
+      setIsZenMode(!isZenMode);
+    }
+  }, [isTauriApp, isZenMode]);
+
+  // Disable default keyboard shortcuts for zen mode (button-only control)
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Prevent F11 default behavior to avoid conflicts with our zen mode
+      if (event.key === 'F11') {
+        event.preventDefault();
+        // Don't trigger zen mode - only button control allowed
+        return;
+      }
+
+      // Prevent Escape from affecting window in Tauri when in zen mode
+      if (event.key === 'Escape' && isZenMode && isTauriApp) {
+        event.preventDefault();
+        event.stopPropagation();
+        // Don't exit zen mode - only button control allowed
+        return;
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown, true); // Use capture phase
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
+  }, [isZenMode, isTauriApp]);
+
+        // Listen for native fullscreen changes (Tauri only) - simplified for now
+  // React.useEffect(() => {
+  //   // TODO: Add back window event listener once basic functionality works
+  // }, [isTauriApp]);
+
   const editor = usePlateEditor({
     plugins: EditorKit,
     value: editorValue,
   });
 
   return (
-    <Plate
-      editor={editor}
-      onChange={({ value }) => {
-        setEditorValue(value);
-      }}
-    >
-      <EditorContainer>
-        <Editor variant="demo" />
-      </EditorContainer>
+    <div className={cn(
+      "relative",
+      // Only apply CSS fullscreen for web browsers
+      !isTauriApp && isZenMode && "fixed inset-0 z-50 bg-background"
+    )}>
+      {/* Zen Mode Button */}
+      <Button
+        onClick={toggleZenMode}
+        variant="ghost"
+        size="sm"
+        className={cn(
+          "absolute top-4 right-4 z-10 gap-2",
+          isZenMode && "bg-background/80 backdrop-blur-sm hover:bg-background/90"
+        )}
+      >
+        {isZenMode ? (
+          <>
+            <Minimize2 className="h-4 w-4" />
+            Exit Zen
+          </>
+        ) : (
+          <>
+            <Maximize2 className="h-4 w-4" />
+            Zen Mode
+          </>
+        )}
+      </Button>
 
-      <SettingsDialog />
-    </Plate>
+      <Plate
+        editor={editor}
+        onChange={({ value }) => {
+          setEditorValue(value);
+        }}
+      >
+        <EditorContainer
+          className={cn(
+            // For web browsers, apply CSS fullscreen styles
+            !isTauriApp && isZenMode && "h-screen max-h-screen",
+            // For Tauri, adjust height when in zen mode
+            isTauriApp && isZenMode && "h-screen max-h-screen"
+          )}
+        >
+          <Editor
+            variant={isZenMode ? "fullWidth" : "demo"}
+            className={cn(
+              isZenMode && "pt-16 h-full min-h-screen"
+            )}
+          />
+        </EditorContainer>
+
+        <SettingsDialog />
+      </Plate>
+    </div>
   );
 }
