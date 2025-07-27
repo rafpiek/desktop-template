@@ -49,13 +49,12 @@ export function ThemeProvider({
         : "light"
 
       root.classList.add(systemTheme)
-      console.log("Applied system theme:", systemTheme, "Classes:", root.classList.toString())
       return
     }
 
     root.classList.add(theme)
     console.log("Applied theme:", theme, "Classes:", root.classList.toString())
-    
+
     // Force a style recalculation
     root.style.colorScheme = theme === "dark" ? "dark" : "light"
   }, [theme])

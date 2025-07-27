@@ -75,7 +75,6 @@
     @apply bg-background text-foreground;
   }
 }
-
 /* Font size presets */
 .font-size-xs {
   --fs-h1: 1.5rem; /* 24px */
@@ -120,3 +119,4 @@
   max-width: 65ch;
   margin-inline: auto;
 }
+

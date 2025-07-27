@@ -1,23 +1,21 @@
-import { useLocalStorage } from './use-local-storage';
+import { createContext, useContext } from 'react';
 
 export type FontSize = 'xs' | 'sm' | 'md' | 'lg' | 'zen';
 
+interface FontSizeContextType {
+  fontSize: FontSize;
+  setFontSize: (size: FontSize) => void;
+}
+
+export const FontSizeContext = createContext<FontSizeContextType | undefined>(undefined);
+
 export function useFontSize() {
-  const [fontSize, setFontSize] = useLocalStorage<FontSize>('editor-font-size', 'md');
-  const [lastNonZenSize, setLastNonZenSize] = useLocalStorage<FontSize>('editor-last-non-zen', 'md');
+  const context = useContext(FontSizeContext);
+  if (!context) {
+    throw new Error('useFontSize must be used within a FontSizeProvider');
+  }
 
-  const toggleZen = (on: boolean) => {
-    if (on) {
-      if (fontSize !== 'zen') {
-        setLastNonZenSize(fontSize);
-      }
-      setFontSize('zen');
-    } else {
-      setFontSize(lastNonZenSize ?? 'md');
-    }
-  };
+  console.log('useFontSize hook - fontSize:', context.fontSize);
 
-  const isZen = fontSize === 'zen';
-
-  return { fontSize, setFontSize, isZen, toggleZen };
+  return context;
 }

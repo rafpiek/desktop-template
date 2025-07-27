@@ -11,7 +11,7 @@ function HomePage() {
         <header className="flex justify-end mb-8">
           <ThemeToggle />
         </header>
-        
+
         <main className="space-y-12">
           <section className="text-center space-y-6">
             <h1 className="text-6xl font-bold tracking-tight">

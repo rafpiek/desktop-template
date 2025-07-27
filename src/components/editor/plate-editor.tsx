@@ -1,8 +1,7 @@
-'use client';
-
 import * as React from 'react';
 
 import { Plate, usePlateEditor } from 'platejs/react';
+import { type Value } from 'platejs';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
 import { EditorKit } from '@/components/editor/editor-kit';
@@ -10,9 +9,10 @@ import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { Button } from '@/components/ui/button';
-import { useFontSize } from '@/hooks/use-font-size';
+import { useFontSize, type FontSize } from '@/hooks/use-font-size';
 import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 const STORAGE_KEY = 'plate-editor-content';
 
@@ -576,31 +576,36 @@ const defaultValue = [
 export function PlateEditor() {
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
-  const { fontSize, setFontSize, toggleZen } = useFontSize();
 
-  React.useEffect(() => {
-    toggleZen(isZenMode);
-  }, [isZenMode, toggleZen]);
+  const { fontSize } = useFontSize();
 
-  // Load content from localStorage, fallback to default value
-  const [editorValue, setEditorValue] = React.useState(() => {
+  console.log('PlateEditor render - fontSize:', fontSize);
+
+  const [editorValue, setEditorValue] = React.useState<Value>(defaultValue);
+
+  const loadEditorValue = React.useCallback((): Value => {
     if (typeof window === 'undefined') return defaultValue;
 
     try {
       const saved = localStorage.getItem(STORAGE_KEY);
       if (saved) {
-        return JSON.parse(saved);
+        return JSON.parse(saved) as Value;
       }
     } catch (error) {
       console.error('Failed to load editor content:', error);
     }
 
     return defaultValue;
-  });
+  }, []);
 
-    // Save to localStorage whenever editor value changes
+  // Load saved content on mount
   React.useEffect(() => {
-    console.log("saving editor")
+    const value = loadEditorValue();
+    setEditorValue(value);
+  }, []); // Only run on mount
+
+  // Save content when it changes
+  React.useEffect(() => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(editorValue));
     } catch (error) {
@@ -677,7 +682,7 @@ export function PlateEditor() {
   const editor = usePlateEditor({
     plugins: EditorKit,
     value: editorValue,
-  });
+  }, [fontSize]); // Add fontSize as dependency to force re-creation
 
   return (
     <div
@@ -685,7 +690,6 @@ export function PlateEditor() {
         'relative',
         // Only apply CSS fullscreen for web browsers
         !isTauriApp && isZenMode && 'fixed inset-0 z-50 bg-background',
-        `font-size-${fontSize}`
       )}
     >
       <div className="absolute top-4 right-4 z-10 flex gap-2">
@@ -713,30 +717,33 @@ export function PlateEditor() {
         <EditorSettingsSheet />
       </div>
 
-      <Plate
-        editor={editor}
-        onChange={({ value }) => {
-          setEditorValue(value);
-        }}
-      >
-        <EditorContainer
-          className={cn(
-            // For web browsers, apply CSS fullscreen styles
-            !isTauriApp && isZenMode && "h-screen max-h-screen",
-            // For Tauri, adjust height when in zen mode
-            isTauriApp && isZenMode && "h-screen max-h-screen"
-          )}
+      <div className={cn("editor", `font-size-${fontSize}`)}>
+        <h1 key={`font-size-${fontSize}`}>font size: {fontSize}</h1>
+        <Plate
+          editor={editor}
+          onChange={({ value }) => {
+            setEditorValue(value);
+          }}
         >
-          <Editor
-            variant={isZenMode ? "fullWidth" : "demo"}
+          <EditorContainer
             className={cn(
-              isZenMode && "pt-16 h-full min-h-screen"
+              // For web browsers, apply CSS fullscreen styles
+              !isTauriApp && isZenMode && "h-screen max-h-screen",
+              // For Tauri, adjust height when in zen mode
+              isTauriApp && isZenMode && "h-screen max-h-screen"
             )}
-          />
-        </EditorContainer>
+          >
+            <Editor
+              variant={isZenMode ? "fullWidth" : "demo"}
+              className={cn(
+                isZenMode && "pt-16 h-full min-h-screen"
+              )}
+            />
+          </EditorContainer>
 
-        <SettingsDialog />
-      </Plate>
+          <SettingsDialog />
+        </Plate>
+      </div>
     </div>
   );
 }
