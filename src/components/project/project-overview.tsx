@@ -1,15 +1,14 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Target, Clock, FileText } from 'lucide-react';
 import type { Project } from '@/lib/types/project';
-import { uuidv7 } from 'uuidv7';
 
 const mockChapters = [
-  { id: uuidv7(), title: 'Chapter 1: The Beginning', wordCount: 2500, isCompleted: true },
-  { id: uuidv7(), title: 'Chapter 2: Rising Action', wordCount: 3200, isCompleted: true },
-  { id: uuidv7(), title: 'Chapter 3: The Discovery', wordCount: 2800, isCompleted: false },
-  { id: uuidv7(), title: 'Chapter 4: Complications', wordCount: 0, isCompleted: false },
-  { id: uuidv7(), title: 'Chapter 5: Climax', wordCount: 0, isCompleted: false },
-  { id: uuidv7(), title: 'Chapter 6: Resolution', wordCount: 0, isCompleted: false },
+  { id: '019424ec-a96a-7000-8000-000000000001', title: 'Chapter 1: The Beginning', wordCount: 2500, isCompleted: true },
+  { id: '019424ec-a96a-7000-8000-000000000005', title: 'Chapter 2: Rising Action', wordCount: 3200, isCompleted: true },
+  { id: '019424ec-a96a-7000-8000-000000000009', title: 'Chapter 3: The Discovery', wordCount: 2800, isCompleted: false },
+  { id: '019424ec-a96a-7000-8000-000000000010', title: 'Chapter 4: Complications', wordCount: 0, isCompleted: false },
+  { id: '019424ec-a96a-7000-8000-000000000011', title: 'Chapter 5: Climax', wordCount: 0, isCompleted: false },
+  { id: '019424ec-a96a-7000-8000-000000000012', title: 'Chapter 6: Resolution', wordCount: 0, isCompleted: false },
 ];
 
 interface ProjectOverviewProps {

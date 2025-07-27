@@ -65,6 +65,7 @@
     "@radix-ui/react-toolbar": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tauri-apps/api": "^2.7.0",
+    "@types/uuid": "^10.0.0",
     "@udecode/cn": "^49.0.15",
     "@uploadthing/react": "7.3.1",
     "ai": "^4.3.19",
@@ -96,7 +97,7 @@
     "tailwindcss-animate": "^1.0.7",
     "uploadthing": "7.7.2",
     "use-file-picker": "2.1.2",
-    "uuidv7": "^1.0.2",
+    "uuid": "^11.1.0",
     "zod": "^4.0.10"
   },
   "devDependencies": {

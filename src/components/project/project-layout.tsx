@@ -8,47 +8,46 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils';
 import { useProjects } from '@/hooks/use-projects';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
-import { uuidv7 } from 'uuidv7';
 
 // Mock data
 const mockDrafts = [
-  { id: uuidv7(), title: 'Character Backstory Ideas', wordCount: 350, isCompleted: false, createdAt: '2024-01-15' },
-  { id: uuidv7(), title: 'Plot Twist Notes', wordCount: 180, isCompleted: false, createdAt: '2024-01-14' },
-  { id: uuidv7(), title: 'Dialogue Experiments', wordCount: 520, isCompleted: false, createdAt: '2024-01-13' },
+  { id: '019424ec-a96a-7000-8000-00000000000d', title: 'Character Backstory Ideas', wordCount: 350, isCompleted: false, createdAt: '2024-01-15' },
+  { id: '019424ec-a96a-7000-8000-00000000000e', title: 'Plot Twist Notes', wordCount: 180, isCompleted: false, createdAt: '2024-01-14' },
+  { id: '019424ec-a96a-7000-8000-00000000000f', title: 'Dialogue Experiments', wordCount: 520, isCompleted: false, createdAt: '2024-01-13' },
 ];
 
 const mockChapters = [
   { 
-    id: uuidv7(), 
+    id: '019424ec-a96a-7000-8000-000000000001', 
     title: 'Chapter 1: The Beginning', 
     wordCount: 2500, 
     isCompleted: true,
     documents: [
-      { id: uuidv7(), title: 'Opening Scene', wordCount: 1200, isCompleted: true },
-      { id: uuidv7(), title: 'Character Introduction', wordCount: 800, isCompleted: true },
-      { id: uuidv7(), title: 'World Building', wordCount: 500, isCompleted: true },
+      { id: '019424ec-a96a-7000-8000-000000000002', title: 'Opening Scene', wordCount: 1200, isCompleted: true },
+      { id: '019424ec-a96a-7000-8000-000000000003', title: 'Character Introduction', wordCount: 800, isCompleted: true },
+      { id: '019424ec-a96a-7000-8000-000000000004', title: 'World Building', wordCount: 500, isCompleted: true },
     ]
   },
   { 
-    id: uuidv7(), 
+    id: '019424ec-a96a-7000-8000-000000000005', 
     title: 'Chapter 2: Rising Action', 
     wordCount: 3200, 
     isCompleted: true,
     documents: [
-      { id: uuidv7(), title: 'Conflict Introduction', wordCount: 1500, isCompleted: true },
-      { id: uuidv7(), title: 'Character Development', wordCount: 1100, isCompleted: true },
-      { id: uuidv7(), title: 'Plot Advancement', wordCount: 600, isCompleted: true },
+      { id: '019424ec-a96a-7000-8000-000000000006', title: 'Conflict Introduction', wordCount: 1500, isCompleted: true },
+      { id: '019424ec-a96a-7000-8000-000000000007', title: 'Character Development', wordCount: 1100, isCompleted: true },
+      { id: '019424ec-a96a-7000-8000-000000000008', title: 'Plot Advancement', wordCount: 600, isCompleted: true },
     ]
   },
   { 
-    id: uuidv7(), 
+    id: '019424ec-a96a-7000-8000-000000000009', 
     title: 'Chapter 3: The Discovery', 
     wordCount: 2800, 
     isCompleted: false,
     documents: [
-      { id: uuidv7(), title: 'The Revelation', wordCount: 1800, isCompleted: true },
-      { id: uuidv7(), title: 'Consequences', wordCount: 1000, isCompleted: false },
-      { id: uuidv7(), title: 'New Questions', wordCount: 0, isCompleted: false },
+      { id: '019424ec-a96a-7000-8000-00000000000a', title: 'The Revelation', wordCount: 1800, isCompleted: true },
+      { id: '019424ec-a96a-7000-8000-00000000000b', title: 'Consequences', wordCount: 1000, isCompleted: false },
+      { id: '019424ec-a96a-7000-8000-00000000000c', title: 'New Questions', wordCount: 0, isCompleted: false },
     ]
   },
 ];

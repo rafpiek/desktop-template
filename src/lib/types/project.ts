@@ -1,4 +1,5 @@
 import type { MyValue } from '@/components/editor/plate-types';
+import { v7 as uuidv7 } from 'uuid';
 
 // Project Status Types
 export type ProjectStatus = 
@@ -161,16 +162,16 @@ export const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
 };
 
 export const DEFAULT_PROJECT_TAGS: ProjectTag[] = [
-  { id: 'fantasy', name: 'Fantasy', color: '#8b5cf6' },
-  { id: 'scifi', name: 'Sci-Fi', color: '#06b6d4' },
-  { id: 'romance', name: 'Romance', color: '#ec4899' },
-  { id: 'mystery', name: 'Mystery', color: '#6366f1' },
-  { id: 'horror', name: 'Horror', color: '#dc2626' },
-  { id: 'historical', name: 'Historical', color: '#d97706' },
-  { id: 'literary', name: 'Literary Fiction', color: '#059669' },
-  { id: 'ya', name: 'Young Adult', color: '#7c3aed' },
-  { id: 'memoir', name: 'Memoir', color: '#0891b2' },
-  { id: 'biography', name: 'Biography', color: '#065f46' },
+  { id: '019424ec-a96a-7000-8000-000000000013', name: 'Fantasy', color: '#8b5cf6' },
+  { id: '019424ec-a96a-7000-8000-000000000014', name: 'Sci-Fi', color: '#06b6d4' },
+  { id: '019424ec-a96a-7000-8000-000000000015', name: 'Romance', color: '#ec4899' },
+  { id: '019424ec-a96a-7000-8000-000000000016', name: 'Mystery', color: '#6366f1' },
+  { id: '019424ec-a96a-7000-8000-000000000017', name: 'Horror', color: '#dc2626' },
+  { id: '019424ec-a96a-7000-8000-000000000018', name: 'Historical', color: '#d97706' },
+  { id: '019424ec-a96a-7000-8000-000000000019', name: 'Literary Fiction', color: '#059669' },
+  { id: '019424ec-a96a-7000-8000-00000000001a', name: 'Young Adult', color: '#7c3aed' },
+  { id: '019424ec-a96a-7000-8000-00000000001b', name: 'Memoir', color: '#0891b2' },
+  { id: '019424ec-a96a-7000-8000-00000000001c', name: 'Biography', color: '#065f46' },
 ];
 
 // Utility functions
@@ -178,7 +179,7 @@ export function createEmptyProject(input: CreateProjectInput): Project {
   const now = new Date().toISOString();
   
   return {
-    id: crypto.randomUUID(),
+    id: uuidv7(),
     name: input.name,
     description: input.description,
     content: [{ type: 'p', children: [{ text: '' }] }], // Empty paragraph
