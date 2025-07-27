@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, BookOpen, Target, Calendar, Clock, FileText, Plus, MoreHorizontal, Edit3, ChevronRight, ChevronDown, File, ChevronsDown, ChevronsUp, PenTool, FolderOpen, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -170,6 +170,7 @@ export default function ProjectDetailPage() {
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
   };
+
 
   const projectStats = [
     {
