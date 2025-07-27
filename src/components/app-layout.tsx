@@ -12,7 +12,7 @@ export function AppLayout({
   children, 
   title, 
   showNavigation = true,
-  maxWidth = "default" 
+  maxWidth = "default"
 }: AppLayoutProps) {
   const containerClasses = {
     default: "container mx-auto px-4 py-8",

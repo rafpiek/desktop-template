@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
+import { SidebarProvider, useSidebar } from '@/contexts/sidebar-context';
 import { ArrowLeft, BookOpen, Plus, MoreHorizontal, Edit3, ChevronRight, ChevronDown, File, ChevronsDown, ChevronsUp, PenTool, FolderOpen, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/app-layout';
@@ -51,7 +52,7 @@ const mockChapters = [
   },
 ];
 
-export function ProjectLayout() {
+function ProjectLayoutInner() {
   const { id, chapterId, documentId, draftId } = useParams<{ 
     id: string; 
     chapterId?: string; 
@@ -63,7 +64,7 @@ export function ProjectLayout() {
   const { projects } = useProjects();
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set(['1']));
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  const { isCollapsed: isSidebarCollapsed, toggle: toggleSidebar } = useSidebar();
 
   const project = projects.find(p => p.id === id);
   
@@ -122,9 +123,6 @@ export function ProjectLayout() {
     console.log('Creating new draft...');
   };
 
-  const toggleSidebar = () => {
-    setIsSidebarCollapsed(!isSidebarCollapsed);
-  };
 
   return (
     <AppLayout maxWidth="full">
@@ -510,5 +508,13 @@ export function ProjectLayout() {
         </div>
       </div>
     </AppLayout>
+  );
+}
+
+export function ProjectLayout() {
+  return (
+    <SidebarProvider>
+      <ProjectLayoutInner />
+    </SidebarProvider>
   );
 }
