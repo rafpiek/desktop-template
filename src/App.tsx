@@ -4,6 +4,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AppLayout } from "@/components/app-layout"
 import Editor from "./pages/Editor"
 import ProjectsPage from "./pages/projects"
+import { ProjectLayout } from "./components/project/project-layout"
+import { ProjectOverviewWrapper } from "./components/project/project-overview-wrapper"
+import { DocumentView } from "./components/project/document-view"
+import { ChapterOverview } from "./components/project/chapter-overview"
+import { ChaptersOverview } from "./components/project/chapters-overview"
+import { DraftsOverview } from "./components/project/drafts-overview"
 
 function HomePage() {
   return (
@@ -91,6 +97,14 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/editor" element={<Editor />} />
       <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/projects/:id" element={<ProjectLayout />}>
+        <Route index element={<ProjectOverviewWrapper />} />
+        <Route path="chapters" element={<ChaptersOverview />} />
+        <Route path="chapters/:chapterId" element={<ChapterOverview />} />
+        <Route path="chapters/:chapterId/documents/:documentId" element={<DocumentView />} />
+        <Route path="drafts" element={<DraftsOverview />} />
+        <Route path="drafts/:draftId" element={<DocumentView />} />
+      </Route>
     </Routes>
   )
 }
