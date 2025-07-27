@@ -15,6 +15,7 @@ const fontSizeOptions: { name: string; value: FontSize }[] = [
   { name: 'Small', value: 'sm' },
   { name: 'Medium', value: 'md' },
   { name: 'Large', value: 'lg' },
+  { name: 'Zen', value: 'zen' },
 ];
 
 export function EditorSettingsSheet() {

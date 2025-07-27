@@ -574,13 +574,9 @@ const defaultValue = [
 ];
 
 export function PlateEditor() {
-  const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
-  const { fontSize, setFontSize, toggleZen } = useFontSize();
-
-  React.useEffect(() => {
-    toggleZen(isZenMode);
-  }, [isZenMode, toggleZen]);
+  const { fontSize, setFontSize, isZen, toggleZen } = useFontSize();
+  const isZenMode = isZen;
 
   // Load content from localStorage, fallback to default value
   const [editorValue, setEditorValue] = React.useState(() => {
@@ -610,13 +606,7 @@ export function PlateEditor() {
 
   // Handle zen mode toggle
   const toggleZenMode = React.useCallback(async () => {
-    console.log(
-      'toggleZenMode called, isTauriApp:',
-      isTauriApp,
-      'current isZenMode:',
-      isZenMode
-    );
-
+    toggleZen(!isZenMode);
 
     if (isTauriApp) {
       // Use Tauri native fullscreen
@@ -631,20 +621,12 @@ export function PlateEditor() {
 
         await currentWindow.setFullscreen(newFullscreenState);
         console.log('Fullscreen set successfully');
-
-        setIsZenMode(newFullscreenState);
       } catch (error) {
         console.error('Failed to toggle fullscreen:', error);
         console.error('Error details:', error);
-        // Fallback to CSS fullscreen if Tauri fails
-        setIsZenMode(!isZenMode);
       }
-    } else {
-      // Use CSS fullscreen for web
-      console.log('Using CSS fullscreen for web');
-      setIsZenMode(!isZenMode);
     }
-  }, [isTauriApp, isZenMode]);
+  }, [isTauriApp, isZenMode, toggleZen]);
 
   // Disable default keyboard shortcuts for zen mode (button-only control)
   React.useEffect(() => {
