@@ -5,12 +5,13 @@ import {
   SheetTitle,
   SheetTrigger,
 } from '@/components/ui/sheet';
-import { Button } from './ui/button';
+import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
-import { useFontSize, FontSize } from '@/hooks/use-font-size';
+import { useFontSize, type FontSize } from '@/hooks/use-font-size';
 import { cn } from '@udecode/cn';
 
 const fontSizeOptions: { name: string; value: FontSize }[] = [
+  { name: 'Extra Small', value: 'xs' },
   { name: 'Small', value: 'sm' },
   { name: 'Medium', value: 'md' },
   { name: 'Large', value: 'lg' },

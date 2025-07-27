@@ -1,0 +1,5 @@
+---
+alwaysApply: true
+---
+
+- Always import with absolute path using `@/` prefix e.g. `@/components/ui/button`
