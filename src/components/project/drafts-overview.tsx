@@ -1,10 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { PenTool, FileText, Clock, Target } from 'lucide-react';
+import { uuidv7 } from 'uuidv7';
 
 const mockDrafts = [
-  { id: 'draft-1', title: 'Character Backstory Ideas', wordCount: 350, isCompleted: false, createdAt: '2024-01-15' },
-  { id: 'draft-2', title: 'Plot Twist Notes', wordCount: 180, isCompleted: false, createdAt: '2024-01-14' },
-  { id: 'draft-3', title: 'Dialogue Experiments', wordCount: 520, isCompleted: false, createdAt: '2024-01-13' },
+  { id: uuidv7(), title: 'Character Backstory Ideas', wordCount: 350, isCompleted: false, createdAt: '2024-01-15' },
+  { id: uuidv7(), title: 'Plot Twist Notes', wordCount: 180, isCompleted: false, createdAt: '2024-01-14' },
+  { id: uuidv7(), title: 'Dialogue Experiments', wordCount: 520, isCompleted: false, createdAt: '2024-01-13' },
 ];
 
 export function DraftsOverview() {

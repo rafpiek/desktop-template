@@ -1,38 +1,39 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, FileText, Clock, Target } from 'lucide-react';
+import { uuidv7 } from 'uuidv7';
 
 const mockChapters = [
   { 
-    id: '1', 
+    id: uuidv7(), 
     title: 'Chapter 1: The Beginning', 
     wordCount: 2500, 
     isCompleted: true,
     documents: [
-      { id: '1-1', title: 'Opening Scene', wordCount: 1200, isCompleted: true },
-      { id: '1-2', title: 'Character Introduction', wordCount: 800, isCompleted: true },
-      { id: '1-3', title: 'World Building', wordCount: 500, isCompleted: true },
+      { id: uuidv7(), title: 'Opening Scene', wordCount: 1200, isCompleted: true },
+      { id: uuidv7(), title: 'Character Introduction', wordCount: 800, isCompleted: true },
+      { id: uuidv7(), title: 'World Building', wordCount: 500, isCompleted: true },
     ]
   },
   { 
-    id: '2', 
+    id: uuidv7(), 
     title: 'Chapter 2: Rising Action', 
     wordCount: 3200, 
     isCompleted: true,
     documents: [
-      { id: '2-1', title: 'Conflict Introduction', wordCount: 1500, isCompleted: true },
-      { id: '2-2', title: 'Character Development', wordCount: 1100, isCompleted: true },
-      { id: '2-3', title: 'Plot Advancement', wordCount: 600, isCompleted: true },
+      { id: uuidv7(), title: 'Conflict Introduction', wordCount: 1500, isCompleted: true },
+      { id: uuidv7(), title: 'Character Development', wordCount: 1100, isCompleted: true },
+      { id: uuidv7(), title: 'Plot Advancement', wordCount: 600, isCompleted: true },
     ]
   },
   { 
-    id: '3', 
+    id: uuidv7(), 
     title: 'Chapter 3: The Discovery', 
     wordCount: 2800, 
     isCompleted: false,
     documents: [
-      { id: '3-1', title: 'The Revelation', wordCount: 1800, isCompleted: true },
-      { id: '3-2', title: 'Consequences', wordCount: 1000, isCompleted: false },
-      { id: '3-3', title: 'New Questions', wordCount: 0, isCompleted: false },
+      { id: uuidv7(), title: 'The Revelation', wordCount: 1800, isCompleted: true },
+      { id: uuidv7(), title: 'Consequences', wordCount: 1000, isCompleted: false },
+      { id: uuidv7(), title: 'New Questions', wordCount: 0, isCompleted: false },
     ]
   },
 ];

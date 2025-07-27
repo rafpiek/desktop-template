@@ -1,14 +1,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, Target, Clock, FileText } from 'lucide-react';
 import type { Project } from '@/lib/types/project';
+import { uuidv7 } from 'uuidv7';
 
 const mockChapters = [
-  { id: '1', title: 'Chapter 1: The Beginning', wordCount: 2500, isCompleted: true },
-  { id: '2', title: 'Chapter 2: Rising Action', wordCount: 3200, isCompleted: true },
-  { id: '3', title: 'Chapter 3: The Discovery', wordCount: 2800, isCompleted: false },
-  { id: '4', title: 'Chapter 4: Complications', wordCount: 0, isCompleted: false },
-  { id: '5', title: 'Chapter 5: Climax', wordCount: 0, isCompleted: false },
-  { id: '6', title: 'Chapter 6: Resolution', wordCount: 0, isCompleted: false },
+  { id: uuidv7(), title: 'Chapter 1: The Beginning', wordCount: 2500, isCompleted: true },
+  { id: uuidv7(), title: 'Chapter 2: Rising Action', wordCount: 3200, isCompleted: true },
+  { id: uuidv7(), title: 'Chapter 3: The Discovery', wordCount: 2800, isCompleted: false },
+  { id: uuidv7(), title: 'Chapter 4: Complications', wordCount: 0, isCompleted: false },
+  { id: uuidv7(), title: 'Chapter 5: Climax', wordCount: 0, isCompleted: false },
+  { id: uuidv7(), title: 'Chapter 6: Resolution', wordCount: 0, isCompleted: false },
 ];
 
 interface ProjectOverviewProps {
