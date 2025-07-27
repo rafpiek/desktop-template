@@ -6,9 +6,11 @@ import { Plate, usePlateEditor } from 'platejs/react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
 import { EditorKit } from '@/components/editor/editor-kit';
+import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { Button } from '@/components/ui/button';
+import { useFontSize } from '@/hooks/use-font-size';
 import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
 
@@ -574,6 +576,11 @@ const defaultValue = [
 export function PlateEditor() {
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
+  const { fontSize, setFontSize, toggleZen } = useFontSize();
+
+  React.useEffect(() => {
+    toggleZen(isZenMode);
+  }, [isZenMode, toggleZen]);
 
   // Load content from localStorage, fallback to default value
   const [editorValue, setEditorValue] = React.useState(() => {
@@ -603,7 +610,13 @@ export function PlateEditor() {
 
   // Handle zen mode toggle
   const toggleZenMode = React.useCallback(async () => {
-    console.log('toggleZenMode called, isTauriApp:', isTauriApp, 'current isZenMode:', isZenMode);
+    console.log(
+      'toggleZenMode called, isTauriApp:',
+      isTauriApp,
+      'current isZenMode:',
+      isZenMode
+    );
+
 
     if (isTauriApp) {
       // Use Tauri native fullscreen
@@ -656,7 +669,7 @@ export function PlateEditor() {
     return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, [isZenMode, isTauriApp]);
 
-        // Listen for native fullscreen changes (Tauri only) - simplified for now
+  // Listen for native fullscreen changes (Tauri only) - simplified for now
   // React.useEffect(() => {
   //   // TODO: Add back window event listener once basic functionality works
   // }, [isTauriApp]);
@@ -667,33 +680,38 @@ export function PlateEditor() {
   });
 
   return (
-    <div className={cn(
-      "relative",
-      // Only apply CSS fullscreen for web browsers
-      !isTauriApp && isZenMode && "fixed inset-0 z-50 bg-background"
-    )}>
-      {/* Zen Mode Button */}
-      <Button
-        onClick={toggleZenMode}
-        variant="ghost"
-        size="sm"
-        className={cn(
-          "absolute top-4 right-4 z-10 gap-2",
-          isZenMode && "bg-background/80 backdrop-blur-sm hover:bg-background/90"
-        )}
-      >
-        {isZenMode ? (
-          <>
-            <Minimize2 className="h-4 w-4" />
-            Exit Zen
-          </>
-        ) : (
-          <>
-            <Maximize2 className="h-4 w-4" />
-            Zen Mode
-          </>
-        )}
-      </Button>
+    <div
+      className={cn(
+        'relative',
+        // Only apply CSS fullscreen for web browsers
+        !isTauriApp && isZenMode && 'fixed inset-0 z-50 bg-background',
+        `font-size-${fontSize}`
+      )}
+    >
+      <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <Button
+          onClick={toggleZenMode}
+          variant="ghost"
+          size="sm"
+          className={cn(
+            'gap-2',
+            isZenMode && 'bg-background/80 backdrop-blur-sm hover:bg-background/90'
+          )}
+        >
+          {isZenMode ? (
+            <>
+              <Minimize2 className="h-4 w-4" />
+              Exit Zen
+            </>
+          ) : (
+            <>
+              <Maximize2 className="h-4 w-4" />
+              Zen Mode
+            </>
+          )}
+        </Button>
+        <EditorSettingsSheet />
+      </div>
 
       <Plate
         editor={editor}

@@ -1,0 +1,23 @@
+---
+alwaysApply: true
+---
+# Project Structure Overview
+
+- **Frontend root**: `src/`
+  - `app/` – API route handlers (serverless/edge functions) + utils
+      - Nested folders hold specific route handlers (`api/ai`, `api/uploadthing`)
+  - `components/` – React UI components
+      - `editor/` – Plate-based rich-text editor and plugin kits
+      - `ui/` – Small reusable UI components built on Radix & Tailwind
+  - `hooks/` – Custom React hooks
+  - `lib/` – Shared utilities (`uploadthing.ts`, `utils.ts`)
+  - `pages/` – Top-level route components (e.g. `Editor.tsx`)
+  - `assets/` – Static assets used by React
+- **Desktop target**: `src-tauri/` – Rust + Tauri backend, packaged via `tauri.conf.json`
+- **Styling**
+  - TailwindCSS 3.x with variables & dark-mode class (`src/index.css`, `tailwind.config.js`)
+- **Build & Tooling**
+  - Vite 5 config in `vite.config.ts`
+  - Absolute import alias: `@` → `src/`
+
+Keep this directory map in sync when moving or renaming folders.
