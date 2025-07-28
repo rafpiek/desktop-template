@@ -1,15 +1,39 @@
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { PenTool, FileText, Clock, Target } from 'lucide-react';
-
-const mockDrafts = [
-  { id: '019424ec-a96a-7000-8000-00000000000d', title: 'Character Backstory Ideas', wordCount: 350, isCompleted: false, createdAt: '2024-01-15' },
-  { id: '019424ec-a96a-7000-8000-00000000000e', title: 'Plot Twist Notes', wordCount: 180, isCompleted: false, createdAt: '2024-01-14' },
-  { id: '019424ec-a96a-7000-8000-00000000000f', title: 'Dialogue Experiments', wordCount: 520, isCompleted: false, createdAt: '2024-01-13' },
-];
+import { Button } from '@/components/ui/button';
+import { PenTool, FileText, Clock, Target, Plus } from 'lucide-react';
+import { useProject } from '@/contexts/project-context';
 
 export function DraftsOverview() {
-  const totalWords = mockDrafts.reduce((sum, draft) => sum + draft.wordCount, 0);
-  const totalDrafts = mockDrafts.length;
+  const { id: projectId } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const { getDraftDocuments, createDocumentWithUpdates } = useProject();
+  
+  if (!projectId) {
+    return <div>Project not found</div>;
+  }
+
+  const draftDocuments = getDraftDocuments(projectId);
+  const totalWords = draftDocuments.reduce((sum, draft) => sum + draft.wordCount, 0);
+  const totalDrafts = draftDocuments.length;
+
+  const handleCreateNewDocument = () => {
+    console.log('Creating new document for project:', projectId);
+    try {
+      const newDocument = createDocumentWithUpdates({
+        title: 'New Document',
+        projectId,
+        // No chapterId means it's a draft document
+      });
+      
+      console.log('Created document:', newDocument);
+      
+      // Navigate to the new document page
+      navigate(`/projects/${projectId}/drafts/${newDocument.id}`);
+    } catch (error) {
+      console.error('Error creating document:', error);
+    }
+  };
 
   const draftsStats = [
     {
@@ -26,7 +50,7 @@ export function DraftsOverview() {
     },
     {
       title: 'Average Words',
-      value: Math.round(totalWords / totalDrafts).toLocaleString(),
+      value: totalDrafts > 0 ? Math.round(totalWords / totalDrafts).toLocaleString() : '0',
       icon: Target,
       description: 'Per draft'
     },
@@ -40,11 +64,24 @@ export function DraftsOverview() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">Draft Documents</h1>
-        <p className="text-muted-foreground">
-          Manage your draft documents and ideas
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">Draft Documents</h1>
+          <p className="text-muted-foreground">
+            Manage your draft documents and ideas
+          </p>
+        </div>
+        <Button 
+          onClick={(e) => {
+            e.preventDefault();
+            console.log('Button clicked!');
+            handleCreateNewDocument();
+          }} 
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          New Document
+        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -80,26 +117,49 @@ export function DraftsOverview() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {mockDrafts.map((draft) => (
-              <div key={draft.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">{draft.title}</h3>
-                  <div className="flex items-center gap-4 mt-1">
-                    <p className="text-sm text-muted-foreground">
-                      {draft.wordCount.toLocaleString()} words
-                    </p>
-                    <p className="text-sm text-muted-foreground">
-                      Created {new Date(draft.createdAt).toLocaleDateString()}
-                    </p>
+            {draftDocuments.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <PenTool className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">No draft documents yet</p>
+                <p className="text-sm mb-4">Start writing by creating your first draft document</p>
+                <Button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('Create First Document clicked!');
+                    handleCreateNewDocument();
+                  }} 
+                  className="flex items-center gap-2 mx-auto"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create First Document
+                </Button>
+              </div>
+            ) : (
+              draftDocuments.map((draft) => (
+                <div 
+                  key={draft.id} 
+                  className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                  onClick={() => navigate(`/projects/${projectId}/drafts/${draft.id}`)}
+                >
+                  <div>
+                    <h3 className="font-medium">{draft.title}</h3>
+                    <div className="flex items-center gap-4 mt-1">
+                      <p className="text-sm text-muted-foreground">
+                        {draft.wordCount.toLocaleString()} words
+                      </p>
+                      <p className="text-sm text-muted-foreground">
+                        Created {new Date(draft.createdAt).toLocaleDateString()}
+                      </p>
+                    </div>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">
+                      {draft.status.charAt(0).toUpperCase() + draft.status.slice(1)}
+                    </span>
                   </div>
                 </div>
-                <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">
-                    Draft
-                  </span>
-                </div>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

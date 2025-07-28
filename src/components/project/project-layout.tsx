@@ -1,56 +1,16 @@
 import { useState } from 'react';
 import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider, useSidebar } from '@/contexts/sidebar-context';
+import { ProjectProvider, useProject } from '@/contexts/project-context';
 import { ArrowLeft, BookOpen, Plus, MoreHorizontal, Edit3, ChevronRight, ChevronDown, File, ChevronsDown, ChevronsUp, PenTool, FolderOpen, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/app-layout';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
-import { useProjects } from '@/hooks/use-projects';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
 
-// Mock data
-const mockDrafts = [
-  { id: '019424ec-a96a-7000-8000-00000000000d', title: 'Character Backstory Ideas', wordCount: 350, isCompleted: false, createdAt: '2024-01-15' },
-  { id: '019424ec-a96a-7000-8000-00000000000e', title: 'Plot Twist Notes', wordCount: 180, isCompleted: false, createdAt: '2024-01-14' },
-  { id: '019424ec-a96a-7000-8000-00000000000f', title: 'Dialogue Experiments', wordCount: 520, isCompleted: false, createdAt: '2024-01-13' },
-];
 
-const mockChapters = [
-  { 
-    id: '019424ec-a96a-7000-8000-000000000001', 
-    title: 'Chapter 1: The Beginning', 
-    wordCount: 2500, 
-    isCompleted: true,
-    documents: [
-      { id: '019424ec-a96a-7000-8000-000000000002', title: 'Opening Scene', wordCount: 1200, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000003', title: 'Character Introduction', wordCount: 800, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000004', title: 'World Building', wordCount: 500, isCompleted: true },
-    ]
-  },
-  { 
-    id: '019424ec-a96a-7000-8000-000000000005', 
-    title: 'Chapter 2: Rising Action', 
-    wordCount: 3200, 
-    isCompleted: true,
-    documents: [
-      { id: '019424ec-a96a-7000-8000-000000000006', title: 'Conflict Introduction', wordCount: 1500, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000007', title: 'Character Development', wordCount: 1100, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000008', title: 'Plot Advancement', wordCount: 600, isCompleted: true },
-    ]
-  },
-  { 
-    id: '019424ec-a96a-7000-8000-000000000009', 
-    title: 'Chapter 3: The Discovery', 
-    wordCount: 2800, 
-    isCompleted: false,
-    documents: [
-      { id: '019424ec-a96a-7000-8000-00000000000a', title: 'The Revelation', wordCount: 1800, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-00000000000b', title: 'Consequences', wordCount: 1000, isCompleted: false },
-      { id: '019424ec-a96a-7000-8000-00000000000c', title: 'New Questions', wordCount: 0, isCompleted: false },
-    ]
-  },
-];
+import { AddChapterDialog } from './add-chapter-dialog';
 
 function ProjectLayoutInner() {
   const { id, chapterId, documentId, draftId } = useParams<{ 
@@ -61,12 +21,25 @@ function ProjectLayoutInner() {
   }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const { projects } = useProjects();
-  const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set(['1']));
+  const { 
+    getProject, 
+    getDraftDocuments, 
+    getProjectChapters, 
+    getChapterDocuments,
+    createDocumentWithUpdates,
+    createChapter,
+    getProjectStats, 
+    refreshProjectData
+  } = useProject();
+  const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
   const { isCollapsed: isSidebarCollapsed, toggle: toggleSidebar } = useSidebar();
+  const [isAddChapterDialogOpen, setIsAddChapterDialogOpen] = useState(false);
 
-  const project = projects.find(p => p.id === id);
+  const project = getProject(id!);
+  const draftDocuments = id ? getDraftDocuments(id) : [];
+  const projectChapters = id ? getProjectChapters(id) : [];
+  const stats = id ? getProjectStats(id) : { totalDrafts: 0, draftWords: 0 };
   
   if (!project) {
     return (
@@ -116,11 +89,49 @@ function ProjectLayoutInner() {
   };
 
   const expandAll = () => {
-    setExpandedChapters(new Set(mockChapters.map(c => c.id)));
+    setExpandedChapters(new Set(projectChapters.map(c => c.id)));
+  };
+
+  const handleCreateNewChapter = (title: string) => {
+    if (!id) return;
+    const newChapter = createChapter({
+      projectId: id,
+      title,
+    });
+    refreshProjectData(id);
+    navigate(`/projects/${id}/chapters/${newChapter.id}`);
   };
 
   const createNewDraft = () => {
-    console.log('Creating new draft...');
+    if (!id) {
+      console.error('No project ID found');
+      return;
+    }
+    
+    try {
+      console.log('Creating new draft document for project:', id);
+      console.log('Current draft documents before creation:', getDraftDocuments(id));
+      
+      const newDocument = createDocumentWithUpdates({
+        title: 'New Document',
+        projectId: id,
+        // No chapterId means it's a draft document
+      });
+      
+      console.log('Created document:', newDocument);
+      console.log('Current draft documents after creation:', getDraftDocuments(id));
+      console.log('localStorage documents:', JSON.parse(localStorage.getItem('zeyn-documents') || '[]'));
+      
+      const targetUrl = `/projects/${id}/drafts/${newDocument.id}`;
+      console.log('Navigating to:', targetUrl);
+      
+      // Navigate to the new document page
+      navigate(targetUrl);
+      
+      console.log('Navigation completed');
+    } catch (error) {
+      console.error('Error creating document:', error);
+    }
   };
 
 
@@ -216,7 +227,7 @@ function ProjectLayoutInner() {
                         Drafts
                       </p>
                       <p className="text-xs text-muted-foreground">
-                        {mockDrafts.length} documents • {mockDrafts.reduce((sum, d) => sum + d.wordCount, 0).toLocaleString()} words
+                        {stats.totalDrafts} documents • {stats.draftWords.toLocaleString()} words
                       </p>
                     </div>
                   </div>
@@ -240,12 +251,12 @@ function ProjectLayoutInner() {
                 className={cn(
                   "ml-6 overflow-hidden transition-all duration-300 ease-in-out",
                   isDraftsExpanded 
-                    ? "max-h-96 opacity-100" 
+                    ? "max-h-[60vh] opacity-100 overflow-y-auto" 
                     : "max-h-0 opacity-0"
                 )}
               >
                 <div className="space-y-1 pt-1">
-                  {mockDrafts.map((draft) => (
+                  {draftDocuments.map((draft) => (
                     <div
                       key={draft.id}
                       className={cn(
@@ -331,156 +342,159 @@ function ProjectLayoutInner() {
                     >
                       <ChevronsUp className="h-3 w-3" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7">
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsAddChapterDialogOpen(true)}>
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
                 
                 <div className="space-y-1">
-                  {mockChapters.map((chapter) => (
-                    <div key={chapter.id} className="space-y-1">
-                      {/* Chapter Header */}
-                      <div
-                        className={cn(
-                          "p-3 rounded-lg transition-all duration-200 group",
-                          chapterId === chapter.id && !documentId
-                            ? "bg-primary/20 border-4 border-primary shadow-lg ring-2 ring-primary/30"
-                            : "border border-border hover:bg-muted/50 hover:border-muted-foreground/30"
-                        )}
-                      >
-                        <div className="flex items-center justify-between">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-6 w-6"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              toggleChapterExpand(chapter.id);
-                            }}
-                            title="Expand/Collapse Documents"
-                          >
-                            {expandedChapters.has(chapter.id) ? (
-                              <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
-                            ) : (
-                              <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
-                            )}
-                          </Button>
-                          <div 
-                            className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
-                            onClick={() => handleChapterSelect(chapter.id)}
-                          >
-                            <div className="flex-1 min-w-0">
-                              <p className="font-medium text-sm truncate">{chapter.title}</p>
-                              <div className="flex items-center gap-3 mt-1">
-                                <span className="text-xs text-muted-foreground">
-                                  {chapter.wordCount.toLocaleString()} words
-                                </span>
-                                <span className="text-xs text-muted-foreground">
-                                  {chapter.documents.length} documents
-                                </span>
-                                {chapter.isCompleted && (
-                                  <span className="text-xs text-green-600 dark:text-green-400">
-                                    ✓ Complete
-                                  </span>
-                                )}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex items-center gap-1">
+                  {projectChapters.map((chapter) => {
+                    const chapterDocuments = getChapterDocuments(chapter.id);
+                    return (
+                      <div key={chapter.id} className="space-y-1">
+                        {/* Chapter Header */}
+                        <div
+                          className={cn(
+                            "p-3 rounded-lg transition-all duration-200 group",
+                            chapterId === chapter.id && !documentId
+                              ? "bg-primary/20 border-4 border-primary shadow-lg ring-2 ring-primary/30"
+                              : "border border-border hover:bg-muted/50 hover:border-muted-foreground/30"
+                          )}
+                        >
+                          <div className="flex items-center justify-between">
                             <Button
                               variant="ghost"
                               size="icon"
                               className="h-6 w-6"
-                              onClick={() => handleChapterSelect(chapter.id)}
-                              title="View Chapter Details"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                toggleChapterExpand(chapter.id);
+                              }}
+                              title="Expand/Collapse Documents"
                             >
-                              <BookOpen className="h-4 w-4 text-muted-foreground" />
+                              {expandedChapters.has(chapter.id) ? (
+                                <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
+                              ) : (
+                                <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
+                              )}
                             </Button>
-                            <DropdownMenu>
-                              <DropdownMenuTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="icon" 
-                                  className="h-6 w-6 opacity-0 group-hover:opacity-100"
-                                  onClick={(e) => e.stopPropagation()}
-                                >
-                                  <MoreHorizontal className="h-3 w-3" />
-                                </Button>
-                              </DropdownMenuTrigger>
-                              <DropdownMenuContent align="end">
-                                <DropdownMenuItem>Edit Chapter</DropdownMenuItem>
-                                <DropdownMenuItem>Add Document</DropdownMenuItem>
-                                <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                              </DropdownMenuContent>
-                            </DropdownMenu>
+                            <div 
+                              className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
+                              onClick={() => handleChapterSelect(chapter.id)}
+                            >
+                              <div className="flex-1 min-w-0">
+                                <p className="font-medium text-sm truncate">{chapter.title}</p>
+                                <div className="flex items-center gap-3 mt-1">
+                                  <span className="text-xs text-muted-foreground">
+                                    {chapter.wordCount.toLocaleString()} words
+                                  </span>
+                                  <span className="text-xs text-muted-foreground">
+                                    {chapterDocuments.length} documents
+                                  </span>
+                                  {chapter.isCompleted && (
+                                    <span className="text-xs text-green-600 dark:text-green-400">
+                                      ✓ Complete
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+                            </div>
+                            <div className="flex items-center gap-1">
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={() => handleChapterSelect(chapter.id)}
+                                title="View Chapter Details"
+                              >
+                                <BookOpen className="h-4 w-4 text-muted-foreground" />
+                              </Button>
+                              <DropdownMenu>
+                                <DropdownMenuTrigger asChild>
+                                  <Button 
+                                    variant="ghost" 
+                                    size="icon" 
+                                    className="h-6 w-6 opacity-0 group-hover:opacity-100"
+                                    onClick={(e) => e.stopPropagation()}
+                                  >
+                                    <MoreHorizontal className="h-3 w-3" />
+                                  </Button>
+                                </DropdownMenuTrigger>
+                                <DropdownMenuContent align="end">
+                                  <DropdownMenuItem>Edit Chapter</DropdownMenuItem>
+                                  <DropdownMenuItem>Add Document</DropdownMenuItem>
+                                  <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                                  <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                </DropdownMenuContent>
+                              </DropdownMenu>
+                            </div>
+                          </div>
+                        </div>
+
+                        {/* Documents */}
+                        <div 
+                          className={cn(
+                            "ml-6 overflow-hidden transition-all duration-300 ease-in-out",
+                            expandedChapters.has(chapter.id) 
+                              ? "max-h-[50vh] opacity-100 overflow-y-auto" 
+                              : "max-h-0 opacity-0"
+                          )}
+                        >
+                          <div className="space-y-1 pt-1">
+                            {chapterDocuments.map((document) => (
+                              <div
+                                key={document.id}
+                                className={cn(
+                                  "p-2 rounded-md cursor-pointer transition-all duration-200 group",
+                                  documentId === document.id
+                                    ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-2 border-blue-400 shadow-md"
+                                    : "bg-muted/40 border border-muted-foreground/20 hover:bg-muted/60 hover:border-muted-foreground/40 hover:shadow-sm"
+                                )}
+                                onClick={() => handleDocumentSelect(document.id, chapter.id)}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <div className="flex items-center gap-2 flex-1 min-w-0">
+                                    <File className="h-3 w-3 text-muted-foreground transition-colors duration-200" />
+                                    <div className="flex-1 min-w-0">
+                                      <p className="text-xs font-medium truncate">{document.title}</p>
+                                      <div className="flex items-center gap-2 mt-0.5">
+                                        <span className="text-xs text-muted-foreground">
+                                          {document.wordCount.toLocaleString()} words
+                                        </span>
+                                        {document.isCompleted && (
+                                          <span className="text-xs text-green-600 dark:text-green-400">
+                                            ✓
+                                          </span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button 
+                                        variant="ghost" 
+                                        size="icon" 
+                                        className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+                                        onClick={(e) => e.stopPropagation()}
+                                      >
+                                        <MoreHorizontal className="h-2 w-2" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem>Edit Document</DropdownMenuItem>
+                                      <DropdownMenuItem>Duplicate</DropdownMenuItem>
+                                      <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                  </div>
+                              </div>
+                            ))}
                           </div>
                         </div>
                       </div>
-
-                      {/* Documents */}
-                      <div 
-                        className={cn(
-                          "ml-6 overflow-hidden transition-all duration-300 ease-in-out",
-                          expandedChapters.has(chapter.id) 
-                            ? "max-h-96 opacity-100" 
-                            : "max-h-0 opacity-0"
-                        )}
-                      >
-                        <div className="space-y-1 pt-1">
-                          {chapter.documents.map((document) => (
-                            <div
-                              key={document.id}
-                              className={cn(
-                                "p-2 rounded-md cursor-pointer transition-all duration-200 group",
-                                documentId === document.id
-                                  ? "bg-gradient-to-r from-blue-50 to-indigo-50 dark:from-blue-950/50 dark:to-indigo-950/50 border-2 border-blue-400 shadow-md"
-                                  : "bg-muted/40 border border-muted-foreground/20 hover:bg-muted/60 hover:border-muted-foreground/40 hover:shadow-sm"
-                              )}
-                              onClick={() => handleDocumentSelect(document.id, chapter.id)}
-                            >
-                              <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2 flex-1 min-w-0">
-                                  <File className="h-3 w-3 text-muted-foreground transition-colors duration-200" />
-                                  <div className="flex-1 min-w-0">
-                                    <p className="text-xs font-medium truncate">{document.title}</p>
-                                    <div className="flex items-center gap-2 mt-0.5">
-                                      <span className="text-xs text-muted-foreground">
-                                        {document.wordCount.toLocaleString()} words
-                                      </span>
-                                      {document.isCompleted && (
-                                        <span className="text-xs text-green-600 dark:text-green-400">
-                                          ✓
-                                        </span>
-                                      )}
-                                    </div>
-                                  </div>
-                                </div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button 
-                                      variant="ghost" 
-                                      size="icon" 
-                                      className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                      onClick={(e) => e.stopPropagation()}
-                                    >
-                                      <MoreHorizontal className="h-2 w-2" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem>Edit Document</DropdownMenuItem>
-                                    <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                    <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               </div>
             </div>
@@ -507,14 +521,21 @@ function ProjectLayoutInner() {
           </div>
         </div>
       </div>
+      <AddChapterDialog
+        isOpen={isAddChapterDialogOpen}
+        onClose={() => setIsAddChapterDialogOpen(false)}
+        onSubmit={handleCreateNewChapter}
+      />
     </AppLayout>
   );
 }
 
 export function ProjectLayout() {
   return (
-    <SidebarProvider>
-      <ProjectLayoutInner />
-    </SidebarProvider>
+    <ProjectProvider>
+      <SidebarProvider>
+        <ProjectLayoutInner />
+      </SidebarProvider>
+    </ProjectProvider>
   );
 }

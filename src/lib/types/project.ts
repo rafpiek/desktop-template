@@ -30,6 +30,61 @@ export interface ProjectTag {
   color?: string;     // Hex color for visual distinction
 }
 
+// Document Status Types
+export type DocumentStatus = 
+  | 'draft'           // Initial draft state
+  | 'review'          // Under review
+  | 'complete'        // Finished
+  | 'archived';       // No longer active
+
+// Document Interface
+export interface Document {
+  id: string;
+  title: string;
+  content: MyValue;   // Plate.js editor content
+  wordCount: number;  // Auto-calculated word count
+  
+  // Metadata
+  status: DocumentStatus;
+  tags: ProjectTag[];
+  
+  // Timestamps
+  createdAt: string;  // ISO string
+  updatedAt: string;  // ISO string
+  
+  // Relationships
+  projectId: string;  // Parent project ID
+  chapterId?: string; // Parent chapter ID (null for drafts)
+  
+  // Settings
+  isCompleted: boolean;
+  
+  // Optional metadata
+  notes?: string;
+}
+
+// Chapter Interface
+export interface Chapter {
+  id: string;
+  title: string;
+  description?: string;
+  
+  // Metadata
+  order: number;      // Chapter order in project
+  isCompleted: boolean;
+  
+  // Timestamps
+  createdAt: string;  // ISO string
+  updatedAt: string;  // ISO string
+  
+  // Relationships
+  projectId: string;  // Parent project ID
+  documentIds: string[]; // Document IDs in this chapter
+  
+  // Calculated fields (computed from documents)
+  wordCount: number;  // Sum of all document word counts
+}
+
 // Core Project Interface
 export interface Project {
   id: string;
@@ -57,9 +112,52 @@ export interface Project {
   isFavorite: boolean;
   isArchived: boolean;
   
+  // Relationships
+  chapterIds: string[]; // Chapter IDs in this project
+  
   // Optional metadata
   genre?: string;
   notes?: string;
+}
+
+// Document Creation Input
+export interface CreateDocumentInput {
+  title: string;
+  content?: MyValue;
+  status?: DocumentStatus;
+  tags?: ProjectTag[];
+  projectId: string;
+  chapterId?: string; // null for drafts
+  notes?: string;
+}
+
+// Document Update Input
+export interface UpdateDocumentInput {
+  id: string;
+  title?: string;
+  content?: MyValue;
+  status?: DocumentStatus;
+  tags?: ProjectTag[];
+  chapterId?: string;
+  isCompleted?: boolean;
+  notes?: string;
+}
+
+// Chapter Creation Input
+export interface CreateChapterInput {
+  title: string;
+  description?: string;
+  projectId: string;
+  order?: number; // auto-calculated if not provided
+}
+
+// Chapter Update Input
+export interface UpdateChapterInput {
+  id: string;
+  title?: string;
+  description?: string;
+  order?: number;
+  isCompleted?: boolean;
 }
 
 // Project Creation Input
@@ -152,6 +250,13 @@ export const PROJECT_LABEL_LABELS: Record<ProjectLabel, string> = {
   worldbuilding: 'Worldbuilding',
 };
 
+export const DOCUMENT_STATUS_LABELS: Record<DocumentStatus, string> = {
+  draft: 'Draft',
+  review: 'Review',
+  complete: 'Complete',
+  archived: 'Archived',
+};
+
 export const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
   draft: '#6b7280',      // gray
   'in-progress': '#3b82f6', // blue
@@ -159,6 +264,13 @@ export const PROJECT_STATUS_COLORS: Record<ProjectStatus, string> = {
   completed: '#10b981',   // emerald
   published: '#8b5cf6',   // violet
   archived: '#6b7280',    // gray
+};
+
+export const DOCUMENT_STATUS_COLORS: Record<DocumentStatus, string> = {
+  draft: '#f59e0b',      // amber
+  review: '#3b82f6',     // blue
+  complete: '#10b981',   // emerald
+  archived: '#6b7280',   // gray
 };
 
 export const DEFAULT_PROJECT_TAGS: ProjectTag[] = [
@@ -193,8 +305,45 @@ export function createEmptyProject(input: CreateProjectInput): Project {
     deadline: input.deadline,
     isFavorite: false,
     isArchived: false,
+    chapterIds: [],
     genre: input.genre,
     notes: input.notes,
+  };
+}
+
+export function createEmptyDocument(input: CreateDocumentInput): Document {
+  const now = new Date().toISOString();
+  
+  return {
+    id: uuidv7(),
+    title: input.title || 'New Document',
+    content: input.content || [{ type: 'p', children: [{ text: '' }] }], // Empty paragraph
+    wordCount: 0,
+    status: input.status || 'draft',
+    tags: input.tags || [],
+    createdAt: now,
+    updatedAt: now,
+    projectId: input.projectId,
+    chapterId: input.chapterId,
+    isCompleted: false,
+    notes: input.notes,
+  };
+}
+
+export function createEmptyChapter(input: CreateChapterInput): Chapter {
+  const now = new Date().toISOString();
+  
+  return {
+    id: uuidv7(),
+    title: input.title,
+    description: input.description,
+    order: input.order || 1,
+    isCompleted: false,
+    createdAt: now,
+    updatedAt: now,
+    projectId: input.projectId,
+    documentIds: [],
+    wordCount: 0,
   };
 }
 

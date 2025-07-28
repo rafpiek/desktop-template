@@ -1,54 +1,26 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { BookOpen, FileText, Clock, Target } from 'lucide-react';
-
-const mockChapters = [
-  { 
-    id: '019424ec-a96a-7000-8000-000000000001', 
-    title: 'Chapter 1: The Beginning', 
-    wordCount: 2500, 
-    isCompleted: true,
-    documents: [
-      { id: '019424ec-a96a-7000-8000-000000000002', title: 'Opening Scene', wordCount: 1200, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000003', title: 'Character Introduction', wordCount: 800, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000004', title: 'World Building', wordCount: 500, isCompleted: true },
-    ]
-  },
-  { 
-    id: '019424ec-a96a-7000-8000-000000000005', 
-    title: 'Chapter 2: Rising Action', 
-    wordCount: 3200, 
-    isCompleted: true,
-    documents: [
-      { id: '019424ec-a96a-7000-8000-000000000006', title: 'Conflict Introduction', wordCount: 1500, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000007', title: 'Character Development', wordCount: 1100, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-000000000008', title: 'Plot Advancement', wordCount: 600, isCompleted: true },
-    ]
-  },
-  { 
-    id: '019424ec-a96a-7000-8000-000000000009', 
-    title: 'Chapter 3: The Discovery', 
-    wordCount: 2800, 
-    isCompleted: false,
-    documents: [
-      { id: '019424ec-a96a-7000-8000-00000000000a', title: 'The Revelation', wordCount: 1800, isCompleted: true },
-      { id: '019424ec-a96a-7000-8000-00000000000b', title: 'Consequences', wordCount: 1000, isCompleted: false },
-      { id: '019424ec-a96a-7000-8000-00000000000c', title: 'New Questions', wordCount: 0, isCompleted: false },
-    ]
-  },
-];
+import { useProjectData } from '@/hooks/use-project-data';
 
 export function ChapterOverview() {
-  const { chapterId } = useParams<{ chapterId: string }>();
+  const { id: projectId, chapterId } = useParams<{ id: string; chapterId: string }>();
+  const navigate = useNavigate();
+  const { chapters, documents } = useProjectData();
   
-  const chapter = mockChapters.find(c => c.id === chapterId);
+  if (!projectId || !chapterId) {
+    return <div>Chapter not found</div>;
+  }
+
+  const chapter = chapters.getChapter(chapterId);
+  const chapterDocuments = documents.getDocumentsByChapter(chapterId);
   
   if (!chapter) {
     return <div>Chapter not found</div>;
   }
 
-  const completedDocuments = chapter.documents.filter(d => d.isCompleted).length;
-  const totalDocuments = chapter.documents.length;
+  const completedDocuments = chapterDocuments.filter(d => d.isCompleted).length;
+  const totalDocuments = chapterDocuments.length;
 
   const chapterStats = [
     {
@@ -119,30 +91,42 @@ export function ChapterOverview() {
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
-            {chapter.documents.map((document) => (
-              <div key={document.id} className="flex items-center justify-between p-4 border rounded-lg">
-                <div>
-                  <h3 className="font-medium">{document.title}</h3>
-                  <p className="text-sm text-muted-foreground">
-                    {document.wordCount.toLocaleString()} words
-                  </p>
-                </div>
-                <div className="flex items-center gap-2">
-                  {document.isCompleted && (
-                    <span className="text-green-600 dark:text-green-400 text-sm">
-                      ✓ Complete
-                    </span>
-                  )}
-                  <span className={`px-2 py-1 rounded-full text-xs ${
-                    document.isCompleted 
-                      ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
-                      : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
-                  }`}>
-                    {document.isCompleted ? 'Done' : 'In Progress'}
-                  </span>
-                </div>
+            {chapterDocuments.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p className="text-lg font-medium mb-2">No documents in this chapter yet</p>
+                <p className="text-sm">Add documents to start writing this chapter</p>
               </div>
-            ))}
+            ) : (
+              chapterDocuments.map((document) => (
+                <div 
+                  key={document.id} 
+                  className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                  onClick={() => navigate(`/projects/${projectId}/chapters/${chapterId}/documents/${document.id}`)}
+                >
+                  <div>
+                    <h3 className="font-medium">{document.title}</h3>
+                    <p className="text-sm text-muted-foreground">
+                      {document.wordCount.toLocaleString()} words
+                    </p>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    {document.isCompleted && (
+                      <span className="text-green-600 dark:text-green-400 text-sm">
+                        ✓ Complete
+                      </span>
+                    )}
+                    <span className={`px-2 py-1 rounded-full text-xs ${
+                      document.isCompleted 
+                        ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300'
+                        : 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300'
+                    }`}>
+                      {document.isCompleted ? 'Done' : document.status.charAt(0).toUpperCase() + document.status.slice(1)}
+                    </span>
+                  </div>
+                </div>
+              ))
+            )}
           </div>
         </CardContent>
       </Card>

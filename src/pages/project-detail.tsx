@@ -7,6 +7,7 @@ import { AppLayout } from '@/components/app-layout';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { useProjects } from '@/hooks/use-projects';
+import { useProjectData } from '@/hooks/use-project-data';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
 
 // Mock draft documents (outside chapters)
@@ -92,6 +93,7 @@ export default function ProjectDetailPage() {
   }>();
   const navigate = useNavigate();
   const { projects } = useProjects();
+  const { createDocumentWithUpdates } = useProjectData();
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set(['1']));
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
@@ -163,8 +165,23 @@ export default function ProjectDetailPage() {
   };
 
   const createNewDraft = () => {
-    // This would create a new draft document
-    console.log('Creating new draft...');
+    if (!id) return;
+    
+    try {
+      console.log('Creating new draft document for project:', id);
+      const newDocument = createDocumentWithUpdates({
+        title: 'New Document',
+        projectId: id,
+        // No chapterId means it's a draft document
+      });
+      
+      console.log('Created document:', newDocument);
+      
+      // Navigate to the new document page
+      navigate(`/projects/${id}/drafts/${newDocument.id}`);
+    } catch (error) {
+      console.error('Error creating document:', error);
+    }
   };
 
   const toggleSidebar = () => {
@@ -257,7 +274,15 @@ export default function ProjectDetailPage() {
               <p className="text-sm text-muted-foreground mb-3">{project.description}</p>
             )}
 
-            <Button className="w-full gap-2" size="sm" onClick={createNewDraft}>
+            <Button 
+              className="w-full gap-2" 
+              size="sm" 
+              onClick={(e) => {
+                e.preventDefault();
+                console.log('Start Writing button clicked!');
+                createNewDraft();
+              }}
+            >
               <Edit3 className="h-4 w-4" />
               Start Writing
             </Button>
@@ -307,6 +332,7 @@ export default function ProjectDetailPage() {
                   className="h-6 w-6"
                   onClick={(e) => {
                     e.stopPropagation();
+                    console.log('Drafts plus button clicked!');
                     createNewDraft();
                   }}
                   title="Create New Draft"
@@ -655,7 +681,14 @@ export default function ProjectDetailPage() {
                   <div className="mb-8">
                     <div className="flex items-center justify-between mb-4">
                       <h2 className="text-xl font-semibold">All Drafts</h2>
-                      <Button onClick={createNewDraft} className="gap-2">
+                      <Button 
+                        onClick={(e) => {
+                          e.preventDefault();
+                          console.log('New Draft button clicked!');
+                          createNewDraft();
+                        }} 
+                        className="gap-2"
+                      >
                         <Plus className="h-4 w-4" />
                         New Draft
                       </Button>

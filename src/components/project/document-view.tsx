@@ -1,92 +1,135 @@
 import { useParams } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { TooltipProvider } from '@/components/ui/tooltip';
 import { X, Plus, ChevronRight } from 'lucide-react';
-
-const mockChapters = [
-  { id: '019424ec-a96a-7000-8000-000000000001', title: 'Chapter 1: The Beginning', documents: [
-    { id: '019424ec-a96a-7000-8000-000000000002', title: 'Opening Scene', wordCount: 1200, isCompleted: true },
-    { id: '019424ec-a96a-7000-8000-000000000003', title: 'Character Introduction', wordCount: 800, isCompleted: true },
-    { id: '019424ec-a96a-7000-8000-000000000004', title: 'World Building', wordCount: 500, isCompleted: true },
-  ]},
-  { id: '019424ec-a96a-7000-8000-000000000005', title: 'Chapter 2: Rising Action', documents: [
-    { id: '019424ec-a96a-7000-8000-000000000006', title: 'Conflict Introduction', wordCount: 1500, isCompleted: true },
-    { id: '019424ec-a96a-7000-8000-000000000007', title: 'Character Development', wordCount: 1100, isCompleted: true },
-    { id: '019424ec-a96a-7000-8000-000000000008', title: 'Plot Advancement', wordCount: 600, isCompleted: true },
-  ]},
-  { id: '019424ec-a96a-7000-8000-000000000009', title: 'Chapter 3: The Discovery', documents: [
-    { id: '019424ec-a96a-7000-8000-00000000000a', title: 'The Revelation', wordCount: 1800, isCompleted: true },
-    { id: '019424ec-a96a-7000-8000-00000000000b', title: 'Consequences', wordCount: 1000, isCompleted: false },
-    { id: '019424ec-a96a-7000-8000-00000000000c', title: 'New Questions', wordCount: 0, isCompleted: false },
-  ]},
-];
-
-const mockDrafts = [
-  { id: '019424ec-a96a-7000-8000-00000000000d', title: 'Character Backstory Ideas', wordCount: 350, isCompleted: false },
-  { id: '019424ec-a96a-7000-8000-00000000000e', title: 'Plot Twist Notes', wordCount: 180, isCompleted: false },
-  { id: '019424ec-a96a-7000-8000-00000000000f', title: 'Dialogue Experiments', wordCount: 520, isCompleted: false },
-];
+import { PlateEditor } from '@/components/editor/plate-editor';
+import { useProject } from '@/contexts/project-context';
+import { FontSizeContext, type FontSize } from '@/hooks/use-font-size';
+import type { DocumentStatus } from '@/lib/types/project';
+import { DOCUMENT_STATUS_LABELS } from '@/lib/types/project';
 
 export function DocumentView() {
-  const { chapterId, documentId, draftId } = useParams<{
+  const { id: projectId, chapterId, documentId, draftId } = useParams<{
+    id: string;
     chapterId?: string;
     documentId?: string;
     draftId?: string;
   }>();
 
-  if (draftId) {
-    const draft = mockDrafts.find(d => d.id === draftId);
-    if (!draft) return <div>Draft not found</div>;
-
-    return (
-      <div className="mb-8">
-        <DocumentHeader title={draft.title} subtitle={`Draft document • ${draft.wordCount} words`} />
-        <div className="mt-8 p-6 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">Document editor would go here...</p>
-        </div>
-      </div>
-    );
+  const { getDocument, getChapter } = useProject();
+  const [fontSize, setFontSize] = useState<FontSize>('md');
+  
+  if (!projectId) {
+    return <div>Project not found</div>;
   }
 
-  if (chapterId && documentId) {
-    const chapter = mockChapters.find(c => c.id === chapterId);
-    const document = chapter?.documents.find(d => d.id === documentId);
-    
-    if (!document || !chapter) return <div>Document not found</div>;
+  // Determine which document we're viewing
+  const document = draftId 
+    ? getDocument(draftId)
+    : documentId 
+      ? getDocument(documentId) 
+      : null;
 
-    return (
-      <div className="mb-8">
-        <DocumentHeader title={document.title} subtitle={`Document from ${chapter.title} • ${document.wordCount} words`} />
-        <div className="mt-8 p-6 border rounded-lg bg-muted/30">
-          <p className="text-muted-foreground">Document editor would go here...</p>
-        </div>
-      </div>
-    );
+  if (!document) {
+    return <div>Document not found</div>;
   }
 
-  return <div>No document selected</div>;
+  // Get chapter info if document belongs to a chapter
+  const chapter = document.chapterId ? getChapter(document.chapterId) : null;
+  const subtitle = chapter 
+    ? `Document from ${chapter.title} • ${document.wordCount} words`
+    : `Draft document • ${document.wordCount} words`;
+
+  return (
+    <FontSizeContext.Provider value={{ fontSize, setFontSize }}>
+      <div className="mb-8">
+        <DocumentHeader 
+          document={document}
+          subtitle={subtitle}
+        />
+        <div className="mt-8">
+          <TooltipProvider>
+            <PlateEditor />
+          </TooltipProvider>
+        </div>
+      </div>
+    </FontSizeContext.Provider>
+  );
 }
 
-function DocumentHeader({ title, subtitle }: { title: string; subtitle: string }) {
-  const [tags, setTags] = useState<string[]>(['scene', 'dialogue', 'sth']);
+interface DocumentHeaderProps {
+  document: any; // Document type from our hooks
+  subtitle: string;
+}
+
+function DocumentHeader({ document, subtitle }: DocumentHeaderProps) {
+  const [title, setTitle] = useState(document.title || '');
   const [newTag, setNewTag] = useState('');
-  const [status, setStatus] = useState('complete');
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-focus title if it's empty (new document)
+  useEffect(() => {
+    if (!document.title || document.title === '') {
+      setIsEditingTitle(true);
+      setTimeout(() => {
+        titleInputRef.current?.focus();
+      }, 100);
+    }
+  }, [document.title]);
+
+  // Update local title when document changes
+  useEffect(() => {
+    setTitle(document.title || '');
+  }, [document.title]);
+
+  const handleTitleSubmit = () => {
+    const finalTitle = title.trim() || 'New Document';
+    // TODO: Implement document update through ProjectContext
+    console.log('Title update requested:', finalTitle);
+    setTitle(finalTitle);
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTitleSubmit();
+      // TODO: Focus the editor when PlateEditor integration is complete
+    } else if (e.key === 'Escape') {
+      setTitle(document.title || '');
+      setIsEditingTitle(false);
+    }
+  };
+
+  const handleStatusChange = (newStatus: DocumentStatus) => {
+    // TODO: Implement document update through ProjectContext
+    console.log('Status change requested:', newStatus);
+  };
 
   const addTag = () => {
-    if (newTag.trim() && !tags.includes(newTag.trim())) {
-      setTags([...tags, newTag.trim()]);
+    if (newTag.trim()) {
+      const newTagObj = {
+        id: crypto.randomUUID(),
+        name: newTag.trim(),
+      };
+      
+      // TODO: Implement document update through ProjectContext
+      console.log('Add tag requested:', newTagObj);
       setNewTag('');
     }
   };
 
-  const removeTag = (tagToRemove: string) => {
-    setTags(tags.filter(tag => tag !== tagToRemove));
+  const removeTag = (tagId: string) => {
+    // TODO: Implement document update through ProjectContext
+    console.log('Remove tag requested:', tagId);
   };
 
-  const handleKeyPress = (e: React.KeyboardEvent) => {
+  const handleTagKeyPress = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       addTag();
     }
@@ -95,7 +138,25 @@ function DocumentHeader({ title, subtitle }: { title: string; subtitle: string }
   return (
     <div className="space-y-4">
       <div className="border-b pb-4">
-        <h1 className="text-3xl font-bold mb-2">{title}</h1>
+        {isEditingTitle ? (
+          <Input
+            ref={titleInputRef}
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            onKeyDown={handleTitleKeyDown}
+            onBlur={handleTitleSubmit}
+            placeholder="Enter document title..."
+            className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+            style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
+          />
+        ) : (
+          <h1 
+            className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors"
+            onClick={() => setIsEditingTitle(true)}
+          >
+            {title || 'New Document'}
+          </h1>
+        )}
         <p className="text-muted-foreground">{subtitle}</p>
       </div>
 
@@ -115,15 +176,16 @@ function DocumentHeader({ title, subtitle }: { title: string; subtitle: string }
             <div className="flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <label className="text-sm font-medium text-muted-foreground">Status:</label>
-                <Select value={status} onValueChange={setStatus}>
+                <Select value={document.status} onValueChange={handleStatusChange}>
                   <SelectTrigger className="w-32">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="draft">Draft</SelectItem>
-                    <SelectItem value="review">Review</SelectItem>
-                    <SelectItem value="complete">Complete</SelectItem>
-                    <SelectItem value="archived">Archived</SelectItem>
+                    {Object.entries(DOCUMENT_STATUS_LABELS).map(([value, label]) => (
+                      <SelectItem key={value} value={value}>
+                        {label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
@@ -132,11 +194,11 @@ function DocumentHeader({ title, subtitle }: { title: string; subtitle: string }
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Tags:</label>
               <div className="flex flex-wrap gap-2 items-center">
-                {tags.map((tag) => (
-                  <Badge key={tag} variant="secondary" className="flex items-center gap-1">
-                    {tag}
+                {document.tags.map((tag: any) => (
+                  <Badge key={tag.id} variant="secondary" className="flex items-center gap-1">
+                    {tag.name}
                     <button
-                      onClick={() => removeTag(tag)}
+                      onClick={() => removeTag(tag.id)}
                       className="ml-1 hover:bg-destructive/20 rounded-full p-0.5"
                     >
                       <X className="h-3 w-3" />
@@ -148,7 +210,7 @@ function DocumentHeader({ title, subtitle }: { title: string; subtitle: string }
                     placeholder="Add tag..."
                     value={newTag}
                     onChange={(e) => setNewTag(e.target.value)}
-                    onKeyPress={handleKeyPress}
+                    onKeyPress={handleTagKeyPress}
                     className="w-32 h-8"
                   />
                   <button
