@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AppLayout } from "@/components/app-layout"
 import Editor from "./pages/Editor"
 import ProjectsPage from "./pages/projects"
+import SettingsPage from "./pages/settings"
 import { ProjectLayout } from "./components/project/project-layout"
 import { ProjectOverviewWrapper } from "./components/project/project-overview-wrapper"
 import { DocumentView } from "./components/project/document-view"
@@ -13,7 +14,7 @@ import { DraftsOverview } from "./components/project/drafts-overview"
 
 function HomePage() {
   return (
-    <AppLayout showNavigation={false}>
+    <AppLayout showNavigation={true}>
       <div className="space-y-12">
         <section className="text-center space-y-6">
           <h1 className="text-6xl font-bold tracking-tight">
@@ -97,6 +98,7 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/editor" element={<Editor />} />
       <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/settings/*" element={<SettingsPage />} />
       <Route path="/projects/:id" element={<ProjectLayout />}>
         <Route index element={<ProjectOverviewWrapper />} />
         <Route path="chapters" element={<ChaptersOverview />} />
