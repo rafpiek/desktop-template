@@ -363,22 +363,26 @@ function ProjectLayoutInner() {
                           )}
                         >
                           <div className="flex items-center justify-between">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              className="h-6 w-6"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                toggleChapterExpand(chapter.id);
-                              }}
-                              title="Expand/Collapse Documents"
-                            >
-                              {expandedChapters.has(chapter.id) ? (
-                                <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
-                              ) : (
-                                <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
-                              )}
-                            </Button>
+                            {chapterDocuments.length > 0 ? (
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-6 w-6"
+                                onClick={(e) => {
+                                  e.stopPropagation();
+                                  toggleChapterExpand(chapter.id);
+                                }}
+                                title="Expand/Collapse Documents"
+                              >
+                                {expandedChapters.has(chapter.id) ? (
+                                  <ChevronDown className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
+                                ) : (
+                                  <ChevronRight className="h-3 w-3 text-muted-foreground transition-transform duration-200" />
+                                )}
+                              </Button>
+                            ) : (
+                              <div className="h-6 w-6" />
+                            )}
                             <div 
                               className="flex items-center gap-2 flex-1 min-w-0 cursor-pointer"
                               onClick={() => handleChapterSelect(chapter.id)}

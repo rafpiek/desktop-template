@@ -13,7 +13,8 @@ interface AddChapterDialogProps {
 export function AddChapterDialog({ isOpen, onClose, onSubmit }: AddChapterDialogProps) {
   const [title, setTitle] = useState('');
 
-  const handleSubmit = () => {
+  const handleSubmit = (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (title.trim()) {
       onSubmit(title.trim());
       setTitle('');
@@ -21,29 +22,37 @@ export function AddChapterDialog({ isOpen, onClose, onSubmit }: AddChapterDialog
     }
   };
 
+  const handleClose = () => {
+    setTitle('');
+    onClose();
+  };
+
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
+    <Dialog open={isOpen} onOpenChange={handleClose}>
       <DialogContent>
         <DialogHeader>
           <DialogTitle>Add New Chapter</DialogTitle>
         </DialogHeader>
-        <div className="grid gap-4 py-4">
-          <div className="grid grid-cols-4 items-center gap-4">
-            <Label htmlFor="title" className="text-right">
-              Title
-            </Label>
-            <Input
-              id="title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              className="col-span-3"
-              placeholder="Chapter Title"
-            />
+        <form onSubmit={handleSubmit}>
+          <div className="grid gap-4 py-4">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="title" className="text-right">
+                Title
+              </Label>
+              <Input
+                id="title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="col-span-3"
+                placeholder="Chapter Title"
+                autoFocus
+              />
+            </div>
           </div>
-        </div>
+        </form>
         <DialogFooter>
-          <Button variant="outline" onClick={onClose}>Cancel</Button>
-          <Button onClick={handleSubmit}>Create Chapter</Button>
+          <Button variant="outline" onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleSubmit} disabled={!title.trim()}>Create Chapter</Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

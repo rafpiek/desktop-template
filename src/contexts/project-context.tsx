@@ -14,6 +14,7 @@ interface ProjectContextValue {
   getDraftDocuments: (projectId: string) => Document[];
   getChapterDocuments: (chapterId: string) => Document[];
   createDocumentWithUpdates: ReturnType<typeof useProjectData>['createDocumentWithUpdates'];
+  updateDocument: (id: string, updates: Partial<Document>) => Document | undefined;
   
   // Chapters
   chapters: Chapter[];
@@ -84,6 +85,15 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     refreshProjectData(input.projectId);
     return newChapter;
   }, [chapters, refreshProjectData]);
+
+  const updateDocument = useCallback((id: string, updates: Partial<Document>) => {
+    const document = documents.getDocument(id);
+    if (!document) return undefined;
+    
+    documents.updateDocument({ id, ...updates });
+    refreshProjectData(document.projectId);
+    return documents.getDocument(id);
+  }, [documents, refreshProjectData]);
   
   const getProjectStats = (projectId: string) => {
     const data = getCompleteProjectData(projectId);
@@ -105,6 +115,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     getDraftDocuments,
     getChapterDocuments,
     createDocumentWithUpdates,
+    updateDocument,
     chapters: chapters.chapters,
     getChapter,
     getProjectChapters,

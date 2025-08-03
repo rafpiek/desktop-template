@@ -19,7 +19,7 @@ export function DocumentView() {
     draftId?: string;
   }>();
 
-  const { getDocument, getChapter } = useProject();
+  const { getDocument, getChapter, updateDocument } = useProject();
   const [fontSize, setFontSize] = useState<FontSize>('md');
   
   if (!projectId) {
@@ -49,6 +49,7 @@ export function DocumentView() {
         <DocumentHeader 
           document={document}
           subtitle={subtitle}
+          updateDocument={updateDocument}
         />
         <div className="mt-8">
           <TooltipProvider>
@@ -63,9 +64,10 @@ export function DocumentView() {
 interface DocumentHeaderProps {
   document: any; // Document type from our hooks
   subtitle: string;
+  updateDocument: (id: string, updates: Partial<any>) => any;
 }
 
-function DocumentHeader({ document, subtitle }: DocumentHeaderProps) {
+function DocumentHeader({ document, subtitle, updateDocument }: DocumentHeaderProps) {
   const [title, setTitle] = useState(document.title || '');
   const [newTag, setNewTag] = useState('');
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(false);
@@ -89,9 +91,12 @@ function DocumentHeader({ document, subtitle }: DocumentHeaderProps) {
 
   const handleTitleSubmit = () => {
     const finalTitle = title.trim() || 'New Document';
-    // TODO: Implement document update through ProjectContext
     console.log('Title update requested:', finalTitle);
-    setTitle(finalTitle);
+    
+    const updatedDocument = updateDocument(document.id, { title: finalTitle });
+    if (updatedDocument) {
+      setTitle(finalTitle);
+    }
     setIsEditingTitle(false);
   };
 
@@ -107,8 +112,8 @@ function DocumentHeader({ document, subtitle }: DocumentHeaderProps) {
   };
 
   const handleStatusChange = (newStatus: DocumentStatus) => {
-    // TODO: Implement document update through ProjectContext
     console.log('Status change requested:', newStatus);
+    updateDocument(document.id, { status: newStatus });
   };
 
   const addTag = () => {
@@ -118,15 +123,17 @@ function DocumentHeader({ document, subtitle }: DocumentHeaderProps) {
         name: newTag.trim(),
       };
       
-      // TODO: Implement document update through ProjectContext
       console.log('Add tag requested:', newTagObj);
+      const updatedTags = [...document.tags, newTagObj];
+      updateDocument(document.id, { tags: updatedTags });
       setNewTag('');
     }
   };
 
   const removeTag = (tagId: string) => {
-    // TODO: Implement document update through ProjectContext
     console.log('Remove tag requested:', tagId);
+    const updatedTags = document.tags.filter((tag: any) => tag.id !== tagId);
+    updateDocument(document.id, { tags: updatedTags });
   };
 
   const handleTagKeyPress = (e: React.KeyboardEvent) => {

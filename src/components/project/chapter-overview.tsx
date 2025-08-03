@@ -1,12 +1,15 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, FileText, Clock, Target } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { BookOpen, FileText, Clock, Target, Plus } from 'lucide-react';
 import { useProjectData } from '@/hooks/use-project-data';
+import { useProject } from '@/contexts/project-context';
 
 export function ChapterOverview() {
   const { id: projectId, chapterId } = useParams<{ id: string; chapterId: string }>();
   const navigate = useNavigate();
   const { chapters, documents } = useProjectData();
+  const { createDocumentWithUpdates } = useProject();
   
   if (!projectId || !chapterId) {
     return <div>Chapter not found</div>;
@@ -21,6 +24,24 @@ export function ChapterOverview() {
 
   const completedDocuments = chapterDocuments.filter(d => d.isCompleted).length;
   const totalDocuments = chapterDocuments.length;
+
+  const handleCreateNewDocument = () => {
+    console.log('Creating new document for chapter:', chapterId);
+    try {
+      const newDocument = createDocumentWithUpdates({
+        title: 'New Document',
+        projectId,
+        chapterId,
+      });
+      
+      console.log('Created document:', newDocument);
+      
+      // Navigate to the new document page
+      navigate(`/projects/${projectId}/chapters/${chapterId}/documents/${newDocument.id}`);
+    } catch (error) {
+      console.error('Error creating document:', error);
+    }
+  };
 
   const chapterStats = [
     {
@@ -51,11 +72,24 @@ export function ChapterOverview() {
 
   return (
     <div>
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold mb-2">{chapter.title}</h1>
-        <p className="text-muted-foreground">
-          Chapter details and progress tracking
-        </p>
+      <div className="mb-8 flex items-center justify-between">
+        <div>
+          <h1 className="text-3xl font-bold mb-2">{chapter.title}</h1>
+          <p className="text-muted-foreground">
+            Chapter details and progress tracking
+          </p>
+        </div>
+        <Button 
+          onClick={(e) => {
+            e.preventDefault();
+            console.log('Button clicked!');
+            handleCreateNewDocument();
+          }} 
+          className="flex items-center gap-2"
+        >
+          <Plus className="h-4 w-4" />
+          New Document
+        </Button>
       </div>
 
       {/* Statistics Cards */}
@@ -95,7 +129,18 @@ export function ChapterOverview() {
               <div className="text-center py-8 text-muted-foreground">
                 <FileText className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No documents in this chapter yet</p>
-                <p className="text-sm">Add documents to start writing this chapter</p>
+                <p className="text-sm mb-4">Add documents to start writing this chapter</p>
+                <Button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('Create First Document clicked!');
+                    handleCreateNewDocument();
+                  }} 
+                  className="flex items-center gap-2 mx-auto"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create First Document
+                </Button>
               </div>
             ) : (
               chapterDocuments.map((document) => (
