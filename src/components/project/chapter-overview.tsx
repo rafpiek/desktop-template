@@ -1,6 +1,8 @@
 import { useParams, useNavigate } from 'react-router-dom';
+import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
 import { BookOpen, FileText, Clock, Target, Plus } from 'lucide-react';
 import { useProjectData } from '@/hooks/use-project-data';
 import { useProject } from '@/contexts/project-context';
@@ -9,7 +11,11 @@ export function ChapterOverview() {
   const { id: projectId, chapterId } = useParams<{ id: string; chapterId: string }>();
   const navigate = useNavigate();
   const { chapters, documents } = useProjectData();
-  const { createDocumentWithUpdates } = useProject();
+  const { createDocumentWithUpdates, updateChapter } = useProject();
+  
+  const [title, setTitle] = useState('');
+  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const titleInputRef = useRef<HTMLInputElement>(null);
   
   if (!projectId || !chapterId) {
     return <div>Chapter not found</div>;
@@ -22,8 +28,32 @@ export function ChapterOverview() {
     return <div>Chapter not found</div>;
   }
 
+  // Update local title when chapter changes
+  useEffect(() => {
+    setTitle(chapter.title || '');
+  }, [chapter.title]);
+
   const completedDocuments = chapterDocuments.filter(d => d.isCompleted).length;
   const totalDocuments = chapterDocuments.length;
+
+  const handleTitleSubmit = () => {
+    const finalTitle = title.trim() || 'New Chapter';
+    console.log('Chapter title update requested:', finalTitle);
+    
+    updateChapter(chapter.id, { title: finalTitle });
+    setTitle(finalTitle);
+    setIsEditingTitle(false);
+  };
+
+  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleTitleSubmit();
+    } else if (e.key === 'Escape') {
+      setTitle(chapter.title || '');
+      setIsEditingTitle(false);
+    }
+  };
 
   const handleCreateNewDocument = () => {
     console.log('Creating new document for chapter:', chapterId);
@@ -74,7 +104,25 @@ export function ChapterOverview() {
     <div>
       <div className="mb-8 flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold mb-2">{chapter.title}</h1>
+          {isEditingTitle ? (
+            <Input
+              ref={titleInputRef}
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              onKeyDown={handleTitleKeyDown}
+              onBlur={handleTitleSubmit}
+              placeholder="Enter chapter title..."
+              className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2"
+              style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
+            />
+          ) : (
+            <h1 
+              className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors"
+              onClick={() => setIsEditingTitle(true)}
+            >
+              {title || 'New Chapter'}
+            </h1>
+          )}
           <p className="text-muted-foreground">
             Chapter details and progress tracking
           </p>

@@ -1,6 +1,6 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { BookOpen, FileText, Clock, Target, PlusCircle } from 'lucide-react';
+import { BookOpen, FileText, Clock, Target, PlusCircle, Plus } from 'lucide-react';
 import { useProjectData } from '@/hooks/use-project-data';
 import { useChapters } from '@/hooks/use-chapters';
 import { Button } from '@/components/ui/button';
@@ -108,7 +108,18 @@ export function ChaptersOverview() {
               <div className="text-center py-8 text-muted-foreground">
                 <BookOpen className="h-12 w-12 mx-auto mb-4 opacity-50" />
                 <p className="text-lg font-medium mb-2">No chapters yet</p>
-                <p className="text-sm">Create your first chapter to organize your writing</p>
+                <p className="text-sm mb-4">Create your first chapter to organize your writing</p>
+                <Button 
+                  onClick={(e) => {
+                    e.preventDefault();
+                    console.log('Create First Chapter clicked!');
+                    handleAddNewChapter();
+                  }} 
+                  className="flex items-center gap-2 mx-auto"
+                >
+                  <Plus className="h-4 w-4" />
+                  Create First Chapter
+                </Button>
               </div>
             ) : (
               chaptersWithDocuments.map((chapter) => (
