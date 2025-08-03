@@ -99,3 +99,5 @@ Cargo.lock
 *.bak
 *.backup
 *.old
+
+/generated/prisma

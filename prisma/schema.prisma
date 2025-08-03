@@ -1,0 +1,140 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Enums
+enum ProjectStatus {
+  draft
+  in_progress
+  paused
+  completed
+  published
+  archived
+}
+
+enum ProjectLabel {
+  novel
+  short_story
+  poetry
+  essay
+  screenplay
+  research
+  journal
+  outline
+  character
+  worldbuilding
+}
+
+enum DocumentStatus {
+  draft
+  review
+  complete
+  archived
+}
+
+// Models
+model ProjectTag {
+  id       String @id @default(cuid())
+  name     String @unique
+  color    String?
+  
+  // Relationships
+  projects Project[]
+  documents Document[]
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  @@map("project_tags")
+}
+
+model Project {
+  id          String        @id @default(cuid())
+  name        String
+  description String?
+  content     Json          @default("[]") // Plate.js MyValue as JSON
+  wordCount   Int           @default(0)
+  status      ProjectStatus @default(draft)
+  label       ProjectLabel
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Writing goals
+  targetWordCount Int?
+  deadline        DateTime?
+  
+  // Settings
+  isFavorite Boolean @default(false)
+  isArchived Boolean @default(false)
+  
+  // Optional metadata
+  genre String?
+  notes String?
+  
+  // Relationships
+  tags       ProjectTag[]
+  chapters   Chapter[]
+  documents  Document[]
+  
+  @@map("projects")
+}
+
+model Chapter {
+  id          String  @id @default(cuid())
+  title       String
+  description String?
+  order       Int
+  isCompleted Boolean @default(false)
+  wordCount   Int     @default(0)
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  projectId String
+  project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  documents Document[]
+  
+  @@unique([projectId, order])
+  @@map("chapters")
+}
+
+model Document {
+  id          String         @id @default(cuid())
+  title       String
+  content     Json           @default("[]") // Plate.js MyValue as JSON
+  wordCount   Int            @default(0)
+  status      DocumentStatus @default(draft)
+  isCompleted Boolean        @default(false)
+  notes       String?
+  
+  // Timestamps
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  // Relationships
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  
+  chapterId String?
+  chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
+  
+  tags ProjectTag[]
+  
+  @@map("documents")
+}
