@@ -520,7 +520,10 @@ function ProjectLayoutInner() {
 
         {/* Main Content */}
         <div className="flex-1 overflow-auto">
-          <div className="p-6">
+          <div className={cn(
+            "p-6",
+            isSidebarCollapsed && "pl-16"
+          )}>
             <Outlet />
           </div>
         </div>
