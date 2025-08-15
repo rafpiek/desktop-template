@@ -21,7 +21,7 @@ export function DraftsOverview() {
     console.log('Creating new document for project:', projectId);
     try {
       const newDocument = createDocumentWithUpdates({
-        title: 'New Document',
+        title: '',
         projectId,
         // No chapterId means it's a draft document
       });
@@ -142,7 +142,7 @@ export function DraftsOverview() {
                   onClick={() => navigate(`/projects/${projectId}/drafts/${draft.id}`)}
                 >
                   <div>
-                    <h3 className="font-medium">{draft.title}</h3>
+                    <h3 className="font-medium">{draft.title || 'Untitled Document'}</h3>
                     <div className="flex items-center gap-4 mt-1">
                       <p className="text-sm text-muted-foreground">
                         {draft.wordCount.toLocaleString()} words

@@ -119,7 +119,7 @@ function ProjectLayoutInner() {
       console.log('Current draft documents before creation:', getDraftDocuments(id));
       
       const newDocument = createDocumentWithUpdates({
-        title: 'New Document',
+        title: '',
         projectId: id,
         // No chapterId means it's a draft document
       });
@@ -293,7 +293,7 @@ function ProjectLayoutInner() {
                         <div className="flex items-center gap-2 flex-1 min-w-0">
                           <File className="h-3 w-3 text-amber-600 transition-colors duration-200" />
                           <div className="flex-1 min-w-0">
-                            <p className="text-xs font-medium truncate">{draft.title}</p>
+                            <p className="text-xs font-medium truncate">{draft.title || 'Untitled Document'}</p>
                             <div className="flex items-center gap-2 mt-0.5">
                               <span className="text-xs text-muted-foreground">
                                 {draft.wordCount.toLocaleString()} words
@@ -496,7 +496,7 @@ function ProjectLayoutInner() {
                                   <div className="flex items-center gap-2 flex-1 min-w-0">
                                     <File className="h-3 w-3 text-muted-foreground transition-colors duration-200" />
                                     <div className="flex-1 min-w-0">
-                                      <p className="text-xs font-medium truncate">{document.title}</p>
+                                      <p className="text-xs font-medium truncate">{document.title || 'Untitled Document'}</p>
                                       <div className="flex items-center gap-2 mt-0.5">
                                         <span className="text-xs text-muted-foreground">
                                           {document.wordCount.toLocaleString()} words

@@ -170,7 +170,7 @@ export default function ProjectDetailPage() {
     try {
       console.log('Creating new draft document for project:', id);
       const newDocument = createDocumentWithUpdates({
-        title: 'New Document',
+        title: '',
         projectId: id,
         // No chapterId means it's a draft document
       });
@@ -367,7 +367,7 @@ export default function ProjectDetailPage() {
                       <div className="flex items-center gap-2 flex-1 min-w-0">
                         <File className="h-3 w-3 text-amber-600 transition-colors duration-200" />
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs font-medium truncate">{draft.title}</p>
+                          <p className="text-xs font-medium truncate">{draft.title || 'Untitled Document'}</p>
                           <div className="flex items-center gap-2 mt-0.5">
                             <span className="text-xs text-muted-foreground">
                               {draft.wordCount.toLocaleString()} words
@@ -551,7 +551,7 @@ export default function ProjectDetailPage() {
                               <div className="flex items-center gap-2 flex-1 min-w-0">
                                 <File className="h-3 w-3 text-muted-foreground transition-colors duration-200" />
                                 <div className="flex-1 min-w-0">
-                                  <p className="text-xs font-medium truncate">{document.title}</p>
+                                  <p className="text-xs font-medium truncate">{document.title || 'Untitled Document'}</p>
                                   <div className="flex items-center gap-2 mt-0.5">
                                     <span className="text-xs text-muted-foreground">
                                       {document.wordCount.toLocaleString()} words
@@ -706,7 +706,7 @@ export default function ProjectDetailPage() {
                           <CardHeader className="pb-3">
                             <CardTitle className="text-sm flex items-center gap-2">
                               <PenTool className="h-4 w-4 text-amber-600" />
-                              {draft.title}
+                              {draft.title || 'Untitled Document'}
                             </CardTitle>
                           </CardHeader>
                           <CardContent>
@@ -923,7 +923,7 @@ export default function ProjectDetailPage() {
                             <CardHeader className="pb-3">
                               <CardTitle className="text-sm flex items-center gap-2">
                                 <File className="h-4 w-4" />
-                                {document.title}
+                                {document.title || 'Untitled Document'}
                               </CardTitle>
                             </CardHeader>
                             <CardContent>

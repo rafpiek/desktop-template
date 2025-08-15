@@ -98,7 +98,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: Doc
   }, [document.title]);
 
   const handleTitleSubmit = () => {
-    const finalTitle = title.trim() || 'New Document';
+    const finalTitle = title.trim();
     console.log('Title update requested:', finalTitle);
     
     const updatedDocument = updateDocument(document.id, { title: finalTitle });
@@ -176,7 +176,9 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: Doc
             onClick={() => setIsEditingTitle(true)}
             style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
           >
-            {title || 'New Document'}
+            {title || (
+              <span className="text-muted-foreground/60">Enter document title...</span>
+            )}
           </h1>
         )}
         <p className="text-muted-foreground">{subtitle}</p>

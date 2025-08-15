@@ -316,7 +316,7 @@ export function createEmptyDocument(input: CreateDocumentInput): Document {
   
   return {
     id: uuidv7(),
-    title: input.title || 'New Document',
+    title: input.title || '',
     content: input.content || [{ type: 'p', children: [{ text: '' }] }], // Empty paragraph
     wordCount: 0,
     status: input.status || 'draft',

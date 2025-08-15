@@ -88,7 +88,7 @@ export function ChapterOverview() {
     console.log('Creating new document for chapter:', chapterId);
     try {
       const newDocument = createDocumentWithUpdates({
-        title: 'New Document',
+        title: '',
         projectId,
         chapterId,
       });
@@ -231,7 +231,7 @@ export function ChapterOverview() {
                   onClick={() => navigate(`/projects/${projectId}/chapters/${chapterId}/documents/${document.id}`)}
                 >
                   <div>
-                    <h3 className="font-medium">{document.title}</h3>
+                    <h3 className="font-medium">{document.title || 'Untitled Document'}</h3>
                     <p className="text-sm text-muted-foreground">
                       {document.wordCount.toLocaleString()} words
                     </p>
