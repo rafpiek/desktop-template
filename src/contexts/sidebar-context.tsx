@@ -13,12 +13,25 @@ interface SidebarProviderProps {
   defaultCollapsed?: boolean;
 }
 
+const SIDEBAR_STORAGE_KEY = 'zeyn-sidebar-collapsed';
+
 export function SidebarProvider({ children, defaultCollapsed = false }: SidebarProviderProps) {
-  const [isCollapsed, setIsCollapsed] = useState(defaultCollapsed);
+  const [isCollapsed, setIsCollapsedState] = useState(() => {
+    const stored = localStorage.getItem(SIDEBAR_STORAGE_KEY);
+    if (stored !== null) {
+      return stored === 'true';
+    }
+    return defaultCollapsed;
+  });
+
+  const setIsCollapsed = useCallback((collapsed: boolean) => {
+    setIsCollapsedState(collapsed);
+    localStorage.setItem(SIDEBAR_STORAGE_KEY, collapsed.toString());
+  }, []);
 
   const toggle = useCallback(() => {
-    setIsCollapsed(prev => !prev);
-  }, []);
+    setIsCollapsed(!isCollapsed);
+  }, [isCollapsed, setIsCollapsed]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
     console.log('Sidebar context - Key pressed:', event.key, 'metaKey:', event.metaKey, 'ctrlKey:', event.ctrlKey);
