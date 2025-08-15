@@ -8,8 +8,6 @@ import { X, Plus, ChevronRight } from 'lucide-react';
 import { DocumentEditor } from '@/components/editor/document-editor';
 import { DocumentDropdownMenu } from '@/components/project/document-dropdown-menu';
 import { useProject } from '@/contexts/project-context';
-import { FontSizeContext, type FontSize } from '@/hooks/use-font-size';
-import { FontFamilyContext, type FontFamily } from '@/hooks/use-font-family';
 import type { DocumentStatus } from '@/lib/types/project';
 import { DOCUMENT_STATUS_LABELS } from '@/lib/types/project';
 
@@ -25,8 +23,6 @@ export function DocumentView() {
   const location = useLocation();
 
   const { getDocument, getChapter, updateDocument, deleteDocument } = useProject();
-  const [fontSize, setFontSize] = useState<FontSize>('md');
-  const [fontFamily, setFontFamily] = useState<FontFamily>('sans');
   const [focusEditor, setFocusEditor] = useState<(() => void) | null>(null);
   const [textStats, setTextStats] = useState<{
     wordCount: number;
@@ -152,31 +148,27 @@ export function DocumentView() {
   };
 
   return (
-    <FontSizeContext.Provider value={{ fontSize, setFontSize }}>
-      <FontFamilyContext.Provider value={{ fontFamily, setFontFamily }}>
-        <div className="mb-8">
-          <DocumentHeader 
-            document={document}
-            subtitle={subtitle}
-            updateDocument={updateDocument}
-            focusEditor={focusEditor}
-            isNewDocument={isNewDocument}
-            clearNewDocumentFlag={clearNewDocumentFlag}
-            onDocumentDelete={handleDocumentDelete}
+    <div className="mb-8">
+      <DocumentHeader 
+        document={document}
+        subtitle={subtitle}
+        updateDocument={updateDocument}
+        focusEditor={focusEditor}
+        isNewDocument={isNewDocument}
+        clearNewDocumentFlag={clearNewDocumentFlag}
+        onDocumentDelete={handleDocumentDelete}
+      />
+      <div className="mt-8">
+        <TooltipProvider>
+          <DocumentEditor 
+            documentId={document.id}
+            onEditorReady={setFocusEditor} 
+            autoFocus={!isNewDocument}
+            onContentChange={handleContentChange}
           />
-          <div className="mt-8">
-            <TooltipProvider>
-              <DocumentEditor 
-                documentId={document.id}
-                onEditorReady={setFocusEditor} 
-                autoFocus={!isNewDocument}
-                onContentChange={handleContentChange}
-              />
-            </TooltipProvider>
-          </div>
-        </div>
-      </FontFamilyContext.Provider>
-    </FontSizeContext.Provider>
+        </TooltipProvider>
+      </div>
+    </div>
   );
 }
 

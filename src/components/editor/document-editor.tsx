@@ -10,8 +10,6 @@ import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { ZenModeContainer } from '@/components/editor/zen-mode-container';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { Button } from '@/components/ui/button';
-import { useFontSize } from '@/hooks/use-font-size';
-import { useFontFamily } from '@/hooks/use-font-family';
 import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
 
@@ -92,8 +90,6 @@ export function DocumentEditor({
 }: DocumentEditorProps) {
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
-  const { fontSize } = useFontSize();
-  const { fontFamily } = useFontFamily();
   const currentDocumentIdRef = React.useRef<string | null>(null);
   const lastSavedContentRef = React.useRef<Value>(emptyValue);
 
@@ -428,9 +424,7 @@ export function DocumentEditor({
       </div>
 
       <div className={cn(
-        "editor", 
-        `font-size-${fontSize}`,
-        `font-family-${fontFamily}`,
+        "editor",
         isZenMode && "h-full flex justify-center"
       )}>
         <Plate

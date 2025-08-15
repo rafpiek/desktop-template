@@ -1,3 +1,4 @@
+import * as React from 'react';
 import {
   Sheet,
   SheetContent,
@@ -105,8 +106,80 @@ const fontFamilyOptions: FontFamilyOption[] = [
 ];
 
 export function EditorSettingsSheet() {
-  const { fontSize, setFontSize } = useFontSize();
-  const { fontFamily, setFontFamily } = useFontFamily();
+  // Get current values directly from DOM/localStorage
+  const getCurrentFontSize = (): FontSize => {
+    const saved = localStorage.getItem('zeyn-font-size');
+    return (saved as FontSize) || 'md';
+  };
+  
+  const getCurrentFontFamily = (): FontFamily => {
+    const saved = localStorage.getItem('zeyn-font-family');
+    return (saved as FontFamily) || 'sans';
+  };
+  
+  const [fontSize, setCurrentFontSize] = React.useState(getCurrentFontSize());
+  const [fontFamily, setCurrentFontFamily] = React.useState(getCurrentFontFamily());
+  
+  const setFontSize = (size: FontSize) => {
+    // Update localStorage
+    localStorage.setItem('zeyn-font-size', size);
+    setCurrentFontSize(size);
+    
+    // Apply to DOM directly
+    const editors = document.querySelectorAll('.editor');
+    editors.forEach(editor => {
+      // Remove old font-size classes
+      editor.classList.remove('font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen');
+      // Add new class
+      editor.classList.add(`font-size-${size}`);
+    });
+  };
+  
+  const setFontFamily = (family: FontFamily) => {
+    // Update localStorage  
+    localStorage.setItem('zeyn-font-family', family);
+    setCurrentFontFamily(family);
+    
+    // Apply to DOM directly
+    const editors = document.querySelectorAll('.editor');
+    editors.forEach(editor => {
+      // Remove old font-family classes
+      editor.classList.remove('font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter');
+      // Add new class
+      editor.classList.add(`font-family-${family}`);
+    });
+  };
+  
+  // Apply stored settings on mount and when editor appears
+  React.useEffect(() => {
+    const applyStoredSettings = () => {
+      const storedSize = getCurrentFontSize();
+      const storedFamily = getCurrentFontFamily();
+      
+      const editors = document.querySelectorAll('.editor');
+      editors.forEach(editor => {
+        // Apply font size
+        editor.classList.remove('font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen');
+        editor.classList.add(`font-size-${storedSize}`);
+        
+        // Apply font family
+        editor.classList.remove('font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter');
+        editor.classList.add(`font-family-${storedFamily}`);
+      });
+    };
+    
+    // Apply immediately
+    applyStoredSettings();
+    
+    // Also apply when new editors are added (with a small delay)
+    const observer = new MutationObserver(() => {
+      setTimeout(applyStoredSettings, 100);
+    });
+    
+    observer.observe(document.body, { childList: true, subtree: true });
+    
+    return () => observer.disconnect();
+  }, []);
 
   return (
     <Sheet>

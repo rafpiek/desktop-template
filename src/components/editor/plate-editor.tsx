@@ -9,8 +9,6 @@ import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { Button } from '@/components/ui/button';
-import { useFontSize } from '@/hooks/use-font-size';
-import { useFontFamily } from '@/hooks/use-font-family';
 import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
 
@@ -582,11 +580,6 @@ export function PlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProp
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
 
-  const { fontSize } = useFontSize();
-  const { fontFamily } = useFontFamily();
-
-  console.log('PlateEditor render - fontSize:', fontSize);
-
   const [editorValue, setEditorValue] = React.useState<Value>(defaultValue);
 
   const loadEditorValue = React.useCallback((): Value => {
@@ -688,7 +681,7 @@ export function PlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProp
   const editor = usePlateEditor({
     plugins: EditorKit,
     value: editorValue,
-  }, [fontSize]); // Only fontSize affects editor creation, not fontFamily
+  });
 
   // Auto-focus the editor when it's first loaded (only if autoFocus is enabled)
   React.useEffect(() => {
@@ -778,12 +771,8 @@ export function PlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProp
         <EditorSettingsSheet />
       </div>
 
-      <div className={cn(
-        "editor", 
-        `font-size-${fontSize}`,
-        `font-family-${fontFamily}`
-      )}>
-        <h1 key={`font-size-${fontSize}`}>font size: {fontSize}</h1>
+      <div className="editor">
+        <h1>Sample Editor</h1>
         <Plate
           editor={editor}
           onChange={({ value }) => {
