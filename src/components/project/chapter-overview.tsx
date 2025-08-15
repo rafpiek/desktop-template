@@ -78,18 +78,6 @@ export function ChapterOverview() {
       updateChapter(chapter.id, { title: finalTitle });
       setTitle(finalTitle);
       setIsEditingTitle(false);
-      
-      // Create a new document and navigate to it
-      try {
-        const newDocument = createDocumentWithUpdates({
-          title: 'New Document',
-          projectId,
-          chapterId,
-        });
-        navigate(`/projects/${projectId}/chapters/${chapterId}/documents/${newDocument.id}`);
-      } catch (error) {
-        console.error('Error creating document:', error);
-      }
     } else if (e.key === 'Escape') {
       setTitle(chapter.title || '');
       setIsEditingTitle(false);

@@ -27,8 +27,7 @@ function ProjectLayoutInner() {
     getChapterDocuments,
     createDocumentWithUpdates,
     createChapter,
-    getProjectStats, 
-    refreshProjectData
+    getProjectStats
   } = useProject();
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
@@ -92,11 +91,16 @@ function ProjectLayoutInner() {
 
   const handleCreateNewChapter = () => {
     if (!id) return;
+    
+    // Generate unique chapter title
+    const existingChapters = getProjectChapters(id);
+    const chapterNumber = existingChapters.length + 1;
+    const defaultTitle = `Chapter ${chapterNumber}`;
+    
     const newChapter = createChapter({
       projectId: id,
-      title: '',
+      title: defaultTitle,
     });
-    refreshProjectData(id);
     navigate(`/projects/${id}/chapters/${newChapter.id}?new=true`);
   };
 

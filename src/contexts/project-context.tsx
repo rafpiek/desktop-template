@@ -83,9 +83,8 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
 
   const createChapter = useCallback((input: CreateChapterInput) => {
     const newChapter = chapters.createChapter(input);
-    refreshProjectData(input.projectId);
     return newChapter;
-  }, [chapters, refreshProjectData]);
+  }, [chapters]);
 
   const updateDocument = useCallback((id: string, updates: Partial<Document>) => {
     const document = documents.getDocument(id);
