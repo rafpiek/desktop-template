@@ -122,12 +122,54 @@
   margin-inline: auto;
 }
 
-/* Ensure editor cursor is visible */
+/* Make editor cursor highly visible with bright color */
 [data-slate-editor] {
-  caret-color: hsl(var(--primary));
+  caret-color: #3b82f6 !important; /* Bright blue cursor */
 }
 
 [data-slate-editor]:focus {
-  caret-color: hsl(var(--primary));
+  caret-color: #3b82f6 !important; /* Bright blue cursor */
+}
+
+/* Plate-specific cursor styling - make it even more prominent */
+.plate-editor [data-slate-editor] {
+  caret-color: #2563eb !important; /* Even brighter blue */
+}
+
+.plate-editor [data-slate-editor]:focus {
+  caret-color: #2563eb !important;
+}
+
+/* Also target specific Plate editor elements */
+.plate-content [data-slate-editor],
+.plate-content [data-slate-editor] * {
+  caret-color: #2563eb !important;
+}
+
+/* Ensure cursor is visible in paragraphs and other text elements */
+.plate-editor p[data-slate-node],
+.plate-editor div[data-slate-node],
+.plate-editor h1[data-slate-node],
+.plate-editor h2[data-slate-node],
+.plate-editor h3[data-slate-node] {
+  caret-color: #2563eb !important;
+}
+
+/* Make cursor thicker using a CSS hack */
+.plate-editor [contenteditable="true"] {
+  caret-color: #2563eb !important;
+  /* Add a slight text shadow to make cursor appear thicker */
+  text-shadow: 0.5px 0 0 currentColor, -0.5px 0 0 currentColor;
+}
+
+.plate-editor [contenteditable="true"]:focus {
+  caret-color: #2563eb !important;
+}
+
+/* Target all possible editor text containers */
+.plate-editor [contenteditable],
+.plate-editor [data-slate-string],
+.plate-editor span[data-slate-leaf] {
+  caret-color: #2563eb !important;
 }
 
