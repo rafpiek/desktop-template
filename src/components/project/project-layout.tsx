@@ -4,7 +4,6 @@ import { SidebarProvider, useSidebar } from '@/contexts/sidebar-context';
 import { ProjectProvider, useProject } from '@/contexts/project-context';
 import { ArrowLeft, BookOpen, Plus, MoreHorizontal, Edit3, ChevronRight, ChevronDown, File, ChevronsDown, ChevronsUp, PenTool, FolderOpen, PanelLeftClose, PanelLeftOpen } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { AppLayout } from '@/components/app-layout';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
@@ -225,8 +224,8 @@ function ProjectLayoutInner() {
   };
 
   return (
-    <AppLayout maxWidth="full">
-      <div className="flex h-[calc(100vh-6rem)] relative">
+    <div className="min-h-screen bg-background text-foreground">
+      <div className="flex h-screen relative">
         {/* Sidebar */}
         <div className={cn(
           "border-r bg-muted/30 flex flex-col transition-all duration-300 ease-in-out",
@@ -614,7 +613,7 @@ function ProjectLayoutInner() {
             variant="outline"
             size="icon"
             onClick={toggleSidebar}
-            className="absolute left-4 top-6 z-10 h-8 w-8 bg-background shadow-lg border"
+            className="absolute left-4 top-4 z-10 h-8 w-8 bg-background shadow-lg border"
             title="Show Sidebar"
           >
             <PanelLeftOpen className="h-4 w-4" />
@@ -653,7 +652,7 @@ function ProjectLayoutInner() {
           onConfirm={handleConfirmDeleteDocument}
         />
       )}
-    </AppLayout>
+    </div>
   );
 }
 
