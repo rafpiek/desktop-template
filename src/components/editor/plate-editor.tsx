@@ -688,7 +688,7 @@ export function PlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProp
   const editor = usePlateEditor({
     plugins: EditorKit,
     value: editorValue,
-  }, [fontSize, fontFamily]); // Add fontSize and fontFamily as dependencies to force re-creation
+  }, [fontSize]); // Only fontSize affects editor creation, not fontFamily
 
   // Auto-focus the editor when it's first loaded (only if autoFocus is enabled)
   React.useEffect(() => {
