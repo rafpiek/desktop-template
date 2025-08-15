@@ -22,6 +22,7 @@ interface ProjectContextValue {
   getProjectChapters: (projectId: string) => Chapter[];
   createChapter: (input: CreateChapterInput) => Chapter;
   updateChapter: (id: string, updates: Partial<Chapter>) => Chapter | undefined;
+  deleteChapter: (chapterId: string, deleteDocuments: boolean) => void;
   
   // Stats
   getProjectStats: (projectId: string) => {
@@ -53,6 +54,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     documents, 
     chapters, 
     createDocumentWithUpdates, 
+    deleteChapterWithUpdates,
     getCompleteProjectData, 
     refreshProjectData 
   } = useProjectData();
@@ -103,6 +105,15 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     refreshProjectData(chapter.projectId);
     return chapters.getChapter(id);
   }, [chapters, refreshProjectData]);
+
+  const deleteChapter = useCallback((chapterId: string, deleteDocuments: boolean) => {
+    const chapter = chapters.getChapter(chapterId);
+    if (!chapter) return;
+    
+    // Use the deleteChapterWithUpdates function with moveDocumentsToDrafts set to the opposite of deleteDocuments
+    deleteChapterWithUpdates(chapterId, !deleteDocuments);
+    refreshProjectData(chapter.projectId);
+  }, [chapters, deleteChapterWithUpdates, refreshProjectData]);
   
   const getProjectStats = (projectId: string) => {
     const data = getCompleteProjectData(projectId);
@@ -130,6 +141,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     getProjectChapters,
     createChapter,
     updateChapter,
+    deleteChapter,
     getProjectStats,
     refreshProjectData,
   };

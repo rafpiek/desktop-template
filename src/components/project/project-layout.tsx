@@ -8,6 +8,7 @@ import { AppLayout } from '@/components/app-layout';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { cn } from '@/lib/utils';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
+import { DeleteChapterDialog } from './delete-chapter-dialog';
 
 
 
@@ -27,10 +28,13 @@ function ProjectLayoutInner() {
     getChapterDocuments,
     createDocumentWithUpdates,
     createChapter,
+    deleteChapter,
     getProjectStats
   } = useProject();
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [chapterToDelete, setChapterToDelete] = useState<string | null>(null);
   const { isCollapsed: isSidebarCollapsed, toggle: toggleSidebar } = useSidebar();
 
   const project = getProject(id!);
@@ -136,6 +140,22 @@ function ProjectLayoutInner() {
     }
   };
 
+  const handleDeleteChapter = (chapterId: string) => {
+    setChapterToDelete(chapterId);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleConfirmDelete = (deleteDocuments: boolean) => {
+    if (chapterToDelete) {
+      deleteChapter(chapterToDelete, deleteDocuments);
+      setChapterToDelete(null);
+      setDeleteDialogOpen(false);
+      // Navigate back to project overview if we were viewing the deleted chapter
+      if (chapterId === chapterToDelete) {
+        navigate(`/projects/${id}`);
+      }
+    }
+  };
 
   return (
     <AppLayout maxWidth="full">
@@ -436,7 +456,15 @@ function ProjectLayoutInner() {
                                   <DropdownMenuItem>Edit Chapter</DropdownMenuItem>
                                   <DropdownMenuItem>Add Document</DropdownMenuItem>
                                   <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                  <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    className="text-destructive"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleDeleteChapter(chapter.id);
+                                    }}
+                                  >
+                                    Delete
+                                  </DropdownMenuItem>
                                 </DropdownMenuContent>
                               </DropdownMenu>
                             </div>
@@ -535,6 +563,17 @@ function ProjectLayoutInner() {
           </div>
         </div>
       </div>
+
+      {/* Delete Chapter Dialog */}
+      {chapterToDelete && (
+        <DeleteChapterDialog
+          open={deleteDialogOpen}
+          onOpenChange={setDeleteDialogOpen}
+          chapterTitle={projectChapters.find(c => c.id === chapterToDelete)?.title || 'Unknown Chapter'}
+          documentCount={getChapterDocuments(chapterToDelete).length}
+          onConfirm={handleConfirmDelete}
+        />
+      )}
     </AppLayout>
   );
 }
