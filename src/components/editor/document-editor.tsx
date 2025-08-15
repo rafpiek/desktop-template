@@ -95,7 +95,12 @@ export function DocumentEditor({
   const currentDocumentIdRef = React.useRef<string | null>(null);
   const lastSavedContentRef = React.useRef<Value>(emptyValue);
 
-  console.log(`🔵 DocumentEditor render - documentId: ${documentId}`);
+  console.log(`🔵 DocumentEditor render - documentId: ${documentId}, isZenMode: ${isZenMode}`);
+
+  // Debug zen mode state changes
+  React.useEffect(() => {
+    console.log(`🧘 Zen mode state changed to: ${isZenMode}`);
+  }, [isZenMode]);
 
   // Load document data (content + metadata)
   const loadDocumentData = React.useCallback((docId: string): { 
@@ -297,6 +302,8 @@ export function DocumentEditor({
 
   // Handle zen mode toggle
   const toggleZenMode = React.useCallback(async () => {
+    console.log(`🎯 Toggle zen mode called - current state: ${isZenMode}`);
+    
     if (isTauriApp) {
       try {
         const { Window } = await import('@tauri-apps/api/window');
@@ -311,8 +318,9 @@ export function DocumentEditor({
       }
     } else {
       // For web, just toggle state - ZenModeContainer handles the rest
-      setIsZenMode(!isZenMode);
-      console.log(`🌐 Web zen mode ${!isZenMode ? 'enabled' : 'disabled'}`);
+      const newState = !isZenMode;
+      setIsZenMode(newState);
+      console.log(`🌐 Web zen mode ${newState ? 'enabled' : 'disabled'}`);
     }
   }, [isTauriApp, isZenMode]);
 

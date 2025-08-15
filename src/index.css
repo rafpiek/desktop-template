@@ -199,20 +199,39 @@
 /* Zen Mode Portal Styles */
 .zen-mode-portal {
   /* Ensure portal is above everything else */
-  position: relative;
-  z-index: 9999;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999999;
+  pointer-events: auto;
 }
 
 /* Zen Mode Container base styles */
 .zen-mode-container {
+  /* Ensure it covers everything */
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+  width: 100vw !important;
+  height: 100vh !important;
+  z-index: 999999 !important;
+  
+  /* Background and styling */
+  background: hsl(var(--background)) !important;
+  color: hsl(var(--foreground)) !important;
+  
+  /* Handle overflow properly */
+  overflow: auto;
+  
   /* Smooth transitions */
   transition: all 0.3s ease-in-out;
   
   /* Ensure proper rendering */
   isolation: isolate;
-  
-  /* Handle overflow properly */
-  overflow: auto;
 }
 
 /* Fullscreen API specific styles */
@@ -261,7 +280,20 @@
 
 /* Prevent scrollbar issues in zen mode */
 body:has(.zen-mode-portal) {
-  overflow: hidden;
+  overflow: hidden !important;
+  height: 100vh !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+/* Hide scrollbars everywhere when zen mode is active */
+.zen-mode-portal ~ * {
+  scrollbar-width: none !important; /* Firefox */
+  -ms-overflow-style: none !important; /* IE and Edge */
+}
+
+.zen-mode-portal ~ *::-webkit-scrollbar {
+  display: none !important; /* Chrome, Safari and Opera */
 }
 
 /* Restore body overflow when zen mode is not active */

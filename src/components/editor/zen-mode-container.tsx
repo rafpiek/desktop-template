@@ -29,6 +29,7 @@ export function ZenModeContainer({
     container.className = 'zen-mode-portal';
     document.body.appendChild(container);
     setPortalContainer(container);
+    console.log('🌀 Created zen mode portal container');
 
     // Check if fullscreen API is supported
     setIsFullscreenSupported(
@@ -41,6 +42,7 @@ export function ZenModeContainer({
     return () => {
       if (container && container.parentNode) {
         container.parentNode.removeChild(container);
+        console.log('🗑️ Removed zen mode portal container');
       }
     };
   }, []);
@@ -78,54 +80,37 @@ export function ZenModeContainer({
     };
   }, [isZenMode, onToggleZenMode, isTauriApp]);
 
-  // Handle zen mode toggle with fullscreen API
-  const handleZenModeToggle = async () => {
-    if (!isTauriApp && isFullscreenSupported && fullscreenElementRef.current) {
-      if (!isZenMode) {
-        // Entering zen mode - request fullscreen
-        try {
-          const element = fullscreenElementRef.current;
-          
-          if (element.requestFullscreen) {
-            await element.requestFullscreen();
-          } else if ((element as any).webkitRequestFullscreen) {
-            await (element as any).webkitRequestFullscreen();
-          } else if ((element as any).msRequestFullscreen) {
-            await (element as any).msRequestFullscreen();
-          } else if ((element as any).mozRequestFullScreen) {
-            await (element as any).mozRequestFullScreen();
-          }
-          
-          console.log('✅ Successfully entered browser fullscreen');
-        } catch (error) {
-          console.warn('⚠️ Fullscreen request failed, using fallback overlay:', error);
-          // Fallback to overlay mode
-          onToggleZenMode();
-          return;
-        }
-      } else {
-        // Exiting zen mode - exit fullscreen
-        try {
-          if (document.exitFullscreen) {
-            await document.exitFullscreen();
-          } else if ((document as any).webkitExitFullscreen) {
-            await (document as any).webkitExitFullscreen();
-          } else if ((document as any).msExitFullscreen) {
-            await (document as any).msExitFullscreen();
-          } else if ((document as any).mozCancelFullScreen) {
-            await (document as any).mozCancelFullScreen();
-          }
-          
-          console.log('✅ Successfully exited browser fullscreen');
-        } catch (error) {
-          console.warn('⚠️ Fullscreen exit failed:', error);
-        }
-      }
-    } else {
-      // Tauri app or no fullscreen support - use regular toggle
-      onToggleZenMode();
+  // Try to enter fullscreen when zen mode is activated
+  React.useEffect(() => {
+    if (!isZenMode || isTauriApp || !isFullscreenSupported || !fullscreenElementRef.current) {
+      return;
     }
-  };
+
+    const tryFullscreen = async () => {
+      try {
+        const element = fullscreenElementRef.current!;
+        
+        if (element.requestFullscreen) {
+          await element.requestFullscreen();
+        } else if ((element as any).webkitRequestFullscreen) {
+          await (element as any).webkitRequestFullscreen();
+        } else if ((element as any).msRequestFullscreen) {
+          await (element as any).msRequestFullscreen();
+        } else if ((element as any).mozRequestFullScreen) {
+          await (element as any).mozRequestFullScreen();
+        }
+        
+        console.log('✅ Successfully entered browser fullscreen');
+      } catch (error) {
+        console.warn('⚠️ Fullscreen request failed, using fallback overlay:', error);
+        // Continue with overlay fallback (don't exit zen mode)
+      }
+    };
+
+    // Small delay to ensure DOM is ready
+    const timeoutId = setTimeout(tryFullscreen, 100);
+    return () => clearTimeout(timeoutId);
+  }, [isZenMode, isTauriApp, isFullscreenSupported]);
 
   // Keyboard shortcuts
   useEffect(() => {
@@ -135,14 +120,7 @@ export function ZenModeContainer({
         event.preventDefault();
         event.stopPropagation();
         console.log('⌨️ Escape pressed, exiting zen mode');
-        
-        if (isTauriApp) {
-          // Let the parent handle Tauri fullscreen exit
-          onToggleZenMode();
-        } else {
-          // Handle browser fullscreen exit
-          handleZenModeToggle();
-        }
+        onToggleZenMode();
         return;
       }
 
@@ -150,7 +128,7 @@ export function ZenModeContainer({
       if (event.key === 'F11' && !isTauriApp) {
         event.preventDefault();
         if (!isZenMode) {
-          handleZenModeToggle();
+          onToggleZenMode();
         }
         return;
       }
@@ -168,36 +146,28 @@ export function ZenModeContainer({
     return <>{children}</>;
   }
 
+  console.log('🧘 Zen mode is active, rendering zen content');
+  console.log('🌀 Portal container:', portalContainer);
+  console.log('🖥️ Is Tauri app:', isTauriApp);
+
   // If no portal container yet, don't render
   if (!portalContainer) {
+    console.log('⚠️ No portal container available yet');
     return null;
   }
 
-  // Determine if we should use fullscreen API or overlay fallback
-  const useFullscreenAPI = !isTauriApp && isFullscreenSupported;
-  const shouldShowOverlay = !useFullscreenAPI || !isInBrowserFullscreen;
-
+  // Always use overlay fallback for now (Fullscreen API is unreliable)
   const zenContent = (
     <div
       ref={fullscreenElementRef}
       className={cn(
-        // Base fullscreen styles
         'zen-mode-container',
-        // Conditional overlay styles for fallback
-        shouldShowOverlay && [
-          'fixed inset-0 z-[9999]',
-          'bg-background',
-          'overflow-hidden'
-        ],
-        // Fullscreen API styles
-        useFullscreenAPI && [
-          'h-screen w-screen',
-          'bg-background'
-        ],
+        'fixed inset-0 z-[9999]',
+        'bg-background text-foreground',
+        'overflow-auto',
         className
       )}
       style={{
-        // Ensure we cover the entire screen
         minHeight: '100vh',
         minWidth: '100vw'
       }}
@@ -208,9 +178,11 @@ export function ZenModeContainer({
 
   // For Tauri, render directly (Tauri handles native fullscreen)
   if (isTauriApp) {
+    console.log('🖥️ Rendering zen content directly for Tauri');
     return zenContent;
   }
 
   // For web, use portal
+  console.log('🌐 Creating portal for web zen mode');
   return createPortal(zenContent, portalContainer);
 }
