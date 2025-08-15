@@ -1,4 +1,5 @@
 @import './styles/editor-font-sizes.css';
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Courier+Prime:wght@400;700&family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
 @tailwind base;
 @tailwind components;
@@ -120,6 +121,46 @@
 .font-size-zen .plate-editor {
   max-width: 65ch;
   margin-inline: auto;
+}
+
+/* Font family presets */
+.font-family-sans {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.font-family-serif {
+  font-family: Georgia, Cambria, 'Times New Roman', Times, serif;
+}
+
+.font-family-mono {
+  font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
+}
+
+.font-family-ia-mono {
+  font-family: 'IBM Plex Mono', 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
+  letter-spacing: -0.02em;
+}
+
+.font-family-ia-duo {
+  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, Consolas, monospace;
+  letter-spacing: -0.01em;
+  font-feature-settings: 'liga' 1, 'calt' 1;
+}
+
+.font-family-typewriter {
+  font-family: 'Courier Prime', 'Courier', 'Courier New', monospace;
+}
+
+:where([class*='font-family-mono']) p,
+:where([class*='font-family-mono']) li,
+:where([class*='font-family-mono']) blockquote {
+  line-height: 1.6;
+}
+
+:where([class*='font-family-']) {
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
 }
 
 /* Make editor cursor white and extra wide */
