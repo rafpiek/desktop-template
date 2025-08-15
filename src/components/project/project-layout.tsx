@@ -10,6 +10,7 @@ import { cn } from '@/lib/utils';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
 import { DeleteChapterDialog } from './delete-chapter-dialog';
 import { DeleteDocumentDialog } from './delete-document-dialog';
+import { DocumentDropdownMenu } from './document-dropdown-menu';
 
 
 
@@ -242,7 +243,13 @@ function ProjectLayoutInner() {
                   <Button variant="ghost" size="icon" onClick={() => navigate('/projects')}>
                     <ArrowLeft className="h-4 w-4" />
                   </Button>
-                  <h1 className="text-xl font-semibold truncate">{project.name}</h1>
+                  <h1 
+                    className="text-xl font-semibold truncate cursor-pointer hover:text-primary transition-colors"
+                    onClick={() => navigate(`/projects/${id}`)}
+                    title="View project overview"
+                  >
+                    {project.name}
+                  </h1>
                 </div>
                 <Button
                   variant="ghost"
@@ -370,31 +377,11 @@ function ProjectLayoutInner() {
                             </div>
                           </div>
                         </div>
-                        <DropdownMenu>
-                          <DropdownMenuTrigger asChild>
-                            <Button 
-                              variant="ghost" 
-                              size="icon" 
-                              className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                              onClick={(e) => e.stopPropagation()}
-                            >
-                              <MoreHorizontal className="h-2 w-2" />
-                            </Button>
-                          </DropdownMenuTrigger>
-                          <DropdownMenuContent align="end">
-                            <DropdownMenuItem>Move to Chapter</DropdownMenuItem>
-                            <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                            <DropdownMenuItem 
-                              className="text-destructive"
-                              onClick={(e) => {
-                                e.stopPropagation();
-                                handleDeleteDocument(draft.id);
-                              }}
-                            >
-                              Delete
-                            </DropdownMenuItem>
-                          </DropdownMenuContent>
-                        </DropdownMenu>
+                        <DocumentDropdownMenu 
+                          document={draft}
+                          onDelete={handleDeleteDocument}
+                          size="sm"
+                        />
                       </div>
                     </div>
                   ))}
@@ -527,7 +514,6 @@ function ProjectLayoutInner() {
                                   </Button>
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
-                                  <DropdownMenuItem>Edit Chapter</DropdownMenuItem>
                                   <DropdownMenuItem 
                                     onClick={(e) => {
                                       e.stopPropagation();
@@ -590,31 +576,11 @@ function ProjectLayoutInner() {
                                       </div>
                                     </div>
                                   </div>
-                                  <DropdownMenu>
-                                    <DropdownMenuTrigger asChild>
-                                      <Button 
-                                        variant="ghost" 
-                                        size="icon" 
-                                        className="h-5 w-5 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
-                                        onClick={(e) => e.stopPropagation()}
-                                      >
-                                        <MoreHorizontal className="h-2 w-2" />
-                                      </Button>
-                                    </DropdownMenuTrigger>
-                                    <DropdownMenuContent align="end">
-                                      <DropdownMenuItem>Edit Document</DropdownMenuItem>
-                                      <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                      <DropdownMenuItem 
-                                        className="text-destructive"
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          handleDeleteDocument(document.id);
-                                        }}
-                                      >
-                                        Delete
-                                      </DropdownMenuItem>
-                                    </DropdownMenuContent>
-                                  </DropdownMenu>
+                                  <DocumentDropdownMenu 
+                                    document={document}
+                                    onDelete={handleDeleteDocument}
+                                    size="sm"
+                                  />
                                   </div>
                               </div>
                             ))}

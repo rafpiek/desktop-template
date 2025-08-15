@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { X, Plus, ChevronRight } from 'lucide-react';
 import { DocumentEditor } from '@/components/editor/document-editor';
+import { DocumentDropdownMenu } from '@/components/project/document-dropdown-menu';
 import { useProject } from '@/contexts/project-context';
 import { FontSizeContext, type FontSize } from '@/hooks/use-font-size';
 import type { DocumentStatus } from '@/lib/types/project';
@@ -22,7 +23,7 @@ export function DocumentView() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { getDocument, getChapter, updateDocument } = useProject();
+  const { getDocument, getChapter, updateDocument, deleteDocument } = useProject();
   const [fontSize, setFontSize] = useState<FontSize>('md');
   const [focusEditor, setFocusEditor] = useState<(() => void) | null>(null);
   const [textStats, setTextStats] = useState<{
@@ -134,6 +135,20 @@ export function DocumentView() {
     ? `Document from ${chapter.title} • ${formatStats()}`
     : `Draft document • ${formatStats()}`;
 
+  const handleDocumentDelete = (documentId: string) => {
+    // Navigate away from the deleted document
+    if (document.chapterId) {
+      // Navigate to chapter overview
+      navigate(`/projects/${projectId}/chapters/${document.chapterId}`);
+    } else {
+      // Navigate to drafts overview
+      navigate(`/projects/${projectId}/drafts`);
+    }
+    
+    // Delete the document
+    deleteDocument(documentId);
+  };
+
   return (
     <FontSizeContext.Provider value={{ fontSize, setFontSize }}>
       <div className="mb-8">
@@ -144,6 +159,7 @@ export function DocumentView() {
           focusEditor={focusEditor}
           isNewDocument={isNewDocument}
           clearNewDocumentFlag={clearNewDocumentFlag}
+          onDocumentDelete={handleDocumentDelete}
         />
         <div className="mt-8">
           <TooltipProvider>
@@ -167,9 +183,10 @@ interface DocumentHeaderProps {
   focusEditor: (() => void) | null;
   isNewDocument: boolean;
   clearNewDocumentFlag: () => void;
+  onDocumentDelete: (documentId: string) => void;
 }
 
-function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNewDocument, clearNewDocumentFlag }: DocumentHeaderProps) {
+function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNewDocument, clearNewDocumentFlag, onDocumentDelete }: DocumentHeaderProps) {
   const [title, setTitle] = useState(document.title || '');
   const [newTag, setNewTag] = useState('');
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(false);
@@ -287,29 +304,41 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
   return (
     <div className="space-y-4">
       <div className="border-b pb-4">
-        {isEditingTitle ? (
-          <Input
-            ref={titleInputRef}
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            onKeyDown={handleTitleKeyDown}
-            onBlur={handleTitleBlur}
-            placeholder="Enter document title..."
-            className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2"
-            style={{ fontSize: '1.875rem', lineHeight: '2.25rem', minHeight: '2.25rem' }}
-          />
-        ) : (
-          <h1 
-            className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors min-h-[2.25rem] flex items-center"
-            onClick={() => setIsEditingTitle(true)}
-            style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
-          >
-            {title || (
-              <span className="text-muted-foreground/60">Enter document title...</span>
+        <div className="flex items-start justify-between gap-4">
+          <div className="flex-1">
+            {isEditingTitle ? (
+              <Input
+                ref={titleInputRef}
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                onKeyDown={handleTitleKeyDown}
+                onBlur={handleTitleBlur}
+                placeholder="Enter document title..."
+                className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2"
+                style={{ fontSize: '1.875rem', lineHeight: '2.25rem', minHeight: '2.25rem' }}
+              />
+            ) : (
+              <h1 
+                className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors min-h-[2.25rem] flex items-center"
+                onClick={() => setIsEditingTitle(true)}
+                style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
+              >
+                {title || (
+                  <span className="text-muted-foreground/60">Enter document title...</span>
+                )}
+              </h1>
             )}
-          </h1>
-        )}
-        <p className="text-muted-foreground">{subtitle}</p>
+            <p className="text-muted-foreground">{subtitle}</p>
+          </div>
+          <div className="flex-shrink-0 group">
+            <DocumentDropdownMenu 
+              document={document}
+              onDelete={onDocumentDelete}
+              className="opacity-100"
+              size="md"
+            />
+          </div>
+        </div>
       </div>
 
       <div className="space-y-4">
