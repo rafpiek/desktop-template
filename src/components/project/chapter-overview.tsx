@@ -1,5 +1,6 @@
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
+import { cn } from '@/lib/utils';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -151,14 +152,17 @@ export function ChapterOverview() {
               onChange={(e) => setTitle(e.target.value)}
               onKeyDown={handleTitleKeyDown}
               onBlur={handleTitleSubmit}
-              placeholder="Enter chapter title..."
-              className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2"
+              placeholder="New Chapter"
+              className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2 placeholder:text-muted-foreground/50"
               style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
               autoFocus
             />
           ) : (
             <h1 
-              className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors"
+              className={cn(
+                "text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors",
+                !title && "text-muted-foreground/50"
+              )}
               onClick={() => setIsEditingTitle(true)}
             >
               {title || 'New Chapter'}

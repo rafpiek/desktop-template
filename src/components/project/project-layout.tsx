@@ -94,7 +94,7 @@ function ProjectLayoutInner() {
     if (!id) return;
     const newChapter = createChapter({
       projectId: id,
-      title: 'New Chapter',
+      title: '',
     });
     refreshProjectData(id);
     navigate(`/projects/${id}/chapters/${newChapter.id}?new=true`);
@@ -386,7 +386,12 @@ function ProjectLayoutInner() {
                               onClick={() => handleChapterSelect(chapter.id)}
                             >
                               <div className="flex-1 min-w-0">
-                                <p className="font-medium text-sm truncate">{chapter.title}</p>
+                                <p className={cn(
+                                  "font-medium text-sm truncate",
+                                  !chapter.title && "text-muted-foreground/60 italic"
+                                )}>
+                                  {chapter.title || 'New Chapter'}
+                                </p>
                                 <div className="flex items-center gap-3 mt-1">
                                   <span className="text-xs text-muted-foreground">
                                     {chapter.wordCount.toLocaleString()} words

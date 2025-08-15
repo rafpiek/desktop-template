@@ -4,6 +4,7 @@ import { BookOpen, FileText, Clock, Target, PlusCircle, Plus } from 'lucide-reac
 import { useProjectData } from '@/hooks/use-project-data';
 import { useChapters } from '@/hooks/use-chapters';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export function ChaptersOverview() {
   const { id: projectId } = useParams<{ id: string }>();
@@ -129,7 +130,12 @@ export function ChaptersOverview() {
                   onClick={() => navigate(`/projects/${projectId}/chapters/${chapter.id}`)}
                 >
                   <div>
-                    <h3 className="font-medium">{chapter.title}</h3>
+                    <h3 className={cn(
+                      "font-medium",
+                      !chapter.title && "text-muted-foreground/60 italic"
+                    )}>
+                      {chapter.title || 'New Chapter'}
+                    </h3>
                     <div className="flex items-center gap-4 mt-1">
                       <p className="text-sm text-muted-foreground">
                         {chapter.wordCount.toLocaleString()} words
