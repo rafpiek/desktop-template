@@ -692,10 +692,25 @@ export function PlateEditor({ onEditorReady }: PlateEditorProps = {}) {
   React.useEffect(() => {
     if (onEditorReady && editor) {
       const focusEditor = () => {
-        // Focus the editor and position cursor at the end of the first line
-        editor.tf.focus();
-        // Move cursor to the start of the document (first line)
-        editor.api.select.start();
+        try {
+          // Focus the editor
+          editor.tf.focus();
+          
+          // Position cursor at the start of the document
+          // Use path [0, 0] to select the first block, first position
+          editor.tf.select({
+            anchor: { path: [0, 0], offset: 0 },
+            focus: { path: [0, 0], offset: 0 }
+          });
+        } catch (error) {
+          console.warn('Failed to position cursor at start:', error);
+          // Fallback: just focus the editor
+          try {
+            editor.tf.focus();
+          } catch (focusError) {
+            console.warn('Failed to focus editor:', focusError);
+          }
+        }
       };
       onEditorReady(focusEditor);
     }
