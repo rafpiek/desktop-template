@@ -449,11 +449,15 @@ export function DocumentEditor({
               className={cn(
                 isZenMode && [
                   "pt-16 pb-16",
-                  "max-w-4xl w-full",
+                  "w-full",
                   "px-8 md:px-12 lg:px-16",
                   "mx-auto"
                 ]
               )}
+              style={isZenMode ? {
+                maxWidth: '100ch', // ~100-120 characters per line for code/technical writing
+                width: '100%'
+              } : undefined}
             />
           </EditorContainer>
 

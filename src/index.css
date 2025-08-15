@@ -262,7 +262,7 @@
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  padding: 2rem;
+  padding: 3rem 2rem; /* More vertical padding for balance */
 }
 
 /* Animate editor when entering zen mode */
@@ -285,6 +285,13 @@
 .zen-mode-container .plate-editor p,
 .zen-mode-container .plate-editor [data-slate-node] {
   line-height: 1.8;
+}
+
+/* Ensure proper text width in zen mode */
+.zen-mode-container .plate-editor {
+  max-width: 100ch !important; /* Enforce character-based width */
+  margin: 0 auto;
+  padding: 0 2rem;
 }
 
 /* Optional: Add a subtle shadow for depth in zen mode */
