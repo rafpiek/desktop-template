@@ -130,7 +130,7 @@ export function ZenModeContainer({
     return () => clearTimeout(focusTimeout);
   }, [isZenMode, isTauriApp, isFullscreenSupported]);
 
-  // Keyboard shortcuts
+  // Keyboard shortcuts - only handle Escape when in zen mode
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Escape key to exit zen mode
@@ -141,15 +141,6 @@ export function ZenModeContainer({
         onToggleZenMode();
         return;
       }
-
-      // F11 handling for web (prevent browser fullscreen conflict)
-      if (event.key === 'F11' && !isTauriApp) {
-        event.preventDefault();
-        if (!isZenMode) {
-          onToggleZenMode();
-        }
-        return;
-      }
     };
 
     if (isZenMode) {
@@ -157,7 +148,7 @@ export function ZenModeContainer({
       document.addEventListener('keydown', handleKeyDown, true);
       return () => document.removeEventListener('keydown', handleKeyDown, true);
     }
-  }, [isZenMode, isTauriApp, onToggleZenMode]);
+  }, [isZenMode, onToggleZenMode]);
 
   // If not in zen mode, render children normally
   if (!isZenMode) {

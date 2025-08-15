@@ -324,7 +324,21 @@ export function DocumentEditor({
     }
   }, [isTauriApp, isZenMode]);
 
-  // Note: Keyboard shortcuts are now handled by ZenModeContainer
+  // Keyboard shortcut for zen mode toggle (Cmd/Ctrl + Shift + F)
+  React.useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      // Check for Cmd+Shift+F (Mac) or Ctrl+Shift+F (Windows/Linux)
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'F') {
+        event.preventDefault();
+        console.log('⌨️ Zen mode shortcut triggered (Cmd/Ctrl+Shift+F)');
+        toggleZenMode();
+      }
+    };
+
+    // Add global keyboard listener
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [toggleZenMode]);
 
   // Auto-focus the editor when it's first loaded
   React.useEffect(() => {
@@ -385,6 +399,7 @@ export function DocumentEditor({
             'gap-2',
             isZenMode && 'bg-background/80 backdrop-blur-sm hover:bg-background/90'
           )}
+          title={isZenMode ? "Exit Zen Mode (Esc)" : "Enter Zen Mode (⌘⇧F / Ctrl+Shift+F)"}
         >
           {isZenMode ? (
             <>
