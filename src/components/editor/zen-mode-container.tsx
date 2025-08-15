@@ -80,36 +80,54 @@ export function ZenModeContainer({
     };
   }, [isZenMode, onToggleZenMode, isTauriApp]);
 
-  // Try to enter fullscreen when zen mode is activated
+  // Focus management and fullscreen attempt when zen mode is activated
   React.useEffect(() => {
-    if (!isZenMode || isTauriApp || !isFullscreenSupported || !fullscreenElementRef.current) {
-      return;
-    }
+    if (!isZenMode) return;
 
-    const tryFullscreen = async () => {
-      try {
-        const element = fullscreenElementRef.current!;
-        
-        if (element.requestFullscreen) {
-          await element.requestFullscreen();
-        } else if ((element as any).webkitRequestFullscreen) {
-          await (element as any).webkitRequestFullscreen();
-        } else if ((element as any).msRequestFullscreen) {
-          await (element as any).msRequestFullscreen();
-        } else if ((element as any).mozRequestFullScreen) {
-          await (element as any).mozRequestFullScreen();
-        }
-        
-        console.log('✅ Successfully entered browser fullscreen');
-      } catch (error) {
-        console.warn('⚠️ Fullscreen request failed, using fallback overlay:', error);
-        // Continue with overlay fallback (don't exit zen mode)
+    // Focus the editor content when entering zen mode
+    const focusEditor = () => {
+      const editorElement = document.querySelector('[data-slate-editor]') as HTMLElement;
+      if (editorElement) {
+        editorElement.focus();
+        console.log('🎯 Focused editor in zen mode');
+      } else {
+        console.warn('⚠️ Could not find editor element to focus');
       }
     };
 
     // Small delay to ensure DOM is ready
-    const timeoutId = setTimeout(tryFullscreen, 100);
-    return () => clearTimeout(timeoutId);
+    const focusTimeout = setTimeout(focusEditor, 200);
+
+    // Try fullscreen if supported (but don't rely on it)
+    if (!isTauriApp && isFullscreenSupported && fullscreenElementRef.current) {
+      const tryFullscreen = async () => {
+        try {
+          const element = fullscreenElementRef.current!;
+          
+          if (element.requestFullscreen) {
+            await element.requestFullscreen();
+          } else if ((element as any).webkitRequestFullscreen) {
+            await (element as any).webkitRequestFullscreen();
+          } else if ((element as any).msRequestFullscreen) {
+            await (element as any).msRequestFullscreen();
+          } else if ((element as any).mozRequestFullScreen) {
+            await (element as any).mozRequestFullScreen();
+          }
+          
+          console.log('✅ Successfully entered browser fullscreen');
+        } catch (error) {
+          console.warn('⚠️ Fullscreen request failed, using fallback overlay:', error);
+        }
+      };
+
+      const fullscreenTimeout = setTimeout(tryFullscreen, 100);
+      return () => {
+        clearTimeout(focusTimeout);
+        clearTimeout(fullscreenTimeout);
+      };
+    }
+
+    return () => clearTimeout(focusTimeout);
   }, [isZenMode, isTauriApp, isFullscreenSupported]);
 
   // Keyboard shortcuts

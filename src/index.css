@@ -205,7 +205,11 @@
   right: 0;
   bottom: 0;
   z-index: 999999;
-  pointer-events: auto;
+  pointer-events: none; /* Allow clicks to pass through to children */
+}
+
+.zen-mode-portal > * {
+  pointer-events: auto; /* Re-enable pointer events for content */
 }
 
 /* Zen Mode Container base styles */
@@ -232,6 +236,24 @@
   
   /* Ensure proper rendering */
   isolation: isolate;
+  
+  /* Ensure content is interactive */
+  pointer-events: auto !important;
+}
+
+/* Ensure all content inside zen mode is interactive */
+.zen-mode-container * {
+  pointer-events: auto !important;
+}
+
+/* Ensure editor is clickable and focusable in zen mode */
+.zen-mode-container .editor,
+.zen-mode-container [data-slate-editor],
+.zen-mode-container [contenteditable="true"] {
+  pointer-events: auto !important;
+  user-select: text !important;
+  -webkit-user-select: text !important;
+  cursor: text !important;
 }
 
 /* Fullscreen API specific styles */
