@@ -259,10 +259,10 @@
 /* Zen mode editor centering and styling */
 .zen-mode-container .editor {
   display: flex;
-  align-items: center;
+  align-items: flex-start; /* Align to top instead of center */
   justify-content: center;
   min-height: 100vh;
-  padding: 3rem 2rem; /* More vertical padding for balance */
+  padding: 0; /* Remove container padding, handle in editor itself */
 }
 
 /* Animate editor when entering zen mode */
