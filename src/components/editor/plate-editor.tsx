@@ -575,9 +575,10 @@ const defaultValue = [
 
 interface PlateEditorProps {
   onEditorReady?: (focusEditor: () => void) => void;
+  autoFocus?: boolean;
 }
 
-export function PlateEditor({ onEditorReady }: PlateEditorProps = {}) {
+export function PlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProps = {}) {
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
 
@@ -688,9 +689,9 @@ export function PlateEditor({ onEditorReady }: PlateEditorProps = {}) {
     value: editorValue,
   }, [fontSize]); // Add fontSize as dependency to force re-creation
 
-  // Auto-focus the editor when it's first loaded
+  // Auto-focus the editor when it's first loaded (only if autoFocus is enabled)
   React.useEffect(() => {
-    if (editor) {
+    if (editor && autoFocus) {
       // Small delay to ensure editor is fully rendered
       const timeoutId = setTimeout(() => {
         try {
@@ -702,7 +703,7 @@ export function PlateEditor({ onEditorReady }: PlateEditorProps = {}) {
 
       return () => clearTimeout(timeoutId);
     }
-  }, [editor]);
+  }, [editor, autoFocus]);
 
   // Expose focus function to parent
   React.useEffect(() => {

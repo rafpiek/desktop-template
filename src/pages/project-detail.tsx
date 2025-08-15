@@ -177,8 +177,8 @@ export default function ProjectDetailPage() {
       
       console.log('Created document:', newDocument);
       
-      // Navigate to the new document page
-      navigate(`/projects/${id}/drafts/${newDocument.id}`);
+      // Navigate to the new document page with flag to auto-focus title
+      navigate(`/projects/${id}/drafts/${newDocument.id}?new=true`);
     } catch (error) {
       console.error('Error creating document:', error);
     }
@@ -186,6 +186,26 @@ export default function ProjectDetailPage() {
 
   const toggleSidebar = () => {
     setIsSidebarCollapsed(!isSidebarCollapsed);
+  };
+
+  const handleCreateDocumentInChapter = (chapterId: string) => {
+    if (!id) return;
+    
+    try {
+      console.log('Creating new document for chapter:', chapterId);
+      const newDocument = createDocumentWithUpdates({
+        title: '',
+        projectId: id,
+        chapterId: chapterId,
+      });
+      
+      console.log('Created document:', newDocument);
+      
+      // Navigate to the new document with a flag to auto-focus title
+      navigate(`/projects/${id}/chapters/${chapterId}/documents/${newDocument.id}?new=true`);
+    } catch (error) {
+      console.error('Error creating document in chapter:', error);
+    }
   };
 
 
@@ -517,7 +537,14 @@ export default function ProjectDetailPage() {
                           </DropdownMenuTrigger>
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>Edit Chapter</DropdownMenuItem>
-                            <DropdownMenuItem>Add Document</DropdownMenuItem>
+                            <DropdownMenuItem 
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleCreateDocumentInChapter(chapter.id);
+                              }}
+                            >
+                              Add Document
+                            </DropdownMenuItem>
                             <DropdownMenuItem>Duplicate</DropdownMenuItem>
                             <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
                           </DropdownMenuContent>

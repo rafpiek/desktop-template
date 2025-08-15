@@ -9,6 +9,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { cn } from '@/lib/utils';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
 import { DeleteChapterDialog } from './delete-chapter-dialog';
+import { DeleteDocumentDialog } from './delete-document-dialog';
 
 
 
@@ -23,18 +24,22 @@ function ProjectLayoutInner() {
   const location = useLocation();
   const { 
     getProject, 
+    getDocument,
     getDraftDocuments, 
     getProjectChapters, 
     getChapterDocuments,
     createDocumentWithUpdates,
     createChapter,
     deleteChapter,
+    deleteDocument,
     getProjectStats
   } = useProject();
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [chapterToDelete, setChapterToDelete] = useState<string | null>(null);
+  const [deleteDocumentDialogOpen, setDeleteDocumentDialogOpen] = useState(false);
+  const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const { isCollapsed: isSidebarCollapsed, toggle: toggleSidebar } = useSidebar();
 
   const project = getProject(id!);
@@ -128,10 +133,10 @@ function ProjectLayoutInner() {
       console.log('Current draft documents after creation:', getDraftDocuments(id));
       console.log('localStorage documents:', JSON.parse(localStorage.getItem('zeyn-documents') || '[]'));
       
-      const targetUrl = `/projects/${id}/drafts/${newDocument.id}`;
+      const targetUrl = `/projects/${id}/drafts/${newDocument.id}?new=true`;
       console.log('Navigating to:', targetUrl);
       
-      // Navigate to the new document page
+      // Navigate to the new document page with flag to auto-focus title
       navigate(targetUrl);
       
       console.log('Navigation completed');
@@ -154,6 +159,54 @@ function ProjectLayoutInner() {
       if (chapterId === chapterToDelete) {
         navigate(`/projects/${id}`);
       }
+    }
+  };
+
+  const handleCreateDocumentInChapter = (chapterId: string) => {
+    if (!id) return;
+    
+    try {
+      console.log('Creating new document for chapter:', chapterId);
+      const newDocument = createDocumentWithUpdates({
+        title: '',
+        projectId: id,
+        chapterId: chapterId,
+      });
+      
+      console.log('Created document:', newDocument);
+      
+      // Navigate to the new document with flag to auto-focus title
+      navigate(`/projects/${id}/chapters/${chapterId}/documents/${newDocument.id}?new=true`);
+    } catch (error) {
+      console.error('Error creating document in chapter:', error);
+    }
+  };
+
+  const handleDeleteDocument = (documentId: string) => {
+    setDocumentToDelete(documentId);
+    setDeleteDocumentDialogOpen(true);
+  };
+
+  const handleConfirmDeleteDocument = () => {
+    if (documentToDelete) {
+      const document = getDocument(documentToDelete);
+      if (document) {
+        deleteDocument(documentToDelete);
+        
+        // Navigate away if we were viewing the deleted document
+        if (documentId === documentToDelete) {
+          if (document.chapterId) {
+            // Navigate to chapter overview
+            navigate(`/projects/${id}/chapters/${document.chapterId}`);
+          } else {
+            // Navigate to drafts overview
+            navigate(`/projects/${id}/drafts`);
+          }
+        }
+      }
+      
+      setDocumentToDelete(null);
+      setDeleteDocumentDialogOpen(false);
     }
   };
 
@@ -318,7 +371,15 @@ function ProjectLayoutInner() {
                           <DropdownMenuContent align="end">
                             <DropdownMenuItem>Move to Chapter</DropdownMenuItem>
                             <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                            <DropdownMenuItem 
+                              className="text-destructive"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteDocument(draft.id);
+                              }}
+                            >
+                              Delete
+                            </DropdownMenuItem>
                           </DropdownMenuContent>
                         </DropdownMenu>
                       </div>
@@ -454,7 +515,14 @@ function ProjectLayoutInner() {
                                 </DropdownMenuTrigger>
                                 <DropdownMenuContent align="end">
                                   <DropdownMenuItem>Edit Chapter</DropdownMenuItem>
-                                  <DropdownMenuItem>Add Document</DropdownMenuItem>
+                                  <DropdownMenuItem 
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleCreateDocumentInChapter(chapter.id);
+                                    }}
+                                  >
+                                    Add Document
+                                  </DropdownMenuItem>
                                   <DropdownMenuItem>Duplicate</DropdownMenuItem>
                                   <DropdownMenuItem 
                                     className="text-destructive"
@@ -523,12 +591,33 @@ function ProjectLayoutInner() {
                                     <DropdownMenuContent align="end">
                                       <DropdownMenuItem>Edit Document</DropdownMenuItem>
                                       <DropdownMenuItem>Duplicate</DropdownMenuItem>
-                                      <DropdownMenuItem className="text-destructive">Delete</DropdownMenuItem>
+                                      <DropdownMenuItem 
+                                        className="text-destructive"
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          handleDeleteDocument(document.id);
+                                        }}
+                                      >
+                                        Delete
+                                      </DropdownMenuItem>
                                     </DropdownMenuContent>
                                   </DropdownMenu>
                                   </div>
                               </div>
                             ))}
+                            
+                            {/* Add Document Button */}
+                            <div className="pt-1">
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => handleCreateDocumentInChapter(chapter.id)}
+                                className="w-full justify-start h-8 text-xs text-muted-foreground hover:text-foreground"
+                              >
+                                <Plus className="h-3 w-3 mr-2" />
+                                Add Document
+                              </Button>
+                            </div>
                           </div>
                         </div>
                       </div>
@@ -572,6 +661,17 @@ function ProjectLayoutInner() {
           chapterTitle={projectChapters.find(c => c.id === chapterToDelete)?.title || 'Unknown Chapter'}
           documentCount={getChapterDocuments(chapterToDelete).length}
           onConfirm={handleConfirmDelete}
+        />
+      )}
+
+      {/* Delete Document Dialog */}
+      {documentToDelete && (
+        <DeleteDocumentDialog
+          open={deleteDocumentDialogOpen}
+          onOpenChange={setDeleteDocumentDialogOpen}
+          documentTitle={getDocument(documentToDelete)?.title || ''}
+          wordCount={getDocument(documentToDelete)?.wordCount || 0}
+          onConfirm={handleConfirmDeleteDocument}
         />
       )}
     </AppLayout>

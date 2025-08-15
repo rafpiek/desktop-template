@@ -1,4 +1,4 @@
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -18,10 +18,24 @@ export function DocumentView() {
     documentId?: string;
     draftId?: string;
   }>();
+  const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const { getDocument, getChapter, updateDocument } = useProject();
   const [fontSize, setFontSize] = useState<FontSize>('md');
   const [focusEditor, setFocusEditor] = useState<(() => void) | null>(null);
+  
+  // Check if this is a new document
+  const isNewDocument = searchParams.get('new') === 'true';
+  
+  // Function to clear the new document flag
+  const clearNewDocumentFlag = () => {
+    const newSearchParams = new URLSearchParams(searchParams);
+    newSearchParams.delete('new');
+    const newUrl = `${location.pathname}${newSearchParams.toString() ? '?' + newSearchParams.toString() : ''}`;
+    navigate(newUrl, { replace: true });
+  };
   
   if (!projectId) {
     return <div>Project not found</div>;
@@ -52,10 +66,15 @@ export function DocumentView() {
           subtitle={subtitle}
           updateDocument={updateDocument}
           focusEditor={focusEditor}
+          isNewDocument={isNewDocument}
+          clearNewDocumentFlag={clearNewDocumentFlag}
         />
         <div className="mt-8">
           <TooltipProvider>
-            <PlateEditor onEditorReady={setFocusEditor} />
+            <PlateEditor 
+              onEditorReady={setFocusEditor} 
+              autoFocus={!isNewDocument}
+            />
           </TooltipProvider>
         </div>
       </div>
@@ -68,27 +87,36 @@ interface DocumentHeaderProps {
   subtitle: string;
   updateDocument: (id: string, updates: Partial<any>) => any;
   focusEditor: (() => void) | null;
+  isNewDocument: boolean;
+  clearNewDocumentFlag: () => void;
 }
 
-function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: DocumentHeaderProps) {
+function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNewDocument, clearNewDocumentFlag }: DocumentHeaderProps) {
   const [title, setTitle] = useState(document.title || '');
   const [newTag, setNewTag] = useState('');
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(false);
   const [isEditingTitle, setIsEditingTitle] = useState(false);
   const titleInputRef = useRef<HTMLInputElement>(null);
 
-  // Auto-focus title if it's empty (new document)
+  // Auto-focus title if it's empty or if this is a new document from navigation
   useEffect(() => {
-    if (!document.title || document.title === '') {
+    if (isNewDocument || !document.title || document.title === '') {
       setIsEditingTitle(true);
     }
-  }, [document.title]);
+  }, [document.title, isNewDocument]);
 
   // Focus input when entering edit mode
   useEffect(() => {
     if (isEditingTitle && titleInputRef.current) {
-      titleInputRef.current.focus();
-      titleInputRef.current.select();
+      // Small delay to ensure input is fully rendered
+      const timeoutId = setTimeout(() => {
+        if (titleInputRef.current) {
+          titleInputRef.current.focus();
+          titleInputRef.current.select();
+        }
+      }, 50);
+      
+      return () => clearTimeout(timeoutId);
     }
   }, [isEditingTitle]);
 
@@ -99,13 +127,17 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: Doc
 
   const handleTitleSubmit = () => {
     const finalTitle = title.trim();
-    console.log('Title update requested:', finalTitle);
     
     const updatedDocument = updateDocument(document.id, { title: finalTitle });
     if (updatedDocument) {
       setTitle(finalTitle);
     }
     setIsEditingTitle(false);
+    
+    // Clear the new document flag to prevent re-focusing
+    if (isNewDocument) {
+      clearNewDocumentFlag();
+    }
   };
 
   const handleTitleKeyDown = (e: React.KeyboardEvent) => {
@@ -126,7 +158,6 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: Doc
   };
 
   const handleStatusChange = (newStatus: DocumentStatus) => {
-    console.log('Status change requested:', newStatus);
     updateDocument(document.id, { status: newStatus });
   };
 
@@ -137,7 +168,6 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: Doc
         name: newTag.trim(),
       };
       
-      console.log('Add tag requested:', newTagObj);
       const updatedTags = [...document.tags, newTagObj];
       updateDocument(document.id, { tags: updatedTags });
       setNewTag('');
@@ -145,7 +175,6 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: Doc
   };
 
   const removeTag = (tagId: string) => {
-    console.log('Remove tag requested:', tagId);
     const updatedTags = document.tags.filter((tag: any) => tag.id !== tagId);
     updateDocument(document.id, { tags: updatedTags });
   };

@@ -15,6 +15,7 @@ interface ProjectContextValue {
   getChapterDocuments: (chapterId: string) => Document[];
   createDocumentWithUpdates: ReturnType<typeof useProjectData>['createDocumentWithUpdates'];
   updateDocument: (id: string, updates: Partial<Document>) => Document | undefined;
+  deleteDocument: (documentId: string) => void;
   
   // Chapters
   chapters: Chapter[];
@@ -54,6 +55,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     documents, 
     chapters, 
     createDocumentWithUpdates, 
+    deleteDocumentWithUpdates,
     deleteChapterWithUpdates,
     getCompleteProjectData, 
     refreshProjectData 
@@ -114,6 +116,14 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     deleteChapterWithUpdates(chapterId, !deleteDocuments);
     refreshProjectData(chapter.projectId);
   }, [chapters, deleteChapterWithUpdates, refreshProjectData]);
+
+  const deleteDocument = useCallback((documentId: string) => {
+    const document = documents.getDocument(documentId);
+    if (!document) return;
+    
+    deleteDocumentWithUpdates(documentId);
+    refreshProjectData(document.projectId);
+  }, [documents, deleteDocumentWithUpdates, refreshProjectData]);
   
   const getProjectStats = (projectId: string) => {
     const data = getCompleteProjectData(projectId);
@@ -136,6 +146,7 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     getChapterDocuments,
     createDocumentWithUpdates,
     updateDocument,
+    deleteDocument,
     chapters: chapters.chapters,
     getChapter,
     getProjectChapters,
