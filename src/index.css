@@ -196,3 +196,76 @@
   51%, 100% { opacity: 0; }
 }
 
+/* Zen Mode Portal Styles */
+.zen-mode-portal {
+  /* Ensure portal is above everything else */
+  position: relative;
+  z-index: 9999;
+}
+
+/* Zen Mode Container base styles */
+.zen-mode-container {
+  /* Smooth transitions */
+  transition: all 0.3s ease-in-out;
+  
+  /* Ensure proper rendering */
+  isolation: isolate;
+  
+  /* Handle overflow properly */
+  overflow: auto;
+}
+
+/* Fullscreen API specific styles */
+.zen-mode-container:fullscreen {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+}
+
+/* Webkit fullscreen */
+.zen-mode-container:-webkit-full-screen {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+}
+
+/* Firefox fullscreen */
+.zen-mode-container:-moz-full-screen {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+}
+
+/* MS fullscreen */
+.zen-mode-container:-ms-fullscreen {
+  background: hsl(var(--background));
+  color: hsl(var(--foreground));
+  padding: 0;
+  margin: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: auto;
+}
+
+/* Prevent scrollbar issues in zen mode */
+body:has(.zen-mode-portal) {
+  overflow: hidden;
+}
+
+/* Restore body overflow when zen mode is not active */
+body:not(:has(.zen-mode-portal)) {
+  overflow: auto;
+}
+

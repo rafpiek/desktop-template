@@ -7,6 +7,7 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 import { EditorKit } from '@/components/editor/editor-kit';
 import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
+import { ZenModeContainer } from '@/components/editor/zen-mode-container';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { Button } from '@/components/ui/button';
 import { useFontSize } from '@/hooks/use-font-size';
@@ -303,33 +304,19 @@ export function DocumentEditor({
         const newFullscreenState = !isZenMode;
         await currentWindow.setFullscreen(newFullscreenState);
         setIsZenMode(newFullscreenState);
+        console.log(`🖥️ Tauri fullscreen ${newFullscreenState ? 'enabled' : 'disabled'}`);
       } catch (error) {
-        console.error('Failed to toggle fullscreen:', error);
+        console.error('❌ Failed to toggle Tauri fullscreen:', error);
         setIsZenMode(!isZenMode);
       }
     } else {
+      // For web, just toggle state - ZenModeContainer handles the rest
       setIsZenMode(!isZenMode);
+      console.log(`🌐 Web zen mode ${!isZenMode ? 'enabled' : 'disabled'}`);
     }
   }, [isTauriApp, isZenMode]);
 
-  // Handle keyboard shortcuts
-  React.useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === 'F11') {
-        event.preventDefault();
-        return;
-      }
-
-      if (event.key === 'Escape' && isZenMode && isTauriApp) {
-        event.preventDefault();
-        event.stopPropagation();
-        return;
-      }
-    };
-
-    document.addEventListener('keydown', handleKeyDown, true);
-    return () => document.removeEventListener('keydown', handleKeyDown, true);
-  }, [isZenMode, isTauriApp]);
+  // Note: Keyboard shortcuts are now handled by ZenModeContainer
 
   // Auto-focus the editor when it's first loaded
   React.useEffect(() => {
@@ -376,11 +363,10 @@ export function DocumentEditor({
   }, [editor, onEditorReady]);
 
   return (
-    <div
-      className={cn(
-        'relative',
-        !isTauriApp && isZenMode && 'fixed inset-0 z-50 bg-background',
-      )}
+    <ZenModeContainer
+      isZenMode={isZenMode}
+      onToggleZenMode={toggleZenMode}
+      className="relative"
     >
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <Button
@@ -419,8 +405,7 @@ export function DocumentEditor({
         >
           <EditorContainer
             className={cn(
-              !isTauriApp && isZenMode && "h-screen max-h-screen",
-              isTauriApp && isZenMode && "h-screen max-h-screen"
+              isZenMode && "h-screen max-h-screen"
             )}
           >
             <Editor
@@ -434,6 +419,6 @@ export function DocumentEditor({
           <SettingsDialog />
         </Plate>
       </div>
-    </div>
+    </ZenModeContainer>
   );
 }
