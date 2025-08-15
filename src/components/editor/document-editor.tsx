@@ -350,32 +350,25 @@ export function DocumentEditor({
   React.useEffect(() => {
     if (onEditorReady && editor) {
       const focusEditor = () => {
+        console.log('🎯 DocumentEditor: focusEditor called');
         try {
           editor.tf.focus();
+          console.log('🎯 DocumentEditor: editor.tf.focus() called');
           
           setTimeout(() => {
             try {
-              // Position cursor at the end of the first block
-              const firstNode = editor.children[0];
-              if (firstNode && firstNode.children && firstNode.children.length > 0) {
-                const lastChild = firstNode.children[firstNode.children.length - 1];
-                const textLength = lastChild.text ? lastChild.text.length : 0;
-                editor.tf.select({
-                  anchor: { path: [0, firstNode.children.length - 1], offset: textLength },
-                  focus: { path: [0, firstNode.children.length - 1], offset: textLength }
-                });
-              } else {
-                editor.tf.select({
-                  anchor: { path: [0, 0], offset: 0 },
-                  focus: { path: [0, 0], offset: 0 }
-                });
-              }
+              // Position cursor at the start of the first block for new documents
+              editor.tf.select({
+                anchor: { path: [0, 0], offset: 0 },
+                focus: { path: [0, 0], offset: 0 }
+              });
+              console.log('🎯 DocumentEditor: cursor positioned at start');
             } catch (selectionError) {
-              console.warn('Failed to set cursor position:', selectionError);
+              console.warn('🎯 DocumentEditor: Failed to set cursor position:', selectionError);
             }
           }, 50);
         } catch (error) {
-          console.warn('Failed to focus editor:', error);
+          console.warn('🎯 DocumentEditor: Failed to focus editor:', error);
         }
       };
       onEditorReady(focusEditor);

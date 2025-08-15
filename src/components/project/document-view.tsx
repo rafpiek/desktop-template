@@ -218,20 +218,41 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
     }
   };
 
+  const focusEditorAfterTitle = () => {
+    console.log('🎯 Attempting to focus editor after title submission');
+    if (focusEditor) {
+      // Longer delay to ensure all state updates and DOM changes are complete
+      setTimeout(() => {
+        console.log('🎯 Calling focusEditor function');
+        try {
+          focusEditor();
+          console.log('🎯 Successfully called focusEditor');
+        } catch (error) {
+          console.error('🎯 Failed to focus editor:', error);
+        }
+      }, 200); // Increased delay for more reliability
+    } else {
+      console.warn('🎯 focusEditor function not available');
+    }
+  };
+
   const handleTitleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
       handleTitleSubmit();
-      // Focus the editor after title submission
-      if (focusEditor) {
-        // Small delay to ensure title submission is complete
-        setTimeout(() => {
-          focusEditor();
-        }, 100);
-      }
+      // Focus the editor after title submission with improved timing
+      focusEditorAfterTitle();
     } else if (e.key === 'Escape') {
       setTitle(document.title || '');
       setIsEditingTitle(false);
+    }
+  };
+
+  const handleTitleBlur = () => {
+    handleTitleSubmit();
+    // Also focus editor when title loses focus (e.g., clicking away)
+    if (isNewDocument) {
+      focusEditorAfterTitle();
     }
   };
 
@@ -272,7 +293,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             onKeyDown={handleTitleKeyDown}
-            onBlur={handleTitleSubmit}
+            onBlur={handleTitleBlur}
             placeholder="Enter document title..."
             className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2"
             style={{ fontSize: '1.875rem', lineHeight: '2.25rem', minHeight: '2.25rem' }}
