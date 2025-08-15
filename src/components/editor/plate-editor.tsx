@@ -573,7 +573,11 @@ const defaultValue = [
   },
 ];
 
-export function PlateEditor() {
+interface PlateEditorProps {
+  onEditorReady?: (focusEditor: () => void) => void;
+}
+
+export function PlateEditor({ onEditorReady }: PlateEditorProps = {}) {
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
 
@@ -683,6 +687,19 @@ export function PlateEditor() {
     plugins: EditorKit,
     value: editorValue,
   }, [fontSize]); // Add fontSize as dependency to force re-creation
+
+  // Expose focus function to parent
+  React.useEffect(() => {
+    if (onEditorReady && editor) {
+      const focusEditor = () => {
+        // Focus the editor and position cursor at the end of the first line
+        editor.tf.focus();
+        // Move cursor to the start of the document (first line)
+        editor.api.select.start();
+      };
+      onEditorReady(focusEditor);
+    }
+  }, [editor, onEditorReady]);
 
   return (
     <div

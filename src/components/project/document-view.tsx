@@ -21,6 +21,7 @@ export function DocumentView() {
 
   const { getDocument, getChapter, updateDocument } = useProject();
   const [fontSize, setFontSize] = useState<FontSize>('md');
+  const [focusEditor, setFocusEditor] = useState<(() => void) | null>(null);
   
   if (!projectId) {
     return <div>Project not found</div>;
@@ -50,10 +51,11 @@ export function DocumentView() {
           document={document}
           subtitle={subtitle}
           updateDocument={updateDocument}
+          focusEditor={focusEditor}
         />
         <div className="mt-8">
           <TooltipProvider>
-            <PlateEditor />
+            <PlateEditor onEditorReady={setFocusEditor} />
           </TooltipProvider>
         </div>
       </div>
@@ -65,9 +67,10 @@ interface DocumentHeaderProps {
   document: any; // Document type from our hooks
   subtitle: string;
   updateDocument: (id: string, updates: Partial<any>) => any;
+  focusEditor: (() => void) | null;
 }
 
-function DocumentHeader({ document, subtitle, updateDocument }: DocumentHeaderProps) {
+function DocumentHeader({ document, subtitle, updateDocument, focusEditor }: DocumentHeaderProps) {
   const [title, setTitle] = useState(document.title || '');
   const [newTag, setNewTag] = useState('');
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(false);
@@ -78,11 +81,16 @@ function DocumentHeader({ document, subtitle, updateDocument }: DocumentHeaderPr
   useEffect(() => {
     if (!document.title || document.title === '') {
       setIsEditingTitle(true);
-      setTimeout(() => {
-        titleInputRef.current?.focus();
-      }, 100);
     }
   }, [document.title]);
+
+  // Focus input when entering edit mode
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
 
   // Update local title when document changes
   useEffect(() => {
@@ -104,7 +112,13 @@ function DocumentHeader({ document, subtitle, updateDocument }: DocumentHeaderPr
     if (e.key === 'Enter') {
       e.preventDefault();
       handleTitleSubmit();
-      // TODO: Focus the editor when PlateEditor integration is complete
+      // Focus the editor after title submission
+      if (focusEditor) {
+        // Small delay to ensure title submission is complete
+        setTimeout(() => {
+          focusEditor();
+        }, 100);
+      }
     } else if (e.key === 'Escape') {
       setTitle(document.title || '');
       setIsEditingTitle(false);
@@ -153,13 +167,14 @@ function DocumentHeader({ document, subtitle, updateDocument }: DocumentHeaderPr
             onKeyDown={handleTitleKeyDown}
             onBlur={handleTitleSubmit}
             placeholder="Enter document title..."
-            className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
-            style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
+            className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2"
+            style={{ fontSize: '1.875rem', lineHeight: '2.25rem', minHeight: '2.25rem' }}
           />
         ) : (
           <h1 
-            className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors"
+            className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors min-h-[2.25rem] flex items-center"
             onClick={() => setIsEditingTitle(true)}
+            style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
           >
             {title || 'New Document'}
           </h1>
