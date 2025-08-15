@@ -328,16 +328,25 @@ export function DocumentEditor({
   React.useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       // Check for Cmd+Shift+F (Mac) or Ctrl+Shift+F (Windows/Linux)
-      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key === 'F') {
+      // Note: event.key is case-sensitive and returns 'f' not 'F' when shift is pressed
+      if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
         event.preventDefault();
+        event.stopPropagation();
         console.log('⌨️ Zen mode shortcut triggered (Cmd/Ctrl+Shift+F)');
+        console.log('Key details:', {
+          key: event.key,
+          metaKey: event.metaKey,
+          ctrlKey: event.ctrlKey,
+          shiftKey: event.shiftKey
+        });
         toggleZenMode();
+        return false; // Prevent any default browser behavior
       }
     };
 
-    // Add global keyboard listener
-    document.addEventListener('keydown', handleKeyDown);
-    return () => document.removeEventListener('keydown', handleKeyDown);
+    // Add global keyboard listener with capture phase to intercept before browser
+    document.addEventListener('keydown', handleKeyDown, true);
+    return () => document.removeEventListener('keydown', handleKeyDown, true);
   }, [toggleZenMode]);
 
   // Auto-focus the editor when it's first loaded
