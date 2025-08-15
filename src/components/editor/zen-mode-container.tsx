@@ -59,10 +59,10 @@ export function ZenModeContainer({
       
       setIsInBrowserFullscreen(isCurrentlyFullscreen);
       
-      // If user exits fullscreen via browser controls, update zen mode state
+      // If user exits fullscreen via browser controls, keep zen mode active
+      // (they need to use Cmd/Ctrl+Shift+F or button to exit zen mode)
       if (!isCurrentlyFullscreen && isZenMode && !isTauriApp) {
-        console.log('🚪 Exiting zen mode due to fullscreen exit');
-        onToggleZenMode();
+        console.log('🚪 Browser fullscreen exited, but zen mode remains active');
       }
     };
 
@@ -130,25 +130,9 @@ export function ZenModeContainer({
     return () => clearTimeout(focusTimeout);
   }, [isZenMode, isTauriApp, isFullscreenSupported]);
 
-  // Keyboard shortcuts - only handle Escape when in zen mode
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      // Escape key to exit zen mode
-      if (event.key === 'Escape' && isZenMode) {
-        event.preventDefault();
-        event.stopPropagation();
-        console.log('⌨️ Escape pressed, exiting zen mode');
-        onToggleZenMode();
-        return;
-      }
-    };
-
-    if (isZenMode) {
-      // Add listener with high priority when in zen mode
-      document.addEventListener('keydown', handleKeyDown, true);
-      return () => document.removeEventListener('keydown', handleKeyDown, true);
-    }
-  }, [isZenMode, onToggleZenMode]);
+  // Note: Escape key intentionally does NOT exit zen mode
+  // to prevent accidental exits when using Escape for other editor functions
+  // Use Cmd/Ctrl+Shift+F or the button to exit zen mode
 
   // If not in zen mode, render children normally
   if (!isZenMode) {

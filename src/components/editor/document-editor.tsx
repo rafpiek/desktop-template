@@ -399,7 +399,7 @@ export function DocumentEditor({
             'gap-2',
             isZenMode && 'bg-background/80 backdrop-blur-sm hover:bg-background/90'
           )}
-          title={isZenMode ? "Exit Zen Mode (Esc)" : "Enter Zen Mode (⌘⇧F / Ctrl+Shift+F)"}
+          title={isZenMode ? "Exit Zen Mode (⌘⇧F / Ctrl+Shift+F)" : "Enter Zen Mode (⌘⇧F / Ctrl+Shift+F)"}
         >
           {isZenMode ? (
             <>
