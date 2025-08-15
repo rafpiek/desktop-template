@@ -1,4 +1,4 @@
-import { PlateEditor } from '@/components/editor/plate-editor';
+import { SamplePlateEditor } from '@/components/editor/plate-editor';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { FontSizeContext, type FontSize } from '@/hooks/use-font-size';
 import { useState } from 'react';
@@ -14,7 +14,7 @@ function Editor() {
         <div className="container mx-auto px-4 py-8">
           <h1 className="text-4xl font-bold mb-8">Editor</h1>
           <TooltipProvider>
-            <PlateEditor />
+            <SamplePlateEditor />
           </TooltipProvider>
         </div>
       </div>

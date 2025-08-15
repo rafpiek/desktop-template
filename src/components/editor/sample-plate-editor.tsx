@@ -9,9 +9,10 @@ import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { Button } from '@/components/ui/button';
-import { useFontSize } from '@/hooks/use-font-size';
+import { useFontSize, type FontSize } from '@/hooks/use-font-size';
 import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
+import { useEffect } from 'react';
 
 const STORAGE_KEY = 'plate-editor-content';
 
@@ -577,7 +578,7 @@ interface PlateEditorProps {
   autoFocus?: boolean;
 }
 
-export function PlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProps = {}) {
+export function SamplePlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProps = {}) {
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
 
@@ -806,6 +807,3 @@ export function PlateEditor({ onEditorReady, autoFocus = true }: PlateEditorProp
     </div>
   );
 }
-
-// Export as SamplePlateEditor for showcase purposes
-export const SamplePlateEditor = PlateEditor;

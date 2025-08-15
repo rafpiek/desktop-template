@@ -1,18 +1,18 @@
 import { useParams, useSearchParams, useNavigate, useLocation } from 'react-router-dom';
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { X, Plus, ChevronRight } from 'lucide-react';
-import { PlateEditor } from '@/components/editor/plate-editor';
+import { DocumentEditor } from '@/components/editor/document-editor';
 import { useProject } from '@/contexts/project-context';
 import { FontSizeContext, type FontSize } from '@/hooks/use-font-size';
 import type { DocumentStatus } from '@/lib/types/project';
 import { DOCUMENT_STATUS_LABELS } from '@/lib/types/project';
 
 export function DocumentView() {
-  const { id: projectId, chapterId, documentId, draftId } = useParams<{
+  const { id: projectId, chapterId: _chapterId, documentId, draftId } = useParams<{
     id: string;
     chapterId?: string;
     documentId?: string;
@@ -25,6 +25,11 @@ export function DocumentView() {
   const { getDocument, getChapter, updateDocument } = useProject();
   const [fontSize, setFontSize] = useState<FontSize>('md');
   const [focusEditor, setFocusEditor] = useState<(() => void) | null>(null);
+  const [textStats, setTextStats] = useState<{
+    wordCount: number;
+    charactersWithSpaces: number;
+    charactersWithoutSpaces: number;
+  }>({ wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 });
   
   // Check if this is a new document
   const isNewDocument = searchParams.get('new') === 'true';
@@ -52,11 +57,82 @@ export function DocumentView() {
     return <div>Document not found</div>;
   }
 
+  const handleContentChange = (content: any, stats: { 
+    wordCount: number; 
+    charactersWithSpaces: number; 
+    charactersWithoutSpaces: number;
+  }) => {
+    console.log('📊 Document view received stats:', stats);
+    
+    // Update local state for immediate UI display
+    setTextStats(stats);
+    
+    // Update document with all text statistics (do this after setTextStats)
+    updateDocument(document.id, { 
+      wordCount: stats.wordCount,
+      // Note: You might want to store character counts in document model too
+      // charactersWithSpaces: stats.charactersWithSpaces,
+      // charactersWithoutSpaces: stats.charactersWithoutSpaces
+    });
+  };
+
+  // Load stored document data to get character counts on document load
+  const loadStoredTextStats = React.useCallback((documentId: string) => {
+    try {
+      const storageKey = `document-data-${documentId}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const documentData = JSON.parse(saved);
+        console.log('📊 Loaded stored document data:', documentData);
+        return {
+          wordCount: documentData.wordCount || 0,
+          charactersWithSpaces: documentData.charactersWithSpaces || 0,
+          charactersWithoutSpaces: documentData.charactersWithoutSpaces || 0
+        };
+      }
+    } catch (error) {
+      console.error('Failed to load stored text stats:', error);
+    }
+    
+    // Fallback to document model data
+    return {
+      wordCount: document.wordCount || 0,
+      charactersWithSpaces: 0,
+      charactersWithoutSpaces: 0
+    };
+  }, [document.wordCount]);
+
+  // Initialize text stats when document changes - load from localStorage first
+  React.useEffect(() => {
+    console.log('📊 Initializing textStats for document:', document.id);
+    const storedStats = loadStoredTextStats(document.id);
+    console.log('📊 Setting initial textStats:', storedStats);
+    setTextStats(storedStats);
+  }, [document.id, loadStoredTextStats]);
+
   // Get chapter info if document belongs to a chapter
   const chapter = document.chapterId ? getChapter(document.chapterId) : null;
+  
+  // Create comprehensive stats subtitle
+  const formatStats = () => {
+    console.log('📊 Current textStats in formatStats:', textStats);
+    const parts = [];
+    
+    // Words
+    parts.push(`${textStats.wordCount.toLocaleString()} words`);
+    
+    // Always show characters if we have any content (even if 0 to debug)
+    if (textStats.wordCount > 0) {
+      parts.push(`${textStats.charactersWithSpaces.toLocaleString()} chars`);
+      parts.push(`${textStats.charactersWithoutSpaces.toLocaleString()} chars (no spaces)`);
+    }
+    
+    return parts.join(' • ');
+  };
+  
   const subtitle = chapter 
-    ? `Document from ${chapter.title} • ${document.wordCount} words`
-    : `Draft document • ${document.wordCount} words`;
+    ? `Document from ${chapter.title} • ${formatStats()}`
+    : `Draft document • ${formatStats()}`;
 
   return (
     <FontSizeContext.Provider value={{ fontSize, setFontSize }}>
@@ -71,9 +147,11 @@ export function DocumentView() {
         />
         <div className="mt-8">
           <TooltipProvider>
-            <PlateEditor 
+            <DocumentEditor 
+              documentId={document.id}
               onEditorReady={setFocusEditor} 
               autoFocus={!isNewDocument}
+              onContentChange={handleContentChange}
             />
           </TooltipProvider>
         </div>

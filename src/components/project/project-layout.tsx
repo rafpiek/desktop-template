@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import React, { useState } from 'react';
 import { useParams, useNavigate, Outlet, useLocation } from 'react-router-dom';
 import { SidebarProvider, useSidebar } from '@/contexts/sidebar-context';
 import { ProjectProvider, useProject } from '@/contexts/project-context';
@@ -41,6 +41,19 @@ function ProjectLayoutInner() {
   const [deleteDocumentDialogOpen, setDeleteDocumentDialogOpen] = useState(false);
   const [documentToDelete, setDocumentToDelete] = useState<string | null>(null);
   const { isCollapsed: isSidebarCollapsed, toggle: toggleSidebar } = useSidebar();
+
+  // Auto-expand relevant section when viewing a document
+  React.useEffect(() => {
+    if (draftId) {
+      // If viewing a draft document, expand the drafts section
+      console.log('📂 Auto-expanding drafts section for draftId:', draftId);
+      setIsDraftsExpanded(true);
+    } else if (chapterId) {
+      // If viewing a chapter document, expand that chapter
+      console.log('📂 Auto-expanding chapter for chapterId:', chapterId);
+      setExpandedChapters(prev => new Set(prev).add(chapterId));
+    }
+  }, [draftId, chapterId]);
 
   const project = getProject(id!);
   const draftDocuments = id ? getDraftDocuments(id) : [];
