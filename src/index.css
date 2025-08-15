@@ -256,6 +256,42 @@
   cursor: text !important;
 }
 
+/* Zen mode editor centering and styling */
+.zen-mode-container .editor {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  padding: 2rem;
+}
+
+/* Animate editor when entering zen mode */
+.zen-mode-container .plate-editor {
+  animation: zen-fade-in 0.5s ease-in-out;
+}
+
+@keyframes zen-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Better readability in zen mode */
+.zen-mode-container .plate-editor p,
+.zen-mode-container .plate-editor [data-slate-node] {
+  line-height: 1.8;
+}
+
+/* Optional: Add a subtle shadow for depth in zen mode */
+.zen-mode-container .plate-editor {
+  filter: drop-shadow(0 0 40px rgba(0, 0, 0, 0.1));
+}
+
 /* Fullscreen API specific styles */
 .zen-mode-container:fullscreen {
   background: hsl(var(--background));

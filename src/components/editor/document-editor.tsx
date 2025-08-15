@@ -425,7 +425,11 @@ export function DocumentEditor({
         <EditorSettingsSheet />
       </div>
 
-      <div className={cn("editor", `font-size-${fontSize}`)}>
+      <div className={cn(
+        "editor", 
+        `font-size-${fontSize}`,
+        isZenMode && "h-full flex items-center justify-center"
+      )}>
         <Plate
           key={`editor-${documentId}`}
           editor={editor}
@@ -437,13 +441,18 @@ export function DocumentEditor({
         >
           <EditorContainer
             className={cn(
-              isZenMode && "h-screen max-h-screen"
+              isZenMode && "h-screen max-h-screen flex items-center justify-center"
             )}
           >
             <Editor
               variant={isZenMode ? "fullWidth" : "demo"}
               className={cn(
-                isZenMode && "pt-16 h-full min-h-screen"
+                isZenMode && [
+                  "pt-16 pb-16",
+                  "max-w-4xl w-full",
+                  "px-8 md:px-12 lg:px-16",
+                  "mx-auto"
+                ]
               )}
             />
           </EditorContainer>
