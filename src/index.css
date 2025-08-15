@@ -122,28 +122,28 @@
   margin-inline: auto;
 }
 
-/* Make editor cursor highly visible with bright color */
+/* Make editor cursor white and extra wide */
 [data-slate-editor] {
-  caret-color: #3b82f6 !important; /* Bright blue cursor */
+  caret-color: #ffffff !important; /* White cursor */
 }
 
 [data-slate-editor]:focus {
-  caret-color: #3b82f6 !important; /* Bright blue cursor */
+  caret-color: #ffffff !important; /* White cursor */
 }
 
-/* Plate-specific cursor styling - make it even more prominent */
+/* Plate-specific cursor styling - white and thick */
 .plate-editor [data-slate-editor] {
-  caret-color: #2563eb !important; /* Even brighter blue */
+  caret-color: #ffffff !important; /* White cursor */
 }
 
 .plate-editor [data-slate-editor]:focus {
-  caret-color: #2563eb !important;
+  caret-color: #ffffff !important;
 }
 
 /* Also target specific Plate editor elements */
 .plate-content [data-slate-editor],
 .plate-content [data-slate-editor] * {
-  caret-color: #2563eb !important;
+  caret-color: #ffffff !important;
 }
 
 /* Ensure cursor is visible in paragraphs and other text elements */
@@ -152,24 +152,47 @@
 .plate-editor h1[data-slate-node],
 .plate-editor h2[data-slate-node],
 .plate-editor h3[data-slate-node] {
-  caret-color: #2563eb !important;
+  caret-color: #ffffff !important;
 }
 
-/* Make cursor thicker using a CSS hack */
+/* Make cursor much thicker using multiple techniques */
 .plate-editor [contenteditable="true"] {
-  caret-color: #2563eb !important;
-  /* Add a slight text shadow to make cursor appear thicker */
-  text-shadow: 0.5px 0 0 currentColor, -0.5px 0 0 currentColor;
+  caret-color: #ffffff !important;
+  /* Add strong text shadow to make cursor appear much wider */
+  text-shadow: 
+    1px 0 0 #ffffff, 
+    -1px 0 0 #ffffff,
+    2px 0 0 #ffffff, 
+    -2px 0 0 #ffffff,
+    0.5px 0 0 #ffffff,
+    -0.5px 0 0 #ffffff;
 }
 
 .plate-editor [contenteditable="true"]:focus {
-  caret-color: #2563eb !important;
+  caret-color: #ffffff !important;
 }
 
 /* Target all possible editor text containers */
 .plate-editor [contenteditable],
 .plate-editor [data-slate-string],
 .plate-editor span[data-slate-leaf] {
-  caret-color: #2563eb !important;
+  caret-color: #ffffff !important;
+}
+
+/* Additional approach for wider cursor using pseudo-element */
+.plate-editor [contenteditable="true"]::before {
+  content: '';
+  position: absolute;
+  width: 3px;
+  height: 1.2em;
+  background-color: #ffffff;
+  pointer-events: none;
+  z-index: 1;
+  animation: blink 1s infinite;
+}
+
+@keyframes blink {
+  0%, 50% { opacity: 1; }
+  51%, 100% { opacity: 0; }
 }
 
