@@ -122,3 +122,12 @@
   margin-inline: auto;
 }
 
+/* Ensure editor cursor is visible */
+[data-slate-editor] {
+  caret-color: hsl(var(--primary));
+}
+
+[data-slate-editor]:focus {
+  caret-color: hsl(var(--primary));
+}
+

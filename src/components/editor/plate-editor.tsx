@@ -688,28 +688,55 @@ export function PlateEditor({ onEditorReady }: PlateEditorProps = {}) {
     value: editorValue,
   }, [fontSize]); // Add fontSize as dependency to force re-creation
 
+  // Auto-focus the editor when it's first loaded
+  React.useEffect(() => {
+    if (editor) {
+      // Small delay to ensure editor is fully rendered
+      const timeoutId = setTimeout(() => {
+        try {
+          editor.tf.focus();
+        } catch (error) {
+          console.warn('Failed to auto-focus editor:', error);
+        }
+      }, 100);
+
+      return () => clearTimeout(timeoutId);
+    }
+  }, [editor]);
+
   // Expose focus function to parent
   React.useEffect(() => {
     if (onEditorReady && editor) {
       const focusEditor = () => {
         try {
-          // Focus the editor
+          // Focus the editor first
           editor.tf.focus();
           
-          // Position cursor at the start of the document
-          // Use path [0, 0] to select the first block, first position
-          editor.tf.select({
-            anchor: { path: [0, 0], offset: 0 },
-            focus: { path: [0, 0], offset: 0 }
-          });
+          // Small delay to ensure focus is set before positioning cursor
+          setTimeout(() => {
+            try {
+              // Position cursor at the end of the first block (more natural)
+              const firstNode = editor.children[0];
+              if (firstNode && firstNode.children && firstNode.children.length > 0) {
+                const lastChild = firstNode.children[firstNode.children.length - 1];
+                const textLength = lastChild.text ? lastChild.text.length : 0;
+                editor.tf.select({
+                  anchor: { path: [0, firstNode.children.length - 1], offset: textLength },
+                  focus: { path: [0, firstNode.children.length - 1], offset: textLength }
+                });
+              } else {
+                // Fallback to start position
+                editor.tf.select({
+                  anchor: { path: [0, 0], offset: 0 },
+                  focus: { path: [0, 0], offset: 0 }
+                });
+              }
+            } catch (selectionError) {
+              console.warn('Failed to set cursor position:', selectionError);
+            }
+          }, 50);
         } catch (error) {
-          console.warn('Failed to position cursor at start:', error);
-          // Fallback: just focus the editor
-          try {
-            editor.tf.focus();
-          } catch (focusError) {
-            console.warn('Failed to focus editor:', focusError);
-          }
+          console.warn('Failed to focus editor:', error);
         }
       };
       onEditorReady(focusEditor);
