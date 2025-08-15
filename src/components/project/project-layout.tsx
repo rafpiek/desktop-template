@@ -10,7 +10,6 @@ import { cn } from '@/lib/utils';
 import { PROJECT_STATUS_LABELS, PROJECT_LABEL_LABELS, PROJECT_STATUS_COLORS } from '@/lib/types/project';
 
 
-import { AddChapterDialog } from './add-chapter-dialog';
 
 function ProjectLayoutInner() {
   const { id, chapterId, documentId, draftId } = useParams<{ 
@@ -34,7 +33,6 @@ function ProjectLayoutInner() {
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set());
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
   const { isCollapsed: isSidebarCollapsed, toggle: toggleSidebar } = useSidebar();
-  const [isAddChapterDialogOpen, setIsAddChapterDialogOpen] = useState(false);
 
   const project = getProject(id!);
   const draftDocuments = id ? getDraftDocuments(id) : [];
@@ -92,14 +90,14 @@ function ProjectLayoutInner() {
     setExpandedChapters(new Set(projectChapters.map(c => c.id)));
   };
 
-  const handleCreateNewChapter = (title: string) => {
+  const handleCreateNewChapter = () => {
     if (!id) return;
     const newChapter = createChapter({
       projectId: id,
-      title,
+      title: 'New Chapter',
     });
     refreshProjectData(id);
-    navigate(`/projects/${id}/chapters/${newChapter.id}`);
+    navigate(`/projects/${id}/chapters/${newChapter.id}?new=true`);
   };
 
   const createNewDraft = () => {
@@ -342,7 +340,7 @@ function ProjectLayoutInner() {
                     >
                       <ChevronsUp className="h-3 w-3" />
                     </Button>
-                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={() => setIsAddChapterDialogOpen(true)}>
+                    <Button variant="ghost" size="icon" className="h-7 w-7" onClick={handleCreateNewChapter}>
                       <Plus className="h-4 w-4" />
                     </Button>
                   </div>
@@ -528,11 +526,6 @@ function ProjectLayoutInner() {
           </div>
         </div>
       </div>
-      <AddChapterDialog
-        isOpen={isAddChapterDialogOpen}
-        onClose={() => setIsAddChapterDialogOpen(false)}
-        onSubmit={handleCreateNewChapter}
-      />
     </AppLayout>
   );
 }

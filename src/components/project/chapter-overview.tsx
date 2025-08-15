@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -10,28 +10,53 @@ import { useProject } from '@/contexts/project-context';
 export function ChapterOverview() {
   const { id: projectId, chapterId } = useParams<{ id: string; chapterId: string }>();
   const navigate = useNavigate();
+  const location = useLocation();
   const { chapters, documents } = useProjectData();
   const { createDocumentWithUpdates, updateChapter } = useProject();
   
+  const searchParams = new URLSearchParams(location.search);
+  const isNewChapter = searchParams.get('new') === 'true';
+  
   const [title, setTitle] = useState('');
-  const [isEditingTitle, setIsEditingTitle] = useState(false);
+  const [isEditingTitle, setIsEditingTitle] = useState(isNewChapter);
   const titleInputRef = useRef<HTMLInputElement>(null);
   
+  const chapter = chapterId ? chapters.getChapter(chapterId) : null;
+  const chapterDocuments = chapterId ? documents.getDocumentsByChapter(chapterId) : [];
+
+  // Update local title when chapter changes
+  useEffect(() => {
+    if (isNewChapter && titleInputRef.current && chapter) {
+      setTitle('');
+      setIsEditingTitle(true);
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+      
+      // Remove the 'new' query parameter from URL
+      const newSearchParams = new URLSearchParams(location.search);
+      newSearchParams.delete('new');
+      const newSearch = newSearchParams.toString();
+      navigate(`/projects/${projectId}/chapters/${chapterId}${newSearch ? `?${newSearch}` : ''}`, { replace: true });
+    } else if (chapter) {
+      setTitle(chapter.title || '');
+    }
+  }, [chapter?.title, isNewChapter, navigate, projectId, chapterId, location.search, chapter]);
+  
+  // Auto-focus input when entering edit mode
+  useEffect(() => {
+    if (isEditingTitle && titleInputRef.current) {
+      titleInputRef.current.focus();
+      titleInputRef.current.select();
+    }
+  }, [isEditingTitle]);
+
   if (!projectId || !chapterId) {
     return <div>Chapter not found</div>;
   }
 
-  const chapter = chapters.getChapter(chapterId);
-  const chapterDocuments = documents.getDocumentsByChapter(chapterId);
-  
   if (!chapter) {
     return <div>Chapter not found</div>;
   }
-
-  // Update local title when chapter changes
-  useEffect(() => {
-    setTitle(chapter.title || '');
-  }, [chapter.title]);
 
   const completedDocuments = chapterDocuments.filter(d => d.isCompleted).length;
   const totalDocuments = chapterDocuments.length;
@@ -48,7 +73,22 @@ export function ChapterOverview() {
   const handleTitleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') {
       e.preventDefault();
-      handleTitleSubmit();
+      const finalTitle = title.trim() || 'New Chapter';
+      updateChapter(chapter.id, { title: finalTitle });
+      setTitle(finalTitle);
+      setIsEditingTitle(false);
+      
+      // Create a new document and navigate to it
+      try {
+        const newDocument = createDocumentWithUpdates({
+          title: 'New Document',
+          projectId,
+          chapterId,
+        });
+        navigate(`/projects/${projectId}/chapters/${chapterId}/documents/${newDocument.id}`);
+      } catch (error) {
+        console.error('Error creating document:', error);
+      }
     } else if (e.key === 'Escape') {
       setTitle(chapter.title || '');
       setIsEditingTitle(false);
@@ -114,6 +154,7 @@ export function ChapterOverview() {
               placeholder="Enter chapter title..."
               className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2"
               style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
+              autoFocus
             />
           ) : (
             <h1 
