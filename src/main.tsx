@@ -5,15 +5,18 @@ import './index.css'
 import App from './App.tsx'
 import { ThemeProvider } from '@/components/theme-provider'
 import { GoalsProvider } from '@/contexts/goals-context'
+import { LastAccessedProvider } from '@/contexts/last-accessed-context'
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <ThemeProvider defaultTheme="system" storageKey="zeyn-ui-theme">
-      <BrowserRouter>
-        <GoalsProvider>
-          <App />
-        </GoalsProvider>
-      </BrowserRouter>
+      <LastAccessedProvider>
+        <BrowserRouter>
+          <GoalsProvider>
+            <App />
+          </GoalsProvider>
+        </BrowserRouter>
+      </LastAccessedProvider>
     </ThemeProvider>
   </StrictMode>,
 )

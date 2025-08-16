@@ -9,6 +9,7 @@ import { DocumentEditor } from '@/components/editor/document-editor';
 import { DocumentDropdownMenu } from '@/components/project/document-dropdown-menu';
 import { useProject } from '@/contexts/project-context';
 import { useGoalsContext } from '@/contexts/goals-context';
+import { useLastAccessed } from '@/contexts/last-accessed-context';
 import type { DocumentStatus } from '@/lib/types/project';
 import { DOCUMENT_STATUS_LABELS } from '@/lib/types/project';
 
@@ -25,6 +26,7 @@ export function DocumentView() {
 
   const { getDocument, getChapter, updateDocument, deleteDocument } = useProject();
   const { trackDocumentChange } = useGoalsContext();
+  const { setLastDocument } = useLastAccessed();
   const [focusEditor, setFocusEditor] = useState<(() => void) | null>(null);
   const [textStats, setTextStats] = useState<{
     wordCount: number;
@@ -57,6 +59,21 @@ export function DocumentView() {
   if (!document) {
     return <div>Document not found</div>;
   }
+  
+  // Track document access
+  useEffect(() => {
+    const docId = draftId || documentId;
+    if (document && projectId && docId && !isNewDocument) {
+      setLastDocument(
+        docId, 
+        document.title || 'Untitled Document', 
+        projectId, 
+        _chapterId
+      );
+    }
+    // Only run once when navigating to a document
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftId, documentId, projectId, _chapterId]);
 
   const handleContentChange = (content: any, stats: { 
     wordCount: number; 
