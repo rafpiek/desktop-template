@@ -37,6 +37,66 @@ export function DocumentView() {
   // Check if this is a new document
   const isNewDocument = searchParams.get('new') === 'true';
   
+  // Determine which document we're viewing
+  const document = draftId 
+    ? getDocument(draftId)
+    : documentId 
+      ? getDocument(documentId) 
+      : null;
+
+  // Load stored document data to get character counts on document load
+  const loadStoredTextStats = React.useCallback((documentId: string) => {
+    try {
+      const storageKey = `document-data-${documentId}`;
+      const saved = localStorage.getItem(storageKey);
+      if (saved) {
+        const documentData = JSON.parse(saved);
+        console.log('📊 Loaded stored document data:', documentData);
+        return {
+          wordCount: documentData.wordCount || 0,
+          charactersWithSpaces: documentData.charactersWithSpaces || 0,
+          charactersWithoutSpaces: documentData.charactersWithoutSpaces || 0
+        };
+      }
+    } catch (error) {
+      console.error('Failed to load stored text stats:', error);
+    }
+    
+    // Fallback to document model data
+    return {
+      wordCount: document?.wordCount || 0,
+      charactersWithSpaces: 0,
+      charactersWithoutSpaces: 0
+    };
+  }, [document?.wordCount]);
+
+  // Track document access
+  useEffect(() => {
+    if (!document || !projectId) return;
+    
+    const docId = draftId || documentId;
+    if (docId && !isNewDocument) {
+      setLastDocument(
+        docId, 
+        document.title || 'Untitled Document', 
+        projectId, 
+        _chapterId
+      );
+    }
+    // Only run once when navigating to a document
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [draftId, documentId, projectId, _chapterId]);
+
+  // Initialize text stats when document changes - load from localStorage first
+  React.useEffect(() => {
+    if (!document) return;
+    
+    console.log('📊 Initializing textStats for document:', document.id);
+    const storedStats = loadStoredTextStats(document.id);
+    console.log('📊 Setting initial textStats:', storedStats);
+    setTextStats(storedStats);
+  }, [document?.id, loadStoredTextStats]);
+  
   // Function to clear the new document flag
   const clearNewDocumentFlag = () => {
     const newSearchParams = new URLSearchParams(searchParams);
@@ -49,32 +109,10 @@ export function DocumentView() {
     return <div>Project not found</div>;
   }
 
-  // Determine which document we're viewing
-  const document = draftId 
-    ? getDocument(draftId)
-    : documentId 
-      ? getDocument(documentId) 
-      : null;
-
   if (!document) {
     return <div>Document not found</div>;
   }
   
-  // Track document access
-  useEffect(() => {
-    const docId = draftId || documentId;
-    if (document && projectId && docId && !isNewDocument) {
-      setLastDocument(
-        docId, 
-        document.title || 'Untitled Document', 
-        projectId, 
-        _chapterId
-      );
-    }
-    // Only run once when navigating to a document
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftId, documentId, projectId, _chapterId]);
-
   const handleContentChange = (content: any, stats: { 
     wordCount: number; 
     charactersWithSpaces: number; 
@@ -108,40 +146,6 @@ export function DocumentView() {
       // charactersWithoutSpaces: stats.charactersWithoutSpaces
     });
   };
-
-  // Load stored document data to get character counts on document load
-  const loadStoredTextStats = React.useCallback((documentId: string) => {
-    try {
-      const storageKey = `document-data-${documentId}`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const documentData = JSON.parse(saved);
-        console.log('📊 Loaded stored document data:', documentData);
-        return {
-          wordCount: documentData.wordCount || 0,
-          charactersWithSpaces: documentData.charactersWithSpaces || 0,
-          charactersWithoutSpaces: documentData.charactersWithoutSpaces || 0
-        };
-      }
-    } catch (error) {
-      console.error('Failed to load stored text stats:', error);
-    }
-    
-    // Fallback to document model data
-    return {
-      wordCount: document.wordCount || 0,
-      charactersWithSpaces: 0,
-      charactersWithoutSpaces: 0
-    };
-  }, [document.wordCount]);
-
-  // Initialize text stats when document changes - load from localStorage first
-  React.useEffect(() => {
-    console.log('📊 Initializing textStats for document:', document.id);
-    const storedStats = loadStoredTextStats(document.id);
-    console.log('📊 Setting initial textStats:', storedStats);
-    setTextStats(storedStats);
-  }, [document.id, loadStoredTextStats]);
 
   // Get chapter info if document belongs to a chapter
   const chapter = document.chapterId ? getChapter(document.chapterId) : null;
