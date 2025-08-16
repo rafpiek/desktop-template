@@ -193,11 +193,11 @@ export function ProjectFormDialog({
                 <select
                   value={formData.label}
                   onChange={(e) => setFormData(prev => ({ ...prev, label: e.target.value as ProjectLabel }))}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   required
                 >
                   {Object.entries(PROJECT_LABEL_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
+                    <option key={value} value={value} className="bg-background text-foreground">
                       {label}
                     </option>
                   ))}
@@ -211,10 +211,10 @@ export function ProjectFormDialog({
                 <select
                   value={formData.status}
                   onChange={(e) => setFormData(prev => ({ ...prev, status: e.target.value as ProjectStatus }))}
-                  className="flex h-9 w-full rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  className="flex h-9 w-full rounded-md border border-input bg-background text-foreground px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                 >
                   {Object.entries(PROJECT_STATUS_LABELS).map(([value, label]) => (
-                    <option key={value} value={value}>
+                    <option key={value} value={value} className="bg-background text-foreground">
                       {label}
                     </option>
                   ))}
