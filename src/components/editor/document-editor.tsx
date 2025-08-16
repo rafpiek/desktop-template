@@ -425,44 +425,55 @@ export function DocumentEditor({
 
       <div className={cn(
         "editor",
-        isZenMode ? "h-full flex justify-center" : "h-full"
+        isZenMode ? "h-full overflow-y-auto" : "h-full"
       )}>
-        <Plate
-          key={`editor-${documentId}`}
-          editor={editor}
-          onChange={({ value }) => {
-            console.log(`✏️ User typing in ${documentId}`);
-            // Trigger debounced save for current document
-            debouncedSave(value);
-          }}
-        >
-          <EditorContainer
-            className={cn(
-              isZenMode ? "h-screen max-h-screen flex justify-center" : "h-full"
-            )}
+        {isZenMode ? (
+          // Zen mode: Full-width scrollable container with centered content
+          <div className="flex justify-center min-h-full">
+            <div 
+              className="w-full pt-24 pb-16 px-8 md:px-12 lg:px-16"
+              style={{
+                width: '100ch',
+                maxWidth: '100ch'
+              }}
+            >
+              <Plate
+                key={`editor-${documentId}`}
+                editor={editor}
+                onChange={({ value }) => {
+                  console.log(`✏️ User typing in ${documentId}`);
+                  debouncedSave(value);
+                }}
+              >
+                <EditorContainer className="h-full">
+                  <Editor
+                    variant="fullWidth"
+                    className="w-full"
+                  />
+                </EditorContainer>
+                <SettingsDialog />
+              </Plate>
+            </div>
+          </div>
+        ) : (
+          // Normal mode: Standard layout
+          <Plate
+            key={`editor-${documentId}`}
+            editor={editor}
+            onChange={({ value }) => {
+              console.log(`✏️ User typing in ${documentId}`);
+              debouncedSave(value);
+            }}
           >
-            <Editor
-              variant={isZenMode ? "fullWidth" : "demo"}
-              className={cn(
-                isZenMode ? [
-                  "pt-24 pb-16", // More top padding to push content down from buttons
-                  "min-h-screen",
-                  "w-full",
-                  "px-8 md:px-12 lg:px-16",
-                  "mx-auto"
-                ] : [
-                  "h-full overflow-y-auto"
-                ]
-              )}
-              style={isZenMode ? {
-                maxWidth: '100ch', // ~100-120 characters per line for code/technical writing
-                width: '100%'
-              } : undefined}
-            />
-          </EditorContainer>
-
-          <SettingsDialog />
-        </Plate>
+            <EditorContainer className="h-full">
+              <Editor
+                variant="demo"
+                className="h-full overflow-y-auto"
+              />
+            </EditorContainer>
+            <SettingsDialog />
+          </Plate>
+        )}
       </div>
     </ZenModeContainer>
   );

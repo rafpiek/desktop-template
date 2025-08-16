@@ -150,7 +150,7 @@ export function DocumentView() {
   return (
     <div className="h-full flex flex-col p-6">
       {/* Fixed Header - No sticky, just normal flow */}
-      <div className="flex-shrink-0 border-b pb-4 mb-4">
+      <div className="flex-shrink-0 border-b pb-4 mb-4 relative">
         <DocumentHeader 
           document={document}
           subtitle={subtitle}
@@ -163,7 +163,7 @@ export function DocumentView() {
       </div>
       
       {/* Scrollable Editor Area - Takes remaining height */}
-      <div className="flex-1 overflow-hidden">
+      <div className="flex-1 overflow-hidden relative">
         <TooltipProvider>
           <DocumentEditor 
             documentId={document.id}

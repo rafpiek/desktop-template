@@ -68,13 +68,13 @@ export function DocumentDropdownMenu({
         <Button 
           variant="ghost" 
           size="icon" 
-          className={`${buttonSize} opacity-0 group-hover:opacity-100 transition-opacity duration-200 ${className}`}
+          className={`${buttonSize} opacity-60 group-hover:opacity-100 hover:opacity-100 transition-opacity duration-200 ${className}`}
           onClick={(e) => e.stopPropagation()}
         >
           <MoreHorizontal className={iconClass} />
         </Button>
       </DropdownMenuTrigger>
-      <DropdownMenuContent align="end">
+      <DropdownMenuContent align="end" className="z-50" sideOffset={5}>
         {/* Move to Chapter - only show if there are chapters and document is not already in a chapter */}
         {projectChapters.length > 0 && (
           <DropdownMenuSub>
