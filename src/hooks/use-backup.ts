@@ -67,7 +67,26 @@ export function useBackup(): UseBackupReturn {
 
       // Get project data
       const projectChapters = getProjectChapters(project.id);
-      const projectDocuments = documents.filter(doc => doc.projectId === project.id);
+      let projectDocuments = documents.filter(doc => doc.projectId === project.id);
+      
+      // CRITICAL: Sync actual editor content from localStorage before backup
+      projectDocuments = projectDocuments.map(doc => {
+        const editorStorageKey = `document-data-${doc.id}`;
+        try {
+          const savedData = localStorage.getItem(editorStorageKey);
+          if (savedData) {
+            const { content } = JSON.parse(savedData);
+            if (content && content.length > 0) {
+              // Use the actual content from editor storage
+              return { ...doc, content };
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to load editor content for document ${doc.id}:`, error);
+        }
+        return doc;
+      });
+      
       const projectTags = project.tags || [];
 
       // Perform backup with progress tracking
