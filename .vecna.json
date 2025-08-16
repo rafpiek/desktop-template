@@ -1,0 +1,28 @@
+{
+  "name": "zeyn",
+  "path": "/Users/rafal/projects/editor/zeyn",
+  "mainBranch": "main",
+  "linter": {
+    "js": "eslint",
+    "rb": "rubocop"
+  },
+  "test": {
+    "rb": "rspec"
+  },
+  "worktrees": {
+    "baseDir": "/Users/rafal/dev/trees",
+    "copyFiles": [
+      "config/master.key",
+      "config/application.yml"
+    ],
+    "defaultBranch": "main",
+    "autoInstall": true,
+    "packageManager": "auto",
+    "postCreateScripts": [],
+    "editor": {
+      "command": "code",
+      "openOnSwitch": false
+    }
+  },
+  "worktreeState": {}
+}
