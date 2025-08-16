@@ -425,7 +425,7 @@ export function DocumentEditor({
 
       <div className={cn(
         "editor",
-        isZenMode && "h-full flex justify-center"
+        isZenMode ? "h-full flex justify-center" : "h-full"
       )}>
         <Plate
           key={`editor-${documentId}`}
@@ -438,18 +438,20 @@ export function DocumentEditor({
         >
           <EditorContainer
             className={cn(
-              isZenMode && "h-screen max-h-screen flex justify-center"
+              isZenMode ? "h-screen max-h-screen flex justify-center" : "h-full"
             )}
           >
             <Editor
               variant={isZenMode ? "fullWidth" : "demo"}
               className={cn(
-                isZenMode && [
+                isZenMode ? [
                   "pt-24 pb-16", // More top padding to push content down from buttons
                   "min-h-screen",
                   "w-full",
                   "px-8 md:px-12 lg:px-16",
                   "mx-auto"
+                ] : [
+                  "h-full overflow-y-auto"
                 ]
               )}
               style={isZenMode ? {

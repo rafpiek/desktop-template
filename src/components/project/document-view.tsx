@@ -148,17 +148,22 @@ export function DocumentView() {
   };
 
   return (
-    <div className="mb-8">
-      <DocumentHeader 
-        document={document}
-        subtitle={subtitle}
-        updateDocument={updateDocument}
-        focusEditor={focusEditor}
-        isNewDocument={isNewDocument}
-        clearNewDocumentFlag={clearNewDocumentFlag}
-        onDocumentDelete={handleDocumentDelete}
-      />
-      <div className="mt-8">
+    <div className="h-full flex flex-col p-6">
+      {/* Fixed Header - No sticky, just normal flow */}
+      <div className="flex-shrink-0 border-b pb-4 mb-4">
+        <DocumentHeader 
+          document={document}
+          subtitle={subtitle}
+          updateDocument={updateDocument}
+          focusEditor={focusEditor}
+          isNewDocument={isNewDocument}
+          clearNewDocumentFlag={clearNewDocumentFlag}
+          onDocumentDelete={handleDocumentDelete}
+        />
+      </div>
+      
+      {/* Scrollable Editor Area - Takes remaining height */}
+      <div className="flex-1 overflow-hidden">
         <TooltipProvider>
           <DocumentEditor 
             documentId={document.id}

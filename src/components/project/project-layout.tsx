@@ -621,9 +621,9 @@ function ProjectLayoutInner() {
         )}
 
         {/* Main Content */}
-        <div className="flex-1 overflow-auto">
+        <div className="flex-1 h-screen overflow-hidden">
           <div className={cn(
-            "p-6",
+            "h-full flex flex-col",
             isSidebarCollapsed && "pl-16"
           )}>
             <Outlet />
