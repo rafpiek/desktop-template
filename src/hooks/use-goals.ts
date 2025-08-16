@@ -61,7 +61,7 @@ export function useGoals() {
   const archiveOldGoals = useCallback(() => {
     const cutoffDate = new Date();
     cutoffDate.setDate(cutoffDate.getDate() - (settings.archiveAfterDays || 90));
-    
+
     setGoals(prev => prev.map(goal => {
       if (new Date(goal.endDate) < cutoffDate) {
         return { ...goal, isActive: false };
@@ -159,18 +159,18 @@ export function useGoals() {
 
     const { start, end } = getDateRangeForPeriod(period);
     const periodProgress = getProgressForGoal(goal.id, start, end);
-    
+
     const achieved = periodProgress.reduce((sum, p) => sum + p.wordsWritten, 0);
     const percentage = calculateGoalPercentage(achieved, goal.targetWords);
     const streak = calculateStreak(periodProgress, goal.targetWords);
-    
+
     // Calculate best streak (simplified for now)
     const bestStreak = Math.max(streak, 0);
-    
+
     // Calculate average words per day in period
     const daysInPeriod = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
     const averageWords = daysInPeriod > 0 ? Math.round(achieved / daysInPeriod) : 0;
-    
+
     // Count successful days
     const successfulDays = periodProgress.filter(p => p.wordsWritten >= goal.targetWords).length;
 
@@ -210,11 +210,11 @@ export function useGoals() {
     while (currentDate <= endDate) {
       const dateStr = currentDate.toISOString().split('T')[0];
       const dayProgress = progress.filter(p => p.date.startsWith(dateStr));
-      
+
       const wordsWritten = dayProgress.reduce((sum, p) => sum + p.wordsWritten, 0);
       const charsWritten = dayProgress.reduce((sum, p) => sum + p.charsWritten, 0);
       const projectIds = [...new Set(dayProgress.flatMap(p => p.projectIds))];
-      
+
       calendarData.push({
         date: dateStr,
         wordsWritten,
@@ -263,12 +263,12 @@ export function useGoals() {
   }, [getGoalByType, createGoal]);
 
   // Return all functions and data
-  return {
+  return useMemo(() => ({
     // Data
     goals,
     progress,
     settings,
-    
+
     // Goal CRUD
     createGoal,
     updateGoal,
@@ -276,22 +276,41 @@ export function useGoals() {
     archiveOldGoals,
     getActiveGoals,
     getGoalByType,
-    
+
     // Progress CRUD
     upsertProgress,
     updateProgress,
     getProgressForGoal,
     getTodayProgress,
-    
+
     // Statistics
     calculatePeriodStats,
     calculateAllStats,
     getCalendarData,
-    
+
     // Settings
     updateSettings,
-    
+
     // Utilities
     initializeDefaultGoals,
-  };
+  }), [
+    goals,
+    progress,
+    settings,
+    createGoal,
+    updateGoal,
+    deleteGoal,
+    archiveOldGoals,
+    getActiveGoals,
+    getGoalByType,
+    upsertProgress,
+    updateProgress,
+    getProgressForGoal,
+    getTodayProgress,
+    calculatePeriodStats,
+    calculateAllStats,
+    getCalendarData,
+    updateSettings,
+    initializeDefaultGoals,
+  ]);
 }

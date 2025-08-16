@@ -180,22 +180,24 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     return checkDate >= goalStart && checkDate <= goalEnd && goal.isActive;
   };
 
-  // Initialize default goals on mount
+  // Initialize default goals on mount only
   useEffect(() => {
     initializeDefaultGoals();
-  }, [initializeDefaultGoals]);
+    // Only run once on mount
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Archive old goals periodically
+  // Archive old goals when setting changes
   useEffect(() => {
     if (settings.autoArchiveOldGoals) {
       archiveOldGoals();
     }
   }, [settings.autoArchiveOldGoals, archiveOldGoals]);
 
-  // Sync progress from documents on mount and when documents change
+  // Sync progress from documents when documents change
   useEffect(() => {
     syncProgressFromDocuments();
-  }, [syncProgressFromDocuments]);
+  }, [documents, syncProgressFromDocuments]);
 
   const contextValue: GoalsContextValue = {
     // Data

@@ -18,15 +18,15 @@ export function useChapters() {
   const createChapter = useCallback((input: CreateChapterInput) => {
     // Auto-calculate order if not provided
     const projectChapters = chapters.filter(c => c.projectId === input.projectId);
-    const maxOrder = projectChapters.length > 0 
+    const maxOrder = projectChapters.length > 0
       ? Math.max(...projectChapters.map(c => c.order))
       : 0;
-    
+
     const newChapter = createEmptyChapter({
       ...input,
       order: input.order || maxOrder + 1,
     });
-    
+
     setChapters(prev => [...prev, newChapter]);
     return newChapter;
   }, [chapters, setChapters]);
@@ -53,8 +53,8 @@ export function useChapters() {
 
   // Toggle completion status
   const toggleCompletion = useCallback((id: string) => {
-    setChapters(prev => prev.map(chapter => 
-      chapter.id === id 
+    setChapters(prev => prev.map(chapter =>
+      chapter.id === id
         ? { ...chapter, isCompleted: !chapter.isCompleted, updatedAt: new Date().toISOString() }
         : chapter
     ));
@@ -67,7 +67,7 @@ export function useChapters() {
 
     // Auto-calculate order for duplicated chapter
     const projectChapters = chapters.filter(c => c.projectId === chapter.projectId);
-    const maxOrder = projectChapters.length > 0 
+    const maxOrder = projectChapters.length > 0
       ? Math.max(...projectChapters.map(c => c.order))
       : 0;
 
@@ -101,10 +101,10 @@ export function useChapters() {
 
   // Add document to chapter
   const addDocumentToChapter = useCallback((chapterId: string, documentId: string) => {
-    setChapters(prev => prev.map(chapter => 
-      chapter.id === chapterId 
-        ? { 
-            ...chapter, 
+    setChapters(prev => prev.map(chapter =>
+      chapter.id === chapterId
+        ? {
+            ...chapter,
             documentIds: [...chapter.documentIds, documentId],
             updatedAt: new Date().toISOString()
           }
@@ -114,10 +114,10 @@ export function useChapters() {
 
   // Remove document from chapter
   const removeDocumentFromChapter = useCallback((chapterId: string, documentId: string) => {
-    setChapters(prev => prev.map(chapter => 
-      chapter.id === chapterId 
-        ? { 
-            ...chapter, 
+    setChapters(prev => prev.map(chapter =>
+      chapter.id === chapterId
+        ? {
+            ...chapter,
             documentIds: chapter.documentIds.filter(id => id !== documentId),
             updatedAt: new Date().toISOString()
           }
@@ -127,8 +127,8 @@ export function useChapters() {
 
   // Update chapter word count (should be called when documents change)
   const updateChapterWordCount = useCallback((chapterId: string, wordCount: number) => {
-    setChapters(prev => prev.map(chapter => 
-      chapter.id === chapterId 
+    setChapters(prev => prev.map(chapter =>
+      chapter.id === chapterId
         ? { ...chapter, wordCount, updatedAt: new Date().toISOString() }
         : chapter
     ));
@@ -138,9 +138,9 @@ export function useChapters() {
   const reorderChapters = useCallback((projectId: string, chapterIds: string[]) => {
     setChapters(prev => prev.map(chapter => {
       if (chapter.projectId !== projectId) return chapter;
-      
+
       const newOrder = chapterIds.indexOf(chapter.id) + 1;
-      return newOrder > 0 
+      return newOrder > 0
         ? { ...chapter, order: newOrder, updatedAt: new Date().toISOString() }
         : chapter;
     }));
@@ -181,7 +181,7 @@ export function useChapters() {
     const dataStr = JSON.stringify(projectChapters, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `zeyn-chapters-${projectId}-${new Date().toISOString().split('T')[0]}.json`;
@@ -191,7 +191,7 @@ export function useChapters() {
     URL.revokeObjectURL(url);
   }, [chapters]);
 
-  return {
+  return useMemo(() => ({
     // Data
     chapters,
     recentChapters,
@@ -221,5 +221,22 @@ export function useChapters() {
 
     // Export
     exportProjectChapters,
-  };
+  }), [
+    chapters,
+    recentChapters,
+    completedChapters,
+    createChapter,
+    updateChapter,
+    deleteChapter,
+    getChapter,
+    duplicateChapter,
+    toggleCompletion,
+    getChaptersByProject,
+    getProjectChapterStats,
+    addDocumentToChapter,
+    removeDocumentFromChapter,
+    updateChapterWordCount,
+    reorderChapters,
+    exportProjectChapters,
+  ]);
 }

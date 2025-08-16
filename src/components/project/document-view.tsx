@@ -33,53 +33,27 @@ export function DocumentView() {
     charactersWithSpaces: number;
     charactersWithoutSpaces: number;
   }>({ wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 });
-  
+
   // Check if this is a new document
   const isNewDocument = searchParams.get('new') === 'true';
-  
-  // Determine which document we're viewing
-  const document = draftId 
-    ? getDocument(draftId)
-    : documentId 
-      ? getDocument(documentId) 
-      : null;
 
-  // Load stored document data to get character counts on document load
-  const loadStoredTextStats = React.useCallback((documentId: string) => {
-    try {
-      const storageKey = `document-data-${documentId}`;
-      const saved = localStorage.getItem(storageKey);
-      if (saved) {
-        const documentData = JSON.parse(saved);
-        console.log('📊 Loaded stored document data:', documentData);
-        return {
-          wordCount: documentData.wordCount || 0,
-          charactersWithSpaces: documentData.charactersWithSpaces || 0,
-          charactersWithoutSpaces: documentData.charactersWithoutSpaces || 0
-        };
-      }
-    } catch (error) {
-      console.error('Failed to load stored text stats:', error);
-    }
-    
-    // Fallback to document model data
-    return {
-      wordCount: document?.wordCount || 0,
-      charactersWithSpaces: 0,
-      charactersWithoutSpaces: 0
-    };
-  }, [document?.wordCount]);
+  // Determine which document we're viewing
+  const document = draftId
+    ? getDocument(draftId)
+    : documentId
+      ? getDocument(documentId)
+      : null;
 
   // Track document access
   useEffect(() => {
     if (!document || !projectId) return;
-    
+
     const docId = draftId || documentId;
     if (docId && !isNewDocument) {
       setLastDocument(
-        docId, 
-        document.title || 'Untitled Document', 
-        projectId, 
+        docId,
+        document.title || 'Untitled Document',
+        projectId,
         _chapterId
       );
     }
@@ -90,13 +64,39 @@ export function DocumentView() {
   // Initialize text stats when document changes - load from localStorage first
   React.useEffect(() => {
     if (!document) return;
-    
+
     console.log('📊 Initializing textStats for document:', document.id);
+
+    const loadStoredTextStats = (documentId: string) => {
+      try {
+        const storageKey = `document-data-${documentId}`;
+        const saved = localStorage.getItem(storageKey);
+        if (saved) {
+          const documentData = JSON.parse(saved);
+          console.log('📊 Loaded stored document data:', documentData);
+          return {
+            wordCount: documentData.wordCount || 0,
+            charactersWithSpaces: documentData.charactersWithSpaces || 0,
+            charactersWithoutSpaces: documentData.charactersWithoutSpaces || 0
+          };
+        }
+      } catch (error) {
+        console.error('Failed to load stored text stats:', error);
+      }
+
+      // Fallback to document model data
+      return {
+        wordCount: document?.wordCount || 0,
+        charactersWithSpaces: 0,
+        charactersWithoutSpaces: 0
+      };
+    };
+
     const storedStats = loadStoredTextStats(document.id);
     console.log('📊 Setting initial textStats:', storedStats);
     setTextStats(storedStats);
-  }, [document?.id, loadStoredTextStats]);
-  
+  }, [document?.id, document?.wordCount]);
+
   // Function to clear the new document flag
   const clearNewDocumentFlag = () => {
     const newSearchParams = new URLSearchParams(searchParams);
@@ -104,7 +104,7 @@ export function DocumentView() {
     const newUrl = `${location.pathname}${newSearchParams.toString() ? '?' + newSearchParams.toString() : ''}`;
     navigate(newUrl, { replace: true });
   };
-  
+
   if (!projectId) {
     return <div>Project not found</div>;
   }
@@ -112,21 +112,21 @@ export function DocumentView() {
   if (!document) {
     return <div>Document not found</div>;
   }
-  
-  const handleContentChange = (content: any, stats: { 
-    wordCount: number; 
-    charactersWithSpaces: number; 
+
+  const handleContentChange = (content: any, stats: {
+    wordCount: number;
+    charactersWithSpaces: number;
     charactersWithoutSpaces: number;
   }) => {
     console.log('📊 Document view received stats:', stats);
-    
+
     // Update local state for immediate UI display
     setTextStats(stats);
-    
+
     // Track the change for goals (calculate word delta)
     const previousWordCount = document.wordCount || 0;
     const wordDelta = stats.wordCount - previousWordCount;
-    
+
     // Only track positive changes (words added, not deleted)
     if (wordDelta > 0) {
       trackDocumentChange(
@@ -136,9 +136,9 @@ export function DocumentView() {
         stats.charactersWithSpaces - (previousWordCount * 5) // Rough estimate of char delta
       );
     }
-    
+
     // Update document with content AND text statistics
-    updateDocument(document.id, { 
+    updateDocument(document.id, {
       content: content,  // IMPORTANT: Save the actual content!
       wordCount: stats.wordCount,
       // Note: You might want to store character counts in document model too
@@ -149,25 +149,25 @@ export function DocumentView() {
 
   // Get chapter info if document belongs to a chapter
   const chapter = document.chapterId ? getChapter(document.chapterId) : null;
-  
+
   // Create comprehensive stats subtitle
   const formatStats = () => {
     console.log('📊 Current textStats in formatStats:', textStats);
     const parts = [];
-    
+
     // Words
     parts.push(`${textStats.wordCount.toLocaleString()} words`);
-    
+
     // Always show characters if we have any content (even if 0 to debug)
     if (textStats.wordCount > 0) {
       parts.push(`${textStats.charactersWithSpaces.toLocaleString()} chars`);
       parts.push(`${textStats.charactersWithoutSpaces.toLocaleString()} chars (no spaces)`);
     }
-    
+
     return parts.join(' • ');
   };
-  
-  const subtitle = chapter 
+
+  const subtitle = chapter
     ? `Document from ${chapter.title} • ${formatStats()}`
     : `Draft document • ${formatStats()}`;
 
@@ -180,7 +180,7 @@ export function DocumentView() {
       // Navigate to drafts overview
       navigate(`/projects/${projectId}/drafts`);
     }
-    
+
     // Delete the document
     deleteDocument(documentId);
   };
@@ -189,7 +189,7 @@ export function DocumentView() {
     <div className="h-full flex flex-col p-6">
       {/* Fixed Header - No sticky, just normal flow */}
       <div className="flex-shrink-0 border-b pb-4 mb-4 relative">
-        <DocumentHeader 
+        <DocumentHeader
           document={document}
           subtitle={subtitle}
           updateDocument={updateDocument}
@@ -199,13 +199,13 @@ export function DocumentView() {
           onDocumentDelete={handleDocumentDelete}
         />
       </div>
-      
+
       {/* Scrollable Editor Area - Takes remaining height */}
       <div className="flex-1 overflow-hidden relative">
         <TooltipProvider>
-          <DocumentEditor 
+          <DocumentEditor
             documentId={document.id}
-            onEditorReady={setFocusEditor} 
+            onEditorReady={setFocusEditor}
             autoFocus={!isNewDocument}
             onContentChange={handleContentChange}
           />
@@ -249,7 +249,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
           titleInputRef.current.select();
         }
       }, 50);
-      
+
       return () => clearTimeout(timeoutId);
     }
   }, [isEditingTitle]);
@@ -261,13 +261,13 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
 
   const handleTitleSubmit = () => {
     const finalTitle = title.trim();
-    
+
     const updatedDocument = updateDocument(document.id, { title: finalTitle });
     if (updatedDocument) {
       setTitle(finalTitle);
     }
     setIsEditingTitle(false);
-    
+
     // Clear the new document flag to prevent re-focusing
     if (isNewDocument) {
       clearNewDocumentFlag();
@@ -322,7 +322,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
         id: crypto.randomUUID(),
         name: newTag.trim(),
       };
-      
+
       const updatedTags = [...document.tags, newTagObj];
       updateDocument(document.id, { tags: updatedTags });
       setNewTag('');
@@ -357,7 +357,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
                 style={{ fontSize: '1.875rem', lineHeight: '2.25rem', minHeight: '2.25rem' }}
               />
             ) : (
-              <h1 
+              <h1
                 className="text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors min-h-[2.25rem] flex items-center"
                 onClick={() => setIsEditingTitle(true)}
                 style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
@@ -370,7 +370,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
             <p className="text-muted-foreground">{subtitle}</p>
           </div>
           <div className="flex-shrink-0 group">
-            <DocumentDropdownMenu 
+            <DocumentDropdownMenu
               document={document}
               onDelete={onDocumentDelete}
               className="opacity-100"
@@ -385,7 +385,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
           onClick={() => setIsMetadataExpanded(!isMetadataExpanded)}
           className="flex items-center gap-2 text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
         >
-          <ChevronRight 
+          <ChevronRight
             className={`h-4 w-4 transition-transform ${isMetadataExpanded ? 'rotate-90' : ''}`}
           />
           Document Details
@@ -410,7 +410,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
                 </Select>
               </div>
             </div>
-            
+
             <div className="space-y-2">
               <label className="text-sm font-medium text-muted-foreground">Tags:</label>
               <div className="flex flex-wrap gap-2 items-center">

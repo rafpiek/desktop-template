@@ -50,8 +50,8 @@ export function useDocuments() {
 
   // Toggle completion status
   const toggleCompletion = useCallback((id: string) => {
-    setDocuments(prev => prev.map(document => 
-      document.id === id 
+    setDocuments(prev => prev.map(document =>
+      document.id === id
         ? { ...document, isCompleted: !document.isCompleted, updatedAt: new Date().toISOString() }
         : document
     ));
@@ -91,23 +91,23 @@ export function useDocuments() {
 
   // Get draft documents (documents not in any chapter)
   const getDraftDocuments = useCallback((projectId: string): Document[] => {
-    return documents.filter(document => 
+    return documents.filter(document =>
       document.projectId === projectId && !document.chapterId
     );
   }, [documents]);
 
   // Get documents by status
   const getDocumentsByStatus = useCallback((status: DocumentStatus, projectId?: string): Document[] => {
-    return documents.filter(document => 
-      document.status === status && 
+    return documents.filter(document =>
+      document.status === status &&
       (projectId ? document.projectId === projectId : true)
     );
   }, [documents]);
 
   // Move document to chapter
   const moveDocumentToChapter = useCallback((documentId: string, chapterId?: string) => {
-    setDocuments(prev => prev.map(document => 
-      document.id === documentId 
+    setDocuments(prev => prev.map(document =>
+      document.id === documentId
         ? { ...document, chapterId, updatedAt: new Date().toISOString() }
         : document
     ));
@@ -149,7 +149,7 @@ export function useDocuments() {
     const dataStr = JSON.stringify(projectDocuments, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `zeyn-documents-${projectId}-${new Date().toISOString().split('T')[0]}.json`;
@@ -159,7 +159,7 @@ export function useDocuments() {
     URL.revokeObjectURL(url);
   }, [documents]);
 
-  return {
+  return useMemo(() => ({
     // Data
     documents,
     recentDocuments,
@@ -187,5 +187,22 @@ export function useDocuments() {
 
     // Export
     exportProjectDocuments,
-  };
+  }), [
+    documents,
+    recentDocuments,
+    completedDocuments,
+    createDocument,
+    updateDocument,
+    deleteDocument,
+    getDocument,
+    duplicateDocument,
+    toggleCompletion,
+    getDocumentsByProject,
+    getDocumentsByChapter,
+    getDraftDocuments,
+    getDocumentsByStatus,
+    getProjectDocumentStats,
+    moveDocumentToChapter,
+    exportProjectDocuments,
+  ]);
 }

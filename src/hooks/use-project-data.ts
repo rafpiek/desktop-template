@@ -1,4 +1,4 @@
-import { useCallback, useState, useEffect } from 'react';
+import { useCallback, useState, useEffect, useMemo } from 'react';
 import { useProjects } from './use-projects';
 import { useDocuments } from './use-documents';
 import { useChapters } from './use-chapters';
@@ -21,12 +21,12 @@ export function useProjectData() {
   // Create a document and update related entities
   const createDocumentWithUpdates = useCallback((input: CreateDocumentInput) => {
     const newDocument = documents.createDocument(input);
-    
+
     // If document belongs to a chapter, add it to the chapter's document list
     if (input.chapterId) {
       chapters.addDocumentToChapter(input.chapterId, newDocument.id);
     }
-    
+
     return newDocument;
   }, [documents, chapters]);
 
@@ -46,8 +46,8 @@ export function useProjectData() {
 
   // Move document between chapters and update entities
   const moveDocumentBetweenChapters = useCallback((
-    documentId: string, 
-    fromChapterId: string | undefined, 
+    documentId: string,
+    fromChapterId: string | undefined,
     toChapterId: string | undefined
   ) => {
     // Remove from old chapter
@@ -136,7 +136,7 @@ export function useProjectData() {
     return draftsChapter;
   }, [chapters]);
 
-  return {
+  return useMemo(() => ({
     // Individual hooks
     projects,
     documents,
@@ -151,5 +151,17 @@ export function useProjectData() {
     getCompleteProjectData,
     initializeProject,
     refreshProjectData,
-  };
+  }), [
+    projects,
+    documents,
+    chapters,
+    createDocumentWithUpdates,
+    deleteDocumentWithUpdates,
+    moveDocumentBetweenChapters,
+    deleteChapterWithUpdates,
+    recalculateChapterWordCounts,
+    getCompleteProjectData,
+    initializeProject,
+    refreshProjectData,
+  ]);
 }

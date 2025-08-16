@@ -55,8 +55,8 @@ export function useProjects() {
 
   // Toggle favorite status
   const toggleFavorite = useCallback((id: string) => {
-    setProjects(prev => prev.map(project => 
-      project.id === id 
+    setProjects(prev => prev.map(project =>
+      project.id === id
         ? { ...project, isFavorite: !project.isFavorite, updatedAt: new Date().toISOString() }
         : project
     ));
@@ -64,8 +64,8 @@ export function useProjects() {
 
   // Toggle archive status
   const toggleArchive = useCallback((id: string) => {
-    setProjects(prev => prev.map(project => 
-      project.id === id 
+    setProjects(prev => prev.map(project =>
+      project.id === id
         ? { ...project, isArchived: !project.isArchived, updatedAt: new Date().toISOString() }
         : project
     ));
@@ -106,28 +106,28 @@ export function useProjects() {
       if (filters.status && filters.status.length > 0) {
         filtered = filtered.filter(p => filters.status!.includes(p.status));
       }
-      
+
       if (filters.label && filters.label.length > 0) {
         filtered = filtered.filter(p => filters.label!.includes(p.label));
       }
-      
+
       if (filters.tags && filters.tags.length > 0) {
-        filtered = filtered.filter(p => 
+        filtered = filtered.filter(p =>
           filters.tags!.some(tagId => p.tags.some(tag => tag.id === tagId))
         );
       }
-      
+
       if (filters.isFavorite !== undefined) {
         filtered = filtered.filter(p => p.isFavorite === filters.isFavorite);
       }
-      
+
       if (filters.isArchived !== undefined) {
         filtered = filtered.filter(p => p.isArchived === filters.isArchived);
       }
-      
+
       if (filters.searchQuery) {
         const query = filters.searchQuery.toLowerCase();
-        filtered = filtered.filter(p => 
+        filtered = filtered.filter(p =>
           p.name.toLowerCase().includes(query) ||
           p.description?.toLowerCase().includes(query) ||
           p.genre?.toLowerCase().includes(query) ||
@@ -201,7 +201,7 @@ export function useProjects() {
     const dataStr = JSON.stringify(projects, null, 2);
     const dataBlob = new Blob([dataStr], { type: 'application/json' });
     const url = URL.createObjectURL(dataBlob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = `zeyn-projects-${new Date().toISOString().split('T')[0]}.json`;
@@ -217,7 +217,7 @@ export function useProjects() {
       reader.onload = (e) => {
         try {
           const imported = JSON.parse(e.target?.result as string) as Project[];
-          
+
           // Validate the imported data structure
           if (!Array.isArray(imported)) {
             reject(new Error('Invalid file format: expected an array of projects'));
@@ -245,7 +245,7 @@ export function useProjects() {
     });
   }, [setProjects]);
 
-  return {
+  return useMemo(() => ({
     // Data
     projects,
     recentProjects,
@@ -271,5 +271,22 @@ export function useProjects() {
     // Import/Export
     exportProjects,
     importProjects,
-  };
+  }), [
+    projects,
+    recentProjects,
+    favoriteProjects,
+    stats,
+    createProject,
+    updateProject,
+    deleteProject,
+    getProject,
+    duplicateProject,
+    toggleFavorite,
+    toggleArchive,
+    getFilteredProjects,
+    getProjectsByStatus,
+    getProjectsByLabel,
+    exportProjects,
+    importProjects,
+  ]);
 }
