@@ -78,6 +78,13 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Fix for select dropdown gradient issue in Tauri */
+[data-radix-select-content] {
+  background: hsl(var(--popover)) !important;
+  background-image: none !important;
+}
+
 /* Font size definitions are in editor-font-sizes.css */
 
 /* Custom Scrollbars - Beautiful and Minimal */

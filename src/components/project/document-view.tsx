@@ -66,8 +66,9 @@ export function DocumentView() {
     // Update local state for immediate UI display
     setTextStats(stats);
     
-    // Update document with all text statistics (do this after setTextStats)
+    // Update document with content AND text statistics
     updateDocument(document.id, { 
+      content: content,  // IMPORTANT: Save the actual content!
       wordCount: stats.wordCount,
       // Note: You might want to store character counts in document model too
       // charactersWithSpaces: stats.charactersWithSpaces,

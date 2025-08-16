@@ -7,6 +7,19 @@
   "permissions": [
     "core:window:allow-set-fullscreen",
     "core:window:allow-is-fullscreen",
-    "dialog:default"
+    "dialog:default",
+    "fs:allow-read-file",
+    "fs:allow-write-text-file",
+    "fs:allow-read-dir",
+    "fs:allow-create",
+    "fs:allow-mkdir",
+    "fs:allow-exists",
+    "fs:write-all",
+    "fs:read-all",
+    {
+      "identifier": "fs:scope",
+      "allow": ["**"]
+    },
+    "shell:allow-open"
   ]
 }

@@ -8,9 +8,13 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings, FolderOpen, Download, ExternalLink } from 'lucide-react';
+import { Progress } from '@/components/ui/progress';
+import { Alert, AlertDescription } from '@/components/ui/alert';
+import { Settings, FolderOpen, Download, ExternalLink, CheckCircle, XCircle, AlertCircle, Loader2, FolderOpenIcon } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useBackupPath } from '@/hooks/use-backup-path';
+import { useBackup } from '@/hooks/use-backup';
+import { openDirectory, canOpenDirectory } from '@/lib/services/open-directory';
 import type { Project } from '@/lib/types/project';
 
 interface ProjectSettingsDialogProps {
@@ -24,9 +28,18 @@ type SettingsTab = 'general' | 'backup';
 export function ProjectSettingsDialog({ project, open, onOpenChange }: ProjectSettingsDialogProps) {
   const [activeTab, setActiveTab] = useState<SettingsTab>('general');
   const { backupPath } = useBackupPath();
+  const { isBackingUp, progress, lastResult, backupProject, cancelBackup, resetState } = useBackup();
 
-  const handleBackupNow = () => {
-    alert("Backup Complete: Project has been successfully backed up to the selected folder.");
+  const handleBackupNow = async () => {
+    resetState();
+    const result = await backupProject(project, {
+      includeDrafts: true,
+      includeChapters: true
+    });
+    
+    if (!result.success) {
+      console.error('Backup failed:', result.error);
+    }
   };
 
   return (
@@ -136,17 +149,86 @@ export function ProjectSettingsDialog({ project, open, onOpenChange }: ProjectSe
                           </div>
                         </div>
                         
+                        {/* Progress UI */}
+                        {isBackingUp && progress && (
+                          <div className="space-y-3">
+                            <div className="flex items-center justify-between text-sm">
+                              <span className="text-muted-foreground">{progress.status}</span>
+                              <span className="font-medium">{progress.percentage}%</span>
+                            </div>
+                            <Progress value={progress.percentage} className="h-2" />
+                            <div className="flex justify-between text-xs text-muted-foreground">
+                              <span>Processing {progress.current} of {progress.total} files</span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={cancelBackup}
+                                className="h-auto p-1 text-xs"
+                              >
+                                Cancel
+                              </Button>
+                            </div>
+                          </div>
+                        )}
+                        
+                        {/* Success Result */}
+                        {lastResult && lastResult.success && !isBackingUp && (
+                          <div className="space-y-3">
+                            <Alert className="border-green-200 dark:border-green-800">
+                              <CheckCircle className="h-4 w-4 text-green-600 dark:text-green-400" />
+                              <AlertDescription className="text-green-800 dark:text-green-200">
+                                Backup completed successfully! 
+                                {lastResult.filesBackedUp && ` (${lastResult.filesBackedUp} files backed up)`}
+                              </AlertDescription>
+                            </Alert>
+                            {lastResult.backupPath && canOpenDirectory() && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={async () => {
+                                  const fullPath = `${backupPath}/${lastResult.backupPath}`;
+                                  await openDirectory(fullPath);
+                                }}
+                                className="gap-2"
+                              >
+                                <FolderOpenIcon className="h-4 w-4" />
+                                Open Backup Folder
+                              </Button>
+                            )}
+                          </div>
+                        )}
+                        
+                        {/* Error Result */}
+                        {lastResult && !lastResult.success && !isBackingUp && (
+                          <Alert className="border-red-200 dark:border-red-800">
+                            <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                            <AlertDescription className="text-red-800 dark:text-red-200">
+                              Backup failed: {lastResult.error || 'Unknown error'}
+                            </AlertDescription>
+                          </Alert>
+                        )}
+                        
                         <div className="flex flex-col sm:flex-row sm:items-center gap-3">
                           <Button 
                             onClick={handleBackupNow}
+                            disabled={isBackingUp}
                             className="gap-2"
                             size="sm"
                           >
-                            <Download className="h-4 w-4" />
-                            Backup Now
+                            {isBackingUp ? (
+                              <>
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                                Backing up...
+                              </>
+                            ) : (
+                              <>
+                                <Download className="h-4 w-4" />
+                                {lastResult && !lastResult.success ? 'Retry Backup' : 'Backup Now'}
+                              </>
+                            )}
                           </Button>
                           <p className="text-xs text-muted-foreground">
-                            Export "{project.title}" to the backup directory
+                            Export "{project.name}" to the backup directory
                           </p>
                         </div>
                       </div>
