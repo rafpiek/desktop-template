@@ -11,7 +11,8 @@
       "Bash(grep:*)",
       "Bash(npx tsc:*)",
       "Bash(bun add:*)",
-      "Bash(rm:*)"
+      "Bash(rm:*)",
+      "Bash(git branch:*)"
     ],
     "deny": []
   }
