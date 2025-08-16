@@ -13,7 +13,7 @@ export function ProjectOverviewWrapper() {
   
   useEffect(() => {
     if (project && id) {
-      setLastProject(id, project.title);
+      setLastProject(id, project.title || 'Untitled Project');
     }
   }, [project, id, setLastProject]);
   

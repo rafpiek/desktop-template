@@ -43,8 +43,8 @@ export function LastAccessedProvider({ children }: { children: ReactNode }) {
 
   const setLastProject = useCallback((id: string, title: string) => {
     setLastAccessed(prev => {
-      // Only update if actually changed
-      if (prev.project?.id === id) return prev
+      // Only update if actually changed (both id and title)
+      if (prev.project?.id === id && prev.project?.title === title) return prev
       return {
         ...prev,
         project: { id, title, timestamp: Date.now() }
@@ -54,8 +54,8 @@ export function LastAccessedProvider({ children }: { children: ReactNode }) {
 
   const setLastChapter = useCallback((id: string, title: string, projectId: string) => {
     setLastAccessed(prev => {
-      // Only update if actually changed
-      if (prev.chapter?.id === id) return prev
+      // Only update if actually changed (id, title, or projectId)
+      if (prev.chapter?.id === id && prev.chapter?.title === title && prev.chapter?.projectId === projectId) return prev
       return {
         ...prev,
         chapter: { id, title, projectId, timestamp: Date.now() }
@@ -65,8 +65,11 @@ export function LastAccessedProvider({ children }: { children: ReactNode }) {
 
   const setLastDocument = useCallback((id: string, title: string, projectId: string, chapterId?: string) => {
     setLastAccessed(prev => {
-      // Only update if actually changed
-      if (prev.document?.id === id) return prev
+      // Only update if actually changed (id, title, projectId, or chapterId)
+      if (prev.document?.id === id && 
+          prev.document?.title === title && 
+          prev.document?.projectId === projectId && 
+          prev.document?.chapterId === chapterId) return prev
       return {
         ...prev,
         document: { id, title, projectId, chapterId, timestamp: Date.now() }

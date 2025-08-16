@@ -57,9 +57,7 @@ export function DocumentView() {
         _chapterId
       );
     }
-    // Only run once when navigating to a document
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [draftId, documentId, projectId, _chapterId]);
+  }, [document, draftId, documentId, projectId, _chapterId, setLastDocument]);
 
   // Initialize text stats when document changes - load from localStorage first
   React.useEffect(() => {

@@ -4,18 +4,60 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ArrowRight, FileText, BookOpen, FolderOpen, Clock } from 'lucide-react';
 import { useLastAccessed } from '@/contexts/last-accessed-context';
-import { cn } from '@/lib/utils';
 
 export function ContinueOnSection() {
   const { lastAccessed } = useLastAccessed();
-  
+
+  // Get current titles directly from localStorage
+  const getCurrentTitle = (type: 'project' | 'document' | 'chapter', item: any) => {
+    try {
+      if (type === 'project') {
+        const projects = JSON.parse(localStorage.getItem('zeyn-projects') || '[]');
+        console.log('projects', projects)
+        const currentProject = projects.find((p: any) => p.id === item.id);
+        // If we find the project and it has a valid name (not empty, not "Untitled Project"), use it
+        if (currentProject?.name && currentProject.name !== 'Untitled Project') {
+          return currentProject.name;
+        }
+        // Otherwise fallback to cached name if it's valid
+        if (item.name && item.name !== 'Untitled Project') {
+          return item.name;
+        }
+        return 'Untitled Project';
+      } else if (type === 'document') {
+        const documents = JSON.parse(localStorage.getItem('zeyn-documents') || '[]');
+        const currentDocument = documents.find((d: any) => d.id === item.id);
+        if (currentDocument?.title && currentDocument.title !== 'Untitled Document') {
+          return currentDocument.title;
+        }
+        if (item.title && item.title !== 'Untitled Document') {
+          return item.title;
+        }
+        return 'Untitled Document';
+      } else if (type === 'chapter') {
+        const chapters = JSON.parse(localStorage.getItem('zeyn-chapters') || '[]');
+        const currentChapter = chapters.find((c: any) => c.id === item.id);
+        if (currentChapter?.title && currentChapter.title !== 'Untitled Chapter') {
+          return currentChapter.title;
+        }
+        if (item.title && item.title !== 'Untitled Chapter') {
+          return item.title;
+        }
+        return 'Untitled Chapter';
+      }
+    } catch (e) {
+      console.error('Error reading from localStorage:', e);
+    }
+    return item.title || 'Untitled';
+  };
+
   // Check if we have any last accessed items
   const hasAnyLastAccessed = lastAccessed.project || lastAccessed.chapter || lastAccessed.document;
-  
+
   if (!hasAnyLastAccessed) {
     return null;
   }
-  
+
   // Format timestamp to relative time
   const formatRelativeTime = (timestamp: number) => {
     const now = Date.now();
@@ -23,21 +65,21 @@ export function ContinueOnSection() {
     const minutes = Math.floor(diff / 60000);
     const hours = Math.floor(diff / 3600000);
     const days = Math.floor(diff / 86400000);
-    
+
     if (minutes < 1) return 'Just now';
     if (minutes < 60) return `${minutes} minute${minutes > 1 ? 's' : ''} ago`;
     if (hours < 24) return `${hours} hour${hours > 1 ? 's' : ''} ago`;
     if (days < 30) return `${days} day${days > 1 ? 's' : ''} ago`;
     return new Date(timestamp).toLocaleDateString();
   };
-  
+
   return (
     <section className="space-y-4">
       <div className="flex items-center gap-2">
         <Clock className="h-5 w-5 text-muted-foreground" />
         <h2 className="text-xl font-semibold">Continue Writing</h2>
       </div>
-      
+
       <div className="grid gap-4 md:grid-cols-3">
         {lastAccessed.document && (
           <Card className="hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
@@ -49,20 +91,20 @@ export function ContinueOnSection() {
                 </Badge>
               </div>
               <CardTitle className="text-base line-clamp-1">
-                {lastAccessed.document.title}
+                {getCurrentTitle('document', lastAccessed.document)}
               </CardTitle>
               <CardDescription className="text-xs">Document</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <Link 
+              <Link
                 to={
                   lastAccessed.document.chapterId
                     ? `/projects/${lastAccessed.document.projectId}/chapters/${lastAccessed.document.chapterId}/documents/${lastAccessed.document.id}`
                     : `/projects/${lastAccessed.document.projectId}/drafts/${lastAccessed.document.id}`
                 }
               >
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full justify-between px-2 h-8"
                   size="sm"
                 >
@@ -73,7 +115,7 @@ export function ContinueOnSection() {
             </CardContent>
           </Card>
         )}
-        
+
         {lastAccessed.chapter && (
           <Card className="hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
             <CardHeader className="pb-3">
@@ -84,16 +126,16 @@ export function ContinueOnSection() {
                 </Badge>
               </div>
               <CardTitle className="text-base line-clamp-1">
-                {lastAccessed.chapter.title}
+                {getCurrentTitle('chapter', lastAccessed.chapter)}
               </CardTitle>
               <CardDescription className="text-xs">Chapter</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
-              <Link 
+              <Link
                 to={`/projects/${lastAccessed.chapter.projectId}/chapters/${lastAccessed.chapter.id}`}
               >
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full justify-between px-2 h-8"
                   size="sm"
                 >
@@ -104,7 +146,7 @@ export function ContinueOnSection() {
             </CardContent>
           </Card>
         )}
-        
+
         {lastAccessed.project && (
           <Card className="hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
             <CardHeader className="pb-3">
@@ -115,14 +157,14 @@ export function ContinueOnSection() {
                 </Badge>
               </div>
               <CardTitle className="text-base line-clamp-1">
-                {lastAccessed.project.title}
+                {getCurrentTitle('project', lastAccessed.project)}
               </CardTitle>
               <CardDescription className="text-xs">Project</CardDescription>
             </CardHeader>
             <CardContent className="pt-0">
               <Link to={`/projects/${lastAccessed.project.id}`}>
-                <Button 
-                  variant="ghost" 
+                <Button
+                  variant="ghost"
                   className="w-full justify-between px-2 h-8"
                   size="sm"
                 >
