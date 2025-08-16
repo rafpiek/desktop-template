@@ -787,6 +787,7 @@ export function SamplePlateEditor({ onEditorReady, autoFocus = true }: PlateEdit
         >
           <EditorContainer
             className={cn(
+              "plate-editor",
               // For web browsers, apply CSS fullscreen styles
               !isTauriApp && isZenMode && "h-screen max-h-screen",
               // For Tauri, adjust height when in zen mode

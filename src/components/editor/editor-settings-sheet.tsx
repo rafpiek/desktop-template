@@ -27,6 +27,15 @@ interface FontFamilyOption {
   className: string;
 }
 
+interface LineWidthOption {
+  value: LineWidth;
+  label: string;
+  preview: string;
+  description: string;
+}
+
+type LineWidth = '60' | '80' | '120' | '160' | 'full' | 'default';
+
 const fontSizeOptions: FontSizeOption[] = [
   {
     value: 'xs',
@@ -105,6 +114,45 @@ const fontFamilyOptions: FontFamilyOption[] = [
   },
 ];
 
+const lineWidthOptions: LineWidthOption[] = [
+  {
+    value: 'default',
+    label: 'Default',
+    preview: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    description: 'No width limit'
+  },
+  {
+    value: '60',
+    label: 'Narrow',
+    preview: '━━━━━━━━━━━━━━━━━━━━',
+    description: '60 characters wide'
+  },
+  {
+    value: '80',
+    label: 'Compact',
+    preview: '━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    description: '80 characters wide'
+  },
+  {
+    value: '120',
+    label: 'Comfortable',
+    preview: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    description: '120 characters wide'
+  },
+  {
+    value: '160',
+    label: 'Wide',
+    preview: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    description: '160 characters wide'
+  },
+  {
+    value: 'full',
+    label: 'Full Width',
+    preview: '━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━',
+    description: 'Use all available space'
+  }
+];
+
 export function EditorSettingsSheet() {
   // Get current values directly from DOM/localStorage
   const getCurrentFontSize = (): FontSize => {
@@ -117,8 +165,14 @@ export function EditorSettingsSheet() {
     return (saved as FontFamily) || 'sans';
   };
   
+  const getCurrentLineWidth = (): LineWidth => {
+    const saved = localStorage.getItem('zeyn-line-width');
+    return (saved as LineWidth) || 'default';
+  };
+  
   const [fontSize, setCurrentFontSize] = React.useState(getCurrentFontSize());
   const [fontFamily, setCurrentFontFamily] = React.useState(getCurrentFontFamily());
+  const [lineWidth, setCurrentLineWidth] = React.useState(getCurrentLineWidth());
   
   const setFontSize = (size: FontSize) => {
     // Update localStorage
@@ -150,11 +204,27 @@ export function EditorSettingsSheet() {
     });
   };
   
+  const setLineWidth = (width: LineWidth) => {
+    // Update localStorage
+    localStorage.setItem('zeyn-line-width', width);
+    setCurrentLineWidth(width);
+    
+    // Apply to DOM directly
+    const editors = document.querySelectorAll('.editor');
+    editors.forEach(editor => {
+      // Remove old line-width classes
+      editor.classList.remove('line-width-60', 'line-width-80', 'line-width-120', 'line-width-160', 'line-width-full', 'line-width-default');
+      // Add new class
+      editor.classList.add(`line-width-${width}`);
+    });
+  };
+  
   // Apply stored settings on mount and when editor appears
   React.useEffect(() => {
     const applyStoredSettings = () => {
       const storedSize = getCurrentFontSize();
       const storedFamily = getCurrentFontFamily();
+      const storedWidth = getCurrentLineWidth();
       
       const editors = document.querySelectorAll('.editor');
       editors.forEach(editor => {
@@ -165,6 +235,10 @@ export function EditorSettingsSheet() {
         // Apply font family
         editor.classList.remove('font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter');
         editor.classList.add(`font-family-${storedFamily}`);
+        
+        // Apply line width
+        editor.classList.remove('line-width-60', 'line-width-80', 'line-width-120', 'line-width-160', 'line-width-full', 'line-width-default');
+        editor.classList.add(`line-width-${storedWidth}`);
       });
     };
     
@@ -188,7 +262,7 @@ export function EditorSettingsSheet() {
           <Settings className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px]">
+      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto max-h-screen">
         <SheetHeader>
           <SheetTitle>Editor Settings</SheetTitle>
         </SheetHeader>
@@ -284,6 +358,94 @@ export function EditorSettingsSheet() {
                   </div>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Line Width Section */}
+          <div className="pt-4 border-t">
+            <h3 className="mb-4 text-sm font-medium">Line Width</h3>
+            <div className="space-y-4">
+              {/* Slider Container */}
+              <div className="relative px-2">
+                {/* Slider Track */}
+                <div 
+                  className="h-2 bg-muted rounded-full relative cursor-pointer"
+                  onClick={(e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = e.clientX - rect.left;
+                    const percentage = x / rect.width;
+                    const index = Math.round(percentage * (lineWidthOptions.length - 1));
+                    const clampedIndex = Math.max(0, Math.min(lineWidthOptions.length - 1, index));
+                    setLineWidth(lineWidthOptions[clampedIndex].value);
+                  }}
+                >
+                  {/* Slider Segments (Clickable) */}
+                  {lineWidthOptions.map((option, index) => (
+                    <div
+                      key={option.value}
+                      className={cn(
+                        'absolute top-0 h-2 transition-colors rounded-full',
+                        'hover:bg-accent-foreground/20',
+                        lineWidth === option.value && 'bg-primary'
+                      )}
+                      style={{
+                        left: `${(index / (lineWidthOptions.length - 1)) * 100}%`,
+                        width: index === lineWidthOptions.length - 1 ? '0%' : `${100 / (lineWidthOptions.length - 1)}%`,
+                        transform: index === lineWidthOptions.length - 1 ? 'translateX(-100%)' : 'none'
+                      }}
+                    />
+                  ))}
+                  
+                  {/* Slider Dots/Markers */}
+                  {lineWidthOptions.map((option, index) => (
+                    <div
+                      key={`dot-${option.value}`}
+                      className="absolute top-1/2 w-1.5 h-1.5 bg-muted-foreground/40 rounded-full transform -translate-y-1/2"
+                      style={{
+                        left: `${(index / (lineWidthOptions.length - 1)) * 100}%`,
+                        transform: 'translateX(-50%) translateY(-50%)'
+                      }}
+                    />
+                  ))}
+                  
+                  {/* Slider Handle */}
+                  <div
+                    className="absolute top-1/2 w-4 h-4 bg-primary border-2 border-background rounded-full shadow-sm transition-all transform -translate-y-1/2 cursor-pointer hover:scale-110 z-10"
+                    style={{
+                      left: `${(lineWidthOptions.findIndex(opt => opt.value === lineWidth) / (lineWidthOptions.length - 1)) * 100}%`,
+                      transform: 'translateX(-50%) translateY(-50%)'
+                    }}
+                  />
+                </div>
+                
+                {/* Slider Labels */}
+                <div className="flex justify-between mt-3 px-1">
+                  {lineWidthOptions.map((option) => (
+                    <button
+                      key={option.value}
+                      onClick={() => setLineWidth(option.value)}
+                      className={cn(
+                        'text-xs transition-colors cursor-pointer hover:text-foreground text-center',
+                        lineWidth === option.value 
+                          ? 'text-foreground font-medium' 
+                          : 'text-muted-foreground'
+                      )}
+                    >
+                      {option.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+              
+              {/* Current Selection Info */}
+              <div className="text-center">
+                <div className="text-sm font-medium">
+                  {lineWidthOptions.find(opt => opt.value === lineWidth)?.label}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {lineWidthOptions.find(opt => opt.value === lineWidth)?.description}
+                </div>
+              </div>
             </div>
           </div>
         </div>

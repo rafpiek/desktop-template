@@ -445,7 +445,7 @@ export function DocumentEditor({
                   debouncedSave(value);
                 }}
               >
-                <EditorContainer className="h-full">
+                <EditorContainer className="plate-editor h-full">
                   <Editor
                     variant="fullWidth"
                     className="w-full"
@@ -465,7 +465,7 @@ export function DocumentEditor({
               debouncedSave(value);
             }}
           >
-            <EditorContainer className="h-full">
+            <EditorContainer className="plate-editor h-full">
               <Editor
                 variant="demo"
                 className="h-full overflow-y-auto"

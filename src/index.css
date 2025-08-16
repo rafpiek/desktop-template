@@ -445,3 +445,44 @@ body:not(:has(.zen-mode-portal)) {
   overflow: auto;
 }
 
+/* Line Width Settings */
+/* Default width - no restriction, let the container decide */
+.line-width-default .plate-editor {
+  max-width: none;
+}
+
+/* Narrow width - 60 characters */
+.line-width-60 .plate-editor {
+  max-width: 60ch;
+  margin: 0 auto;
+}
+
+/* Compact width - 80 characters */
+.line-width-80 .plate-editor {
+  max-width: 80ch;
+  margin: 0 auto;
+}
+
+/* Comfortable width - 120 characters */
+.line-width-120 .plate-editor {
+  max-width: 120ch;
+  margin: 0 auto;
+}
+
+/* Wide width - 160 characters */
+.line-width-160 .plate-editor {
+  max-width: 160ch;
+  margin: 0 auto;
+}
+
+/* Full width - use all available space */
+.line-width-full .plate-editor {
+  max-width: 100%;
+  width: 100%;
+}
+
+/* Ensure line width settings work in normal mode but don't override zen mode */
+.zen-mode-container .plate-editor {
+  max-width: 100ch !important; /* Zen mode always uses 100ch */
+}
+
