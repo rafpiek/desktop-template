@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { cn } from '@/lib/utils';
 import type {
   ProjectFilters as Filters,
@@ -252,23 +253,27 @@ export function ProjectFilters({
           </PopoverContent>
         </Popover>
 
-        <select
+        <Select
           value={`${sort.by}-${sort.order}`}
-          onChange={(e) => {
-            const [by, order] = e.target.value.split('-');
+          onValueChange={(value) => {
+            const [by, order] = value.split('-');
             onSortChange({ by: by as any, order: order as 'asc' | 'desc' });
           }}
-          className="flex h-9 rounded-md border border-input bg-transparent px-3 py-1 text-sm shadow-sm transition-colors focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
         >
-          <option value="updatedAt-desc">Recently Updated</option>
-          <option value="createdAt-desc">Recently Created</option>
-          <option value="name-asc">Name A-Z</option>
-          <option value="name-desc">Name Z-A</option>
-          <option value="wordCount-desc">Highest Word Count</option>
-          <option value="wordCount-asc">Lowest Word Count</option>
-          <option value="deadline-asc">Deadline (Soon)</option>
-          <option value="status-asc">Status</option>
-        </select>
+          <SelectTrigger className="w-48">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="updatedAt-desc">Recently Updated</SelectItem>
+            <SelectItem value="createdAt-desc">Recently Created</SelectItem>
+            <SelectItem value="name-asc">Name A-Z</SelectItem>
+            <SelectItem value="name-desc">Name Z-A</SelectItem>
+            <SelectItem value="wordCount-desc">Highest Word Count</SelectItem>
+            <SelectItem value="wordCount-asc">Lowest Word Count</SelectItem>
+            <SelectItem value="deadline-asc">Deadline (Soon)</SelectItem>
+            <SelectItem value="status-asc">Status</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
     </div>
   );
