@@ -215,7 +215,7 @@ const config = {
       "value": "prisma-client-js"
     },
     "output": {
-      "value": "/Users/rafal/projects/editor/zeyn/src/generated/prisma",
+      "value": "/Users/rafal/dev/trees/feat-last-working-on/src/generated/prisma",
       "fromEnvVar": null
     },
     "config": {
@@ -229,12 +229,11 @@ const config = {
       }
     ],
     "previewFeatures": [],
-    "sourceFilePath": "/Users/rafal/projects/editor/zeyn/prisma/schema.prisma",
+    "sourceFilePath": "/Users/rafal/dev/trees/feat-last-working-on/prisma/schema.prisma",
     "isCustomOutput": true
   },
   "relativeEnvPaths": {
-    "rootEnvPath": null,
-    "schemaEnvPath": "../../../.env"
+    "rootEnvPath": null
   },
   "relativePath": "../../../prisma",
   "clientVersion": "6.14.0",

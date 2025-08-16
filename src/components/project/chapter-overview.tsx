@@ -7,6 +7,7 @@ import { Input } from '@/components/ui/input';
 import { BookOpen, FileText, Clock, Target, Plus } from 'lucide-react';
 import { useProjectData } from '@/hooks/use-project-data';
 import { useProject } from '@/contexts/project-context';
+import { useLastAccessed } from '@/contexts/last-accessed-context';
 
 export function ChapterOverview() {
   const { id: projectId, chapterId } = useParams<{ id: string; chapterId: string }>();
@@ -14,6 +15,7 @@ export function ChapterOverview() {
   const location = useLocation();
   const { chapters, documents } = useProjectData();
   const { createDocumentWithUpdates, updateChapter } = useProject();
+  const { setLastChapter } = useLastAccessed();
   
   const searchParams = new URLSearchParams(location.search);
   const isNewChapter = searchParams.get('new') === 'true';
@@ -24,6 +26,15 @@ export function ChapterOverview() {
   
   const chapter = chapterId ? chapters.getChapter(chapterId) : null;
   const chapterDocuments = chapterId ? documents.getDocumentsByChapter(chapterId) : [];
+  
+  // Track chapter access
+  useEffect(() => {
+    if (chapter && projectId && chapterId && !isNewChapter) {
+      setLastChapter(chapterId, chapter.title || 'Untitled Chapter', projectId);
+    }
+    // Only run once when navigating to a chapter
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chapterId, projectId]);
 
   // Update local title when chapter changes
   useEffect(() => {

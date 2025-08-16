@@ -11,6 +11,7 @@ import { DocumentView } from "./components/project/document-view"
 import { ChapterOverview } from "./components/project/chapter-overview"
 import { ChaptersOverview } from "./components/project/chapters-overview"
 import { DraftsOverview } from "./components/project/drafts-overview"
+import { ContinueOnSection } from "./components/continue-on-section"
 
 function HomePage() {
   return (
@@ -24,6 +25,10 @@ function HomePage() {
             Hello. So, dear user, welcome to Zeyn, the best editor for writers ever.
           </p>
         </section>
+
+        <div className="max-w-4xl mx-auto">
+          <ContinueOnSection />
+        </div>
 
         <section className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           <Card className="border-border hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
