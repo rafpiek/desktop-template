@@ -1,0 +1,325 @@
+import { v7 as uuidv7 } from 'uuid';
+
+// Goal Period Types
+export type GoalPeriod = 'daily' | 'weekly' | 'monthly' | 'yearly';
+
+// Goal Type Enum for consistency with Prisma schema
+export enum GoalType {
+  DAILY = 'daily',
+  WEEKLY = 'weekly',
+  MONTHLY = 'monthly',
+  YEARLY = 'yearly',
+}
+
+// Writing Goal Interface
+export interface WritingGoal {
+  id: string;
+  userId?: string; // For future multi-user support
+  type: GoalPeriod;
+  targetWords: number;
+  targetChars?: number;
+  startDate: string; // ISO string
+  endDate: string; // ISO string
+  isActive: boolean;
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
+}
+
+// Goal Progress Interface
+export interface GoalProgress {
+  id: string;
+  goalId: string;
+  date: string; // ISO string - The specific date this progress is for
+  wordsWritten: number;
+  charsWritten: number;
+  projectIds: string[]; // Projects that contributed to this progress
+  documentIds: string[]; // Documents that contributed to this progress
+  createdAt: string; // ISO string
+  updatedAt: string; // ISO string
+}
+
+// Goal Statistics Interface
+export interface GoalStats {
+  daily: GoalPeriodStats;
+  weekly: GoalPeriodStats;
+  monthly: GoalPeriodStats;
+  yearly: GoalPeriodStats;
+}
+
+// Individual Period Statistics
+export interface GoalPeriodStats {
+  target: number;
+  achieved: number;
+  percentage: number;
+  streak: number;
+  bestStreak: number;
+  averageWords: number;
+  totalDays: number;
+  successfulDays: number;
+  isActive: boolean;
+}
+
+// Goal Achievement Interface
+export interface GoalAchievement {
+  id: string;
+  type: 'milestone' | 'streak' | 'personal_best' | 'consistency';
+  title: string;
+  description: string;
+  unlockedAt: string; // ISO string
+  icon: string; // Emoji or icon identifier
+  value?: number; // Associated value (e.g., streak count, word count)
+}
+
+// Goal Settings Interface
+export interface GoalSettings {
+  dailyGoal: GoalConfig | null;
+  weeklyGoal: GoalConfig | null;
+  monthlyGoal: GoalConfig | null;
+  yearlyGoal: GoalConfig | null;
+  enableNotifications: boolean;
+  notificationTime: string; // Time of day for reminders (HH:mm format)
+  weekStartsOn: 0 | 1 | 2 | 3 | 4 | 5 | 6; // 0 = Sunday, 1 = Monday, etc.
+  includeCharacterCount: boolean;
+  autoArchiveOldGoals: boolean;
+  archiveAfterDays: number;
+}
+
+// Individual Goal Configuration
+export interface GoalConfig {
+  targetWords: number;
+  targetChars?: number;
+  isEnabled: boolean;
+  createdAt: string; // ISO string
+  lastModified: string; // ISO string
+}
+
+// Daily Writing Session Interface
+export interface WritingSession {
+  id: string;
+  date: string; // ISO string - Date of the session
+  startTime: string; // ISO string
+  endTime?: string; // ISO string
+  wordsWritten: number;
+  charsWritten: number;
+  projectId: string;
+  documentId: string;
+  duration?: number; // Duration in minutes
+}
+
+// Calendar Day Data Interface (for heatmap/calendar view)
+export interface CalendarDayData {
+  date: string; // ISO string
+  wordsWritten: number;
+  charsWritten: number;
+  goalMet: boolean;
+  goalPercentage: number;
+  projects: string[]; // Project IDs worked on
+  sessions: number; // Number of writing sessions
+  streak: number; // Current streak on this day
+}
+
+// Goal Create/Update Inputs
+export interface CreateGoalInput {
+  type: GoalPeriod;
+  targetWords: number;
+  targetChars?: number;
+  startDate?: string; // ISO string - defaults to today
+  isActive?: boolean; // defaults to true
+}
+
+export interface UpdateGoalInput {
+  id: string;
+  targetWords?: number;
+  targetChars?: number;
+  isActive?: boolean;
+  endDate?: string; // ISO string - for archiving goals
+}
+
+// Progress Create/Update Inputs
+export interface CreateProgressInput {
+  goalId: string;
+  date: string; // ISO string
+  wordsWritten: number;
+  charsWritten?: number;
+  projectIds: string[];
+  documentIds: string[];
+}
+
+export interface UpdateProgressInput {
+  id: string;
+  wordsWritten?: number;
+  charsWritten?: number;
+  projectIds?: string[];
+  documentIds?: string[];
+}
+
+// Utility Functions
+
+export function createEmptyGoal(input: CreateGoalInput): WritingGoal {
+  const now = new Date().toISOString();
+  const startDate = input.startDate || now;
+  
+  // Calculate end date based on goal type
+  const endDate = calculateGoalEndDate(startDate, input.type);
+  
+  return {
+    id: uuidv7(),
+    type: input.type,
+    targetWords: input.targetWords,
+    targetChars: input.targetChars,
+    startDate,
+    endDate,
+    isActive: input.isActive !== undefined ? input.isActive : true,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function createEmptyProgress(input: CreateProgressInput): GoalProgress {
+  const now = new Date().toISOString();
+  
+  return {
+    id: uuidv7(),
+    goalId: input.goalId,
+    date: input.date,
+    wordsWritten: input.wordsWritten,
+    charsWritten: input.charsWritten || 0,
+    projectIds: input.projectIds,
+    documentIds: input.documentIds,
+    createdAt: now,
+    updatedAt: now,
+  };
+}
+
+export function calculateGoalEndDate(startDate: string, type: GoalPeriod): string {
+  const start = new Date(startDate);
+  const end = new Date(start);
+  
+  switch (type) {
+    case 'daily':
+      end.setHours(23, 59, 59, 999);
+      break;
+    case 'weekly':
+      end.setDate(end.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      break;
+    case 'monthly':
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0); // Last day of the month
+      end.setHours(23, 59, 59, 999);
+      break;
+    case 'yearly':
+      end.setFullYear(end.getFullYear() + 1);
+      end.setMonth(0, 0); // December 31st
+      end.setHours(23, 59, 59, 999);
+      break;
+  }
+  
+  return end.toISOString();
+}
+
+export function getDateRangeForPeriod(period: GoalPeriod, date: Date = new Date()): { start: Date; end: Date } {
+  const start = new Date(date);
+  const end = new Date(date);
+  
+  switch (period) {
+    case 'daily':
+      start.setHours(0, 0, 0, 0);
+      end.setHours(23, 59, 59, 999);
+      break;
+    case 'weekly': {
+      const dayOfWeek = start.getDay();
+      start.setDate(start.getDate() - dayOfWeek); // Start of week (Sunday)
+      start.setHours(0, 0, 0, 0);
+      end.setDate(start.getDate() + 6);
+      end.setHours(23, 59, 59, 999);
+      break;
+    }
+    case 'monthly':
+      start.setDate(1);
+      start.setHours(0, 0, 0, 0);
+      end.setMonth(end.getMonth() + 1);
+      end.setDate(0); // Last day of the month
+      end.setHours(23, 59, 59, 999);
+      break;
+    case 'yearly':
+      start.setMonth(0, 1);
+      start.setHours(0, 0, 0, 0);
+      end.setFullYear(end.getFullYear() + 1);
+      end.setMonth(0, 0);
+      end.setHours(23, 59, 59, 999);
+      break;
+  }
+  
+  return { start, end };
+}
+
+export function calculateStreak(progressData: GoalProgress[], targetWords: number): number {
+  if (!progressData || progressData.length === 0) return 0;
+  
+  // Sort progress data by date in descending order
+  const sortedProgress = [...progressData].sort((a, b) => 
+    new Date(b.date).getTime() - new Date(a.date).getTime()
+  );
+  
+  let streak = 0;
+  let currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+  
+  for (const progress of sortedProgress) {
+    const progressDate = new Date(progress.date);
+    progressDate.setHours(0, 0, 0, 0);
+    
+    // Check if this is today or the previous day in the streak
+    const dayDiff = Math.floor((currentDate.getTime() - progressDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    if (dayDiff === 0 || (dayDiff === 1 && streak > 0)) {
+      if (progress.wordsWritten >= targetWords) {
+        streak++;
+        currentDate = progressDate;
+      } else {
+        break;
+      }
+    } else if (dayDiff > 1) {
+      break;
+    }
+  }
+  
+  return streak;
+}
+
+export function calculateGoalPercentage(achieved: number, target: number): number {
+  if (target <= 0) return 0;
+  return Math.min(Math.round((achieved / target) * 100), 100);
+}
+
+export function formatGoalPeriod(period: GoalPeriod): string {
+  const periodLabels: Record<GoalPeriod, string> = {
+    daily: 'Daily',
+    weekly: 'Weekly',
+    monthly: 'Monthly',
+    yearly: 'Yearly',
+  };
+  
+  return periodLabels[period];
+}
+
+export const DEFAULT_GOAL_SETTINGS: GoalSettings = {
+  dailyGoal: null,
+  weeklyGoal: null,
+  monthlyGoal: null,
+  yearlyGoal: null,
+  enableNotifications: false,
+  notificationTime: '09:00',
+  weekStartsOn: 1, // Monday
+  includeCharacterCount: false,
+  autoArchiveOldGoals: true,
+  archiveAfterDays: 90,
+};
+
+export const ACHIEVEMENT_MILESTONES = {
+  words: [100, 500, 1000, 5000, 10000, 25000, 50000, 100000],
+  streak: [3, 7, 14, 30, 60, 90, 180, 365],
+  projects: [1, 5, 10, 25, 50],
+  chapters: [1, 10, 25, 50, 100],
+};

@@ -5,6 +5,7 @@ import { AppLayout } from "@/components/app-layout"
 import Editor from "./pages/Editor"
 import ProjectsPage from "./pages/projects"
 import SettingsPage from "./pages/settings"
+import GoalsPage from "./pages/goals"
 import { ProjectLayout } from "./components/project/project-layout"
 import { ProjectOverviewWrapper } from "./components/project/project-overview-wrapper"
 import { DocumentView } from "./components/project/document-view"
@@ -25,7 +26,7 @@ function HomePage() {
           </p>
         </section>
 
-        <section className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
+        <section className="grid md:grid-cols-2 lg:grid-cols-3 gap-6 max-w-4xl mx-auto">
           <Card className="border-border hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-xl">
@@ -63,6 +64,25 @@ function HomePage() {
               </Link>
             </CardContent>
           </Card>
+
+          <Card className="border-border hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
+            <CardHeader className="pb-4">
+              <CardTitle className="flex items-center gap-3 text-xl">
+                <span className="text-2xl">📊</span>
+                Goals
+              </CardTitle>
+              <CardDescription className="text-muted-foreground leading-relaxed">
+                Track your daily, weekly, and monthly writing goals
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <Link to="/goals">
+                <Button className="w-full" variant="outline">
+                  Manage Goals
+                </Button>
+              </Link>
+            </CardContent>
+          </Card>
         </section>
 
         <section className="text-center pt-8">
@@ -81,6 +101,7 @@ function App() {
       <Route path="/" element={<HomePage />} />
       <Route path="/editor" element={<Editor />} />
       <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/goals" element={<GoalsPage />} />
       <Route path="/settings/*" element={<SettingsPage />} />
       <Route path="/projects/:id" element={<ProjectLayout />}>
         <Route index element={<ProjectOverviewWrapper />} />

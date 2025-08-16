@@ -8,6 +8,7 @@ import { X, Plus, ChevronRight } from 'lucide-react';
 import { DocumentEditor } from '@/components/editor/document-editor';
 import { DocumentDropdownMenu } from '@/components/project/document-dropdown-menu';
 import { useProject } from '@/contexts/project-context';
+import { useGoalsContext } from '@/contexts/goals-context';
 import type { DocumentStatus } from '@/lib/types/project';
 import { DOCUMENT_STATUS_LABELS } from '@/lib/types/project';
 
@@ -23,6 +24,7 @@ export function DocumentView() {
   const location = useLocation();
 
   const { getDocument, getChapter, updateDocument, deleteDocument } = useProject();
+  const { trackDocumentChange } = useGoalsContext();
   const [focusEditor, setFocusEditor] = useState<(() => void) | null>(null);
   const [textStats, setTextStats] = useState<{
     wordCount: number;
@@ -65,6 +67,20 @@ export function DocumentView() {
     
     // Update local state for immediate UI display
     setTextStats(stats);
+    
+    // Track the change for goals (calculate word delta)
+    const previousWordCount = document.wordCount || 0;
+    const wordDelta = stats.wordCount - previousWordCount;
+    
+    // Only track positive changes (words added, not deleted)
+    if (wordDelta > 0) {
+      trackDocumentChange(
+        document.id,
+        projectId,
+        wordDelta,
+        stats.charactersWithSpaces - (previousWordCount * 5) // Rough estimate of char delta
+      );
+    }
     
     // Update document with content AND text statistics
     updateDocument(document.id, { 

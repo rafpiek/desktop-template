@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { BookOpen, Target, Clock, FileText, Settings } from 'lucide-react';
 import type { Project } from '@/lib/types/project';
 import { ProjectSettingsDialog } from './project-settings-dialog';
+import { GoalProgressWidget } from '@/components/goals/goal-progress-widget';
 
 const mockChapters = [
   { id: '019424ec-a96a-7000-8000-000000000001', title: 'Chapter 1: The Beginning', wordCount: 2500, isCompleted: true },
@@ -98,7 +99,7 @@ export function ProjectOverview({ project }: ProjectOverviewProps) {
       </div>
 
       {/* Progress Overview */}
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-4 sm:gap-6 mb-8">
+      <div className="grid grid-cols-1 xl:grid-cols-3 gap-4 sm:gap-6 mb-8">
         {/* Word Count Progress */}
         {project.targetWordCount && (
           <Card className="hover:shadow-md transition-shadow">
@@ -172,6 +173,9 @@ export function ProjectOverview({ project }: ProjectOverviewProps) {
             </div>
           </CardContent>
         </Card>
+
+        {/* Goal Progress Widget */}
+        <GoalProgressWidget period="daily" showStreak={true} />
       </div>
 
       {/* Recent Activity */}
