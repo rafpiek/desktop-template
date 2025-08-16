@@ -130,9 +130,9 @@ export function ChapterOverview() {
   ];
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+        <div className="flex-1">
           {isEditingTitle ? (
             <Input
               ref={titleInputRef}
@@ -141,14 +141,14 @@ export function ChapterOverview() {
               onKeyDown={handleTitleKeyDown}
               onBlur={handleTitleSubmit}
               placeholder="New Chapter"
-              className="text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2 placeholder:text-muted-foreground/50"
+              className="text-2xl sm:text-3xl font-bold border-none p-0 h-auto text-foreground bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0 mb-2 placeholder:text-muted-foreground/50"
               style={{ fontSize: '1.875rem', lineHeight: '2.25rem' }}
               autoFocus
             />
           ) : (
             <h1 
               className={cn(
-                "text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors",
+                "text-2xl sm:text-3xl font-bold mb-2 cursor-pointer hover:text-muted-foreground transition-colors",
                 !title && "text-muted-foreground/50"
               )}
               onClick={() => setIsEditingTitle(true)}
@@ -156,7 +156,7 @@ export function ChapterOverview() {
               {title || 'New Chapter'}
             </h1>
           )}
-          <p className="text-muted-foreground">
+          <p className="text-muted-foreground text-sm sm:text-base">
             Chapter details and progress tracking
           </p>
         </div>
@@ -166,28 +166,30 @@ export function ChapterOverview() {
             console.log('Button clicked!');
             handleCreateNewDocument();
           }} 
-          className="flex items-center gap-2"
+          className="flex items-center gap-2 self-start"
+          size="sm"
         >
           <Plus className="h-4 w-4" />
-          New Document
+          <span className="hidden sm:inline">New Document</span>
+          <span className="sm:hidden">New Doc</span>
         </Button>
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {chapterStats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card key={stat.title} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="px-4 pb-4">
+                <div className="text-xl sm:text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground mt-1">
                   {stat.description}
                 </p>
               </CardContent>
@@ -197,14 +199,14 @@ export function ChapterOverview() {
       </div>
 
       {/* Documents List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <FileText className="h-5 w-5" />
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <FileText className="h-5 w-5 flex-shrink-0" />
             Documents in this Chapter
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
           <div className="space-y-4">
             {chapterDocuments.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
