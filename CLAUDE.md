@@ -59,7 +59,7 @@ Key plugin kits:
 ```
 /projects                           # Project listing
 /projects/:id                       # Project overview
-/projects/:id/chapters              # All chapters view  
+/projects/:id/chapters              # All chapters view
 /projects/:id/chapters/:chapterId   # Chapter detail (with editable title)
 /projects/:id/chapters/:chapterId/documents/:documentId  # Document editor
 /projects/:id/drafts                # All drafts view
