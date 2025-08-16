@@ -118,10 +118,7 @@
   line-height: 1.55;
 }
 
-.font-size-zen .plate-editor {
-  max-width: 65ch;
-  margin-inline: auto;
-}
+/* Zen font size should only affect font sizes, not layout */
 
 /* Font family presets */
 .font-family-sans {
