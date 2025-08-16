@@ -25,38 +25,21 @@ function HomePage() {
           </p>
         </section>
 
-        <section className="grid md:grid-cols-3 gap-6 max-w-5xl mx-auto">
+        <section className="grid md:grid-cols-2 gap-6 max-w-3xl mx-auto">
           <Card className="border-border hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-xl">
-                <span className="text-2xl">✍️</span>
-                Write
+                <span className="text-2xl">📚</span>
+                Projects
               </CardTitle>
               <CardDescription className="text-muted-foreground leading-relaxed">
-                Distraction-free writing environment designed for focus and creativity
+                Manage your writing projects, chapters, and documents in one place
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button className="w-full" variant="outline">
-                Start Writing
-              </Button>
-            </CardContent>
-          </Card>
-
-          <Card className="border-border hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
-            <CardHeader className="pb-4">
-              <CardTitle className="flex items-center gap-3 text-xl">
-                <span className="text-2xl">📝</span>
-                Edit
-              </CardTitle>
-              <CardDescription className="text-muted-foreground leading-relaxed">
-                Powerful editing tools to refine and perfect your prose
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Link to="/editor">
+              <Link to="/projects">
                 <Button className="w-full" variant="outline">
-                  Open Editor
+                  View Projects
                 </Button>
               </Link>
             </CardContent>
@@ -65,17 +48,17 @@ function HomePage() {
           <Card className="border-border hover:shadow-md transition-all duration-200 hover:scale-[1.02]">
             <CardHeader className="pb-4">
               <CardTitle className="flex items-center gap-3 text-xl">
-                <span className="text-2xl">📚</span>
-                Organize
+                <span className="text-2xl">⚙️</span>
+                Settings
               </CardTitle>
               <CardDescription className="text-muted-foreground leading-relaxed">
-                Manage your projects, chapters, and ideas in one place
+                Configure your editor preferences and application settings
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Link to="/projects">
+              <Link to="/settings">
                 <Button className="w-full" variant="outline">
-                  View Projects
+                  Open Settings
                 </Button>
               </Link>
             </CardContent>

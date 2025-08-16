@@ -6,6 +6,7 @@
   "windows": ["main"],
   "permissions": [
     "core:window:allow-set-fullscreen",
-    "core:window:allow-is-fullscreen"
+    "core:window:allow-is-fullscreen",
+    "dialog:default"
   ]
 }

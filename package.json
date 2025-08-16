@@ -72,6 +72,7 @@
     "@radix-ui/react-toolbar": "^1.1.10",
     "@radix-ui/react-tooltip": "^1.2.7",
     "@tauri-apps/api": "^2.7.0",
+    "@tauri-apps/plugin-dialog": "^2.3.2",
     "@types/uuid": "^10.0.0",
     "@udecode/cn": "^49.0.15",
     "@uploadthing/react": "7.3.1",

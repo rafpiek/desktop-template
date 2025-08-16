@@ -1,3 +1,6 @@
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Settings } from "lucide-react";
+
 export function GeneralSettings() {
   return (
     <div className="space-y-6">
@@ -8,23 +11,22 @@ export function GeneralSettings() {
         </p>
       </div>
       
-      <div className="bg-muted/30 rounded-lg p-6 border-2 border-dashed">
-        <div className="text-center space-y-2">
-          <h3 className="text-lg font-medium text-muted-foreground">
-            General Settings Content
-          </h3>
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Application Preferences
+          </CardTitle>
+          <CardDescription>
+            Configure general application settings and preferences.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            This section will contain general application settings such as:
+            General settings will be configured here in future updates.
           </p>
-          <ul className="text-sm text-muted-foreground space-y-1 mt-4">
-            <li>• Application language preferences</li>
-            <li>• Default file locations</li>
-            <li>• Auto-save settings</li>
-            <li>• Backup configurations</li>
-            <li>• UI preferences</li>
-          </ul>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     </div>
   )
 }
