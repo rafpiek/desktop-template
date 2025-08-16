@@ -14,7 +14,8 @@
       "Bash(rm:*)",
       "Bash(git branch:*)",
       "Bash(git merge:*)",
-      "Bash(git branch:*)"
+      "Bash(git branch:*)",
+      "Bash(bun run lint:*)"
     ],
     "deny": []
   }
