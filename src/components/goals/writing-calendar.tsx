@@ -89,31 +89,31 @@ export function WritingCalendar({
           {monthNames[month]} {year}
         </h3>
         {showLegend && (
-          <div className="flex items-center gap-2 text-xs text-muted-foreground">
-            <span>Less</span>
-            <div className="flex gap-1">
+          <div className="flex items-center gap-3 text-sm text-muted-foreground">
+            <span className="font-medium">Less</span>
+            <div className="flex gap-1.5">
               {[0, 1, 2, 3, 4].map(level => (
                 <div
                   key={level}
                   className={cn(
-                    'w-3 h-3 rounded-sm',
+                    'w-4 h-4 rounded-md',
                     getColorClass(level)
                   )}
                 />
               ))}
             </div>
-            <span>More</span>
+            <span className="font-medium">More</span>
           </div>
         )}
       </div>
 
-      <div className="space-y-1">
+      <div className="space-y-3">
         {/* Week day headers */}
-        <div className="grid grid-cols-7 gap-1 mb-1">
+        <div className="grid grid-cols-7 gap-2 mb-2">
           {weekDays.map(day => (
             <div
               key={day}
-              className="text-xs text-muted-foreground text-center py-1"
+              className="text-sm font-medium text-muted-foreground text-center py-2"
             >
               {day}
             </div>
@@ -122,10 +122,10 @@ export function WritingCalendar({
 
         {/* Calendar grid */}
         <TooltipProvider>
-          <div className="grid grid-cols-7 gap-1">
+          <div className="grid grid-cols-7 gap-2">
             {days.map((dayData, index) => {
               if (!dayData) {
-                return <div key={`empty-${index}`} className="w-full h-8" />;
+                return <div key={`empty-${index}`} className="w-full h-10" />;
               }
 
               const intensity = getIntensityLevel(dayData.wordsWritten);
@@ -137,13 +137,13 @@ export function WritingCalendar({
                   <TooltipTrigger asChild>
                     <button
                       className={cn(
-                        'relative w-full h-8 rounded-sm transition-colors flex items-center justify-center text-xs',
+                        'relative w-full h-10 rounded-md transition-all duration-200 flex items-center justify-center text-sm font-medium hover:scale-105',
                         getColorClass(intensity),
-                        isToday && 'ring-2 ring-primary ring-offset-1'
+                        isToday && 'ring-2 ring-primary ring-offset-2'
                       )}
                     >
                       <span className={cn(
-                        'font-medium',
+                        'font-semibold',
                         intensity > 2 ? 'text-white' : 'text-foreground'
                       )}>
                         {dayNumber}
@@ -181,24 +181,24 @@ export function WritingCalendar({
       </div>
 
       {/* Summary stats */}
-      <div className="grid grid-cols-3 gap-4 pt-4 border-t">
-        <div className="text-center">
-          <p className="text-2xl font-bold">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 pt-6 mt-6 border-t">
+        <div className="text-center space-y-2">
+          <p className="text-3xl font-bold tracking-tight">
             {calendarData.reduce((sum, d) => sum + d.wordsWritten, 0).toLocaleString()}
           </p>
-          <p className="text-xs text-muted-foreground">Total Words</p>
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Total Words</p>
         </div>
-        <div className="text-center">
-          <p className="text-2xl font-bold">
+        <div className="text-center space-y-2">
+          <p className="text-3xl font-bold tracking-tight">
             {calendarData.filter(d => d.wordsWritten > 0).length}
           </p>
-          <p className="text-xs text-muted-foreground">Active Days</p>
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Active Days</p>
         </div>
-        <div className="text-center">
-          <p className="text-2xl font-bold">
+        <div className="text-center space-y-2">
+          <p className="text-3xl font-bold tracking-tight">
             {calendarData.filter(d => d.goalMet).length}
           </p>
-          <p className="text-xs text-muted-foreground">Goals Met</p>
+          <p className="text-sm font-medium text-muted-foreground uppercase tracking-wide">Goals Met</p>
         </div>
       </div>
     </div>
