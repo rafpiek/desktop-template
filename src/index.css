@@ -237,14 +237,7 @@
 /* Make cursor much thicker using multiple techniques */
 .plate-editor [contenteditable="true"] {
   caret-color: #ffffff !important;
-  /* Add strong text shadow to make cursor appear much wider */
-  text-shadow: 
-    1px 0 0 #ffffff, 
-    -1px 0 0 #ffffff,
-    2px 0 0 #ffffff, 
-    -2px 0 0 #ffffff,
-    0.5px 0 0 #ffffff,
-    -0.5px 0 0 #ffffff;
+  /* Remove text-shadow as it causes text rendering issues */
 }
 
 .plate-editor [contenteditable="true"]:focus {
