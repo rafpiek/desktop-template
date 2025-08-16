@@ -24,5 +24,12 @@
       "openOnSwitch": false
     }
   },
-  "worktreeState": {}
+  "worktreeState": {
+    "feat-last-working-on": {
+      "branch": "feat/last-working-on",
+      "path": "/Users/rafal/dev/trees/feat-last-working-on",
+      "createdAt": "2025-08-16T15:00:44.768Z",
+      "lastAccessedAt": "2025-08-16T15:00:44.769Z"
+    }
+  }
 }
