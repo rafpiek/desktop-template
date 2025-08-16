@@ -385,22 +385,7 @@
   }
 }
 
-/* Special Zen mode styling */
-.font-size-zen {
-  /* Narrow line length for optimal reading */
-  [data-slate-editor], .plate-editor, .editor-content {
-    max-width: 65ch;
-    margin-inline: auto;
-  }
-
-  /* Extra padding for focus */
-  .plate-editor {
-    padding-inline: 2rem;
-  }
-
-  /* Softer contrast in zen mode */
-  color: hsl(var(--foreground) / 0.9);
-}
+/* Zen font size should only affect font sizes, not layout or colors */
 
 /* Responsive adjustments */
 @media (max-width: 640px) {
