@@ -49,7 +49,7 @@ export function DocumentView() {
     if (!document || !projectId) return;
 
     const docId = draftId || documentId;
-    if (docId && !isNewDocument) {
+    if (docId) {
       setLastDocument(
         docId,
         document.title || 'Untitled Document',
@@ -197,6 +197,10 @@ export function DocumentView() {
           isNewDocument={isNewDocument}
           clearNewDocumentFlag={clearNewDocumentFlag}
           onDocumentDelete={handleDocumentDelete}
+          setLastDocument={setLastDocument}
+          projectId={projectId}
+          chapterId={_chapterId}
+          documentId={draftId || documentId}
         />
       </div>
 
@@ -223,9 +227,13 @@ interface DocumentHeaderProps {
   isNewDocument: boolean;
   clearNewDocumentFlag: () => void;
   onDocumentDelete: (documentId: string) => void;
+  setLastDocument: (id: string, title: string, projectId: string, chapterId?: string) => void;
+  projectId: string;
+  chapterId?: string;
+  documentId?: string;
 }
 
-function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNewDocument, clearNewDocumentFlag, onDocumentDelete }: DocumentHeaderProps) {
+function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNewDocument, clearNewDocumentFlag, onDocumentDelete, setLastDocument, projectId, chapterId, documentId }: DocumentHeaderProps) {
   const [title, setTitle] = useState(document.title || '');
   const [newTag, setNewTag] = useState('');
   const [isMetadataExpanded, setIsMetadataExpanded] = useState(false);
@@ -265,6 +273,15 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
     const updatedDocument = updateDocument(document.id, { title: finalTitle });
     if (updatedDocument) {
       setTitle(finalTitle);
+      // Update last accessed with the new title
+      if (projectId && documentId) {
+        setLastDocument(
+          documentId,
+          finalTitle || 'Untitled Document',
+          projectId,
+          chapterId
+        );
+      }
     }
     setIsEditingTitle(false);
 

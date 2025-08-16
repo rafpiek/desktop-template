@@ -29,7 +29,7 @@ export function ChapterOverview() {
   
   // Track chapter access
   useEffect(() => {
-    if (chapter && projectId && chapterId && !isNewChapter) {
+    if (chapter && projectId && chapterId) {
       setLastChapter(chapterId, chapter.title || 'Untitled Chapter', projectId);
     }
     // Only run once when navigating to a chapter
@@ -80,6 +80,11 @@ export function ChapterOverview() {
     updateChapter(chapter.id, { title: finalTitle });
     setTitle(finalTitle);
     setIsEditingTitle(false);
+    
+    // Update last accessed with the new title
+    if (projectId && chapterId) {
+      setLastChapter(chapterId, finalTitle, projectId);
+    }
   };
 
   const handleTitleKeyDown = (e: React.KeyboardEvent) => {
@@ -89,6 +94,11 @@ export function ChapterOverview() {
       updateChapter(chapter.id, { title: finalTitle });
       setTitle(finalTitle);
       setIsEditingTitle(false);
+      
+      // Update last accessed with the new title
+      if (projectId && chapterId) {
+        setLastChapter(chapterId, finalTitle, projectId);
+      }
     } else if (e.key === 'Escape') {
       setTitle(chapter.title || '');
       setIsEditingTitle(false);

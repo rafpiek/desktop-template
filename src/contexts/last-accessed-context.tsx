@@ -25,19 +25,16 @@ const LastAccessedContext = createContext<LastAccessedContextType | undefined>(u
 const STORAGE_KEY = 'zeyn-last-accessed'
 
 export function LastAccessedProvider({ children }: { children: ReactNode }) {
-  const [lastAccessed, setLastAccessed] = useState<LastAccessedData>({})
-
-  // Load from localStorage on mount
-  useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY)
-    if (stored) {
-      try {
-        setLastAccessed(JSON.parse(stored))
-      } catch (e) {
-        console.error('Failed to parse last accessed data:', e)
-      }
+  // Load initial state from localStorage synchronously
+  const [lastAccessed, setLastAccessed] = useState<LastAccessedData>(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      return stored ? JSON.parse(stored) : {}
+    } catch (e) {
+      console.error('Failed to parse last accessed data:', e)
+      return {}
     }
-  }, [])
+  })
 
   // Save to localStorage whenever state changes
   useEffect(() => {

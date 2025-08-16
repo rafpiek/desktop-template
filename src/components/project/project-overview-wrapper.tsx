@@ -15,9 +15,7 @@ export function ProjectOverviewWrapper() {
     if (project && id) {
       setLastProject(id, project.title);
     }
-    // Only run once when component mounts with a valid project
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
+  }, [project, id, setLastProject]);
   
   if (!project) {
     return <div>Project not found</div>;
