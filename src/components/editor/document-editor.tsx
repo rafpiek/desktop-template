@@ -4,7 +4,7 @@ import { Plate, usePlateEditor } from 'platejs/react';
 import { type Value } from 'platejs';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
-import { EditorKit } from '@/components/editor/editor-kit';
+import { DocumentEditorKit } from '@/components/editor/document-editor-kit';
 import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { ZenModeContainer } from '@/components/editor/zen-mode-container';
@@ -14,15 +14,15 @@ import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
 
 // Utility function to calculate text statistics from editor content
-const calculateTextStats = (content: Value): { 
-  wordCount: number; 
-  charactersWithSpaces: number; 
+const calculateTextStats = (content: Value): {
+  wordCount: number;
+  charactersWithSpaces: number;
   charactersWithoutSpaces: number;
 } => {
   if (!content || content.length === 0) {
     return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 };
   }
-  
+
   const extractText = (node: unknown): string => {
     if (typeof node === 'string') return node;
     if (typeof node === 'object' && node !== null) {
@@ -34,18 +34,18 @@ const calculateTextStats = (content: Value): {
     }
     return '';
   };
-  
+
   const fullText = content.map(extractText).join(' ');
-  
+
   if (!fullText.trim()) {
     return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 };
   }
-  
+
   // Calculate all metrics at once for efficiency
   const charactersWithSpaces = fullText.length;
   const charactersWithoutSpaces = fullText.replace(/\s/g, '').length;
   const wordCount = fullText.trim().split(/\s+/).filter(word => word.length > 0).length;
-  
+
   return { wordCount, charactersWithSpaces, charactersWithoutSpaces };
 };
 
@@ -75,18 +75,18 @@ interface DocumentEditorProps {
   documentId: string;
   onEditorReady?: (focusEditor: () => void) => void;
   autoFocus?: boolean;
-  onContentChange?: (content: Value, stats: { 
-    wordCount: number; 
-    charactersWithSpaces: number; 
+  onContentChange?: (content: Value, stats: {
+    wordCount: number;
+    charactersWithSpaces: number;
     charactersWithoutSpaces: number;
   }) => void;
 }
 
-export function DocumentEditor({ 
-  documentId, 
-  onEditorReady, 
+export function DocumentEditor({
+  documentId,
+  onEditorReady,
   autoFocus = true,
-  onContentChange 
+  onContentChange
 }: DocumentEditorProps) {
   const [isZenMode, setIsZenMode] = React.useState(false);
   const isTauriApp = useIsTauri();
@@ -101,14 +101,14 @@ export function DocumentEditor({
   }, [isZenMode]);
 
   // Load document data (content + metadata)
-  const loadDocumentData = React.useCallback((docId: string): { 
-    content: Value; 
+  const loadDocumentData = React.useCallback((docId: string): {
+    content: Value;
     wordCount: number;
     charactersWithSpaces: number;
     charactersWithoutSpaces: number;
   } => {
     const defaultStats = { content: emptyValue, wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 };
-    
+
     if (typeof window === 'undefined') return defaultStats;
 
     const storageKey = getDocumentStorageKey(docId);
@@ -119,17 +119,17 @@ export function DocumentEditor({
       if (saved) {
         const documentData = JSON.parse(saved) as DocumentData;
         console.log(`📖 Found saved document data for ${docId}:`, documentData);
-        
+
         // Validate content structure
         if (!documentData.content || documentData.content.length === 0) {
           return defaultStats;
         }
-        
+
         // Handle backward compatibility - if character counts are missing, calculate them
         if (documentData.charactersWithSpaces === undefined || documentData.charactersWithoutSpaces === undefined) {
           console.log(`📖 Missing character counts for ${docId}, calculating...`);
           const stats = calculateTextStats(documentData.content);
-          
+
           // Update stored data with new fields
           const updatedData: DocumentData = {
             content: documentData.content,
@@ -139,17 +139,17 @@ export function DocumentEditor({
             lastModified: new Date().toISOString()
           };
           localStorage.setItem(storageKey, JSON.stringify(updatedData));
-          
-          return { 
-            content: documentData.content, 
+
+          return {
+            content: documentData.content,
             wordCount: stats.wordCount,
             charactersWithSpaces: stats.charactersWithSpaces,
             charactersWithoutSpaces: stats.charactersWithoutSpaces
           };
         }
-        
-        return { 
-          content: documentData.content, 
+
+        return {
+          content: documentData.content,
           wordCount: documentData.wordCount || 0,
           charactersWithSpaces: documentData.charactersWithSpaces || 0,
           charactersWithoutSpaces: documentData.charactersWithoutSpaces || 0
@@ -160,7 +160,7 @@ export function DocumentEditor({
     } catch (error) {
       console.error('Failed to load document data:', error);
       console.log('📖 Falling back to legacy content-only storage...');
-      
+
       // Fallback: Try loading old format (content-only)
       try {
         const legacyKey = `document-content-${docId}`;
@@ -169,7 +169,7 @@ export function DocumentEditor({
           const content = JSON.parse(legacySaved) as Value;
           const stats = calculateTextStats(content);
           console.log(`📖 Migrated legacy content for ${docId}, calculated stats:`, stats);
-          
+
           // Save in new format and remove old
           const documentData: DocumentData = {
             content,
@@ -180,9 +180,9 @@ export function DocumentEditor({
           };
           localStorage.setItem(storageKey, JSON.stringify(documentData));
           localStorage.removeItem(legacyKey);
-          
-          return { 
-            content, 
+
+          return {
+            content,
             wordCount: stats.wordCount,
             charactersWithSpaces: stats.charactersWithSpaces,
             charactersWithoutSpaces: stats.charactersWithoutSpaces
@@ -201,7 +201,7 @@ export function DocumentEditor({
     if (typeof window === 'undefined') return;
 
     const storageKey = getDocumentStorageKey(docId);
-    
+
     // Calculate all text statistics only once when saving
     const stats = calculateTextStats(content);
     const documentData: DocumentData = {
@@ -211,19 +211,19 @@ export function DocumentEditor({
       charactersWithoutSpaces: stats.charactersWithoutSpaces,
       lastModified: new Date().toISOString()
     };
-    
-    console.log(`💾 Saving document data for ${docId}:`, { 
-      wordCount: stats.wordCount, 
+
+    console.log(`💾 Saving document data for ${docId}:`, {
+      wordCount: stats.wordCount,
       charactersWithSpaces: stats.charactersWithSpaces,
       charactersWithoutSpaces: stats.charactersWithoutSpaces,
-      contentLength: content.length 
+      contentLength: content.length
     });
 
     try {
       localStorage.setItem(storageKey, JSON.stringify(documentData));
       console.log(`💾 Successfully saved document data for ${docId} (${stats.wordCount} words, ${stats.charactersWithSpaces} chars)`);
       lastSavedContentRef.current = content;
-      
+
       // Notify parent component of content changes (pass pre-calculated stats)
       if (onContentChange) {
         onContentChange(content, stats);
@@ -235,7 +235,7 @@ export function DocumentEditor({
 
   // Create stable editor with empty initial value
   const editor = usePlateEditor({
-    plugins: EditorKit,
+    plugins: DocumentEditorKit,
     value: emptyValue,
   });
 
@@ -256,7 +256,7 @@ export function DocumentEditor({
   // Load content when document changes (including initial load)
   React.useEffect(() => {
     console.log(`🔄 Document effect: current=${currentDocumentIdRef.current}, new=${documentId}`);
-    
+
     if (currentDocumentIdRef.current !== documentId) {
       // Save current content before switching (skip if this is initial load)
       if (editor && currentDocumentIdRef.current !== null) {
@@ -264,15 +264,15 @@ export function DocumentEditor({
         console.log(`💾 Saving current document ${currentDocumentIdRef.current} before switch`);
         saveDocumentData(currentContent, currentDocumentIdRef.current);
       }
-      
+
       // Load new document data (content + word count)
       const documentData = loadDocumentData(documentId);
       console.log(`📖 Loading document ${documentId}:`, documentData);
-      
+
       // Update refs
       currentDocumentIdRef.current = documentId;
       lastSavedContentRef.current = documentData.content;
-      
+
       // Update editor with loaded content
       if (editor) {
         try {
@@ -282,7 +282,7 @@ export function DocumentEditor({
             charactersWithSpaces: documentData.charactersWithSpaces,
             charactersWithoutSpaces: documentData.charactersWithoutSpaces
           });
-          
+
           // Immediately notify parent with loaded stats (no calculation needed!)
           if (onContentChange) {
             onContentChange(documentData.content, {
@@ -301,7 +301,7 @@ export function DocumentEditor({
   // Handle zen mode toggle
   const toggleZenMode = React.useCallback(async () => {
     console.log(`🎯 Toggle zen mode called - current state: ${isZenMode}`);
-    
+
     if (isTauriApp) {
       try {
         const { Window } = await import('@tauri-apps/api/window');
@@ -370,7 +370,7 @@ export function DocumentEditor({
         try {
           editor.tf.focus();
           console.log('🎯 DocumentEditor: editor.tf.focus() called');
-          
+
           setTimeout(() => {
             try {
               // Position cursor at the start of the first block for new documents
@@ -439,7 +439,7 @@ export function DocumentEditor({
           {isZenMode ? (
             // Zen mode: Full-width scrollable container with centered content
             <div className="flex justify-center min-h-full">
-              <div 
+              <div
                 className="w-full pt-24 pb-16 px-8 md:px-12 lg:px-16"
                 style={{
                   width: '120ch',
