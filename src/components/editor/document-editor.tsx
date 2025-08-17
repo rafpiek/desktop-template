@@ -427,22 +427,23 @@ export function DocumentEditor({
         "editor",
         isZenMode ? "h-full overflow-y-auto" : "h-full"
       )}>
-        {isZenMode ? (
-          // Zen mode: Full-width scrollable container with centered content
-          <div className="flex justify-center min-h-full">
-            <div 
-              className="w-full pt-24 pb-16 px-8 md:px-12 lg:px-16"
-              style={{
-                width: '100ch',
-                maxWidth: '100ch'
-              }}
-            >
-              <Plate
-                key={`editor-${documentId}`}
-                editor={editor}
-                onChange={({ value }) => {
-                  console.log(`✏️ User typing in ${documentId}`);
-                  debouncedSave(value);
+        {/* Single Plate component with conditional layout */}
+        <Plate
+          key={`editor-${documentId}`}
+          editor={editor}
+          onChange={({ value }) => {
+            console.log(`✏️ User typing in ${documentId}`);
+            debouncedSave(value);
+          }}
+        >
+          {isZenMode ? (
+            // Zen mode: Full-width scrollable container with centered content
+            <div className="flex justify-center min-h-full">
+              <div 
+                className="w-full pt-24 pb-16 px-8 md:px-12 lg:px-16"
+                style={{
+                  width: '120ch',
+                  maxWidth: '120ch'
                 }}
               >
                 <EditorContainer className="plate-editor h-full">
@@ -451,29 +452,19 @@ export function DocumentEditor({
                     className="w-full"
                   />
                 </EditorContainer>
-                <SettingsDialog />
-              </Plate>
+              </div>
             </div>
-          </div>
-        ) : (
-          // Normal mode: Standard layout
-          <Plate
-            key={`editor-${documentId}`}
-            editor={editor}
-            onChange={({ value }) => {
-              console.log(`✏️ User typing in ${documentId}`);
-              debouncedSave(value);
-            }}
-          >
+          ) : (
+            // Normal mode: Standard layout
             <EditorContainer className="plate-editor h-full">
               <Editor
                 variant="demo"
                 className="h-full overflow-y-auto"
               />
             </EditorContainer>
-            <SettingsDialog />
-          </Plate>
-        )}
+          )}
+          <SettingsDialog />
+        </Plate>
       </div>
     </ZenModeContainer>
   );

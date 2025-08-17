@@ -258,22 +258,6 @@
   caret-color: #ffffff !important;
 }
 
-/* Additional approach for wider cursor using pseudo-element */
-.plate-editor [contenteditable="true"]::before {
-  content: '';
-  position: absolute;
-  width: 3px;
-  height: 1.2em;
-  background-color: #ffffff;
-  pointer-events: none;
-  z-index: 1;
-  animation: blink 1s infinite;
-}
-
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
 
 /* Zen Mode Portal Styles */
 .zen-mode-portal {
