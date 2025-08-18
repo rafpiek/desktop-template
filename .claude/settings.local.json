@@ -15,7 +15,9 @@
       "Bash(git branch:*)",
       "Bash(git merge:*)",
       "Bash(git branch:*)",
-      "Bash(bun run lint:*)"
+      "Bash(bun run lint:*)",
+      "WebFetch(domain:docs.anthropic.com)",
+      "WebFetch(domain:stackoverflow.com)"
     ],
     "deny": []
   }

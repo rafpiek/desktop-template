@@ -21,7 +21,8 @@
         "fullscreen": false,
         "decorations": true,
         "titleBarStyle": "Visible",
-        "label": "main"
+        "label": "main",
+        "zoomHotkeysEnabled": true
       }
     ],
     "security": {

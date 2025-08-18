@@ -9,6 +9,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 bun run dev          # Start web dev server at localhost:5000
 bun run tauri:dev    # Start Tauri desktop app in development mode
 
+IMPORTANT! Never run dev server or tauri dev. Always ask user to do it on it's own.
+
 # Build & Production
 bun run build        # Build web version with TypeScript check
 bun run tauri:build  # Build desktop app for distribution

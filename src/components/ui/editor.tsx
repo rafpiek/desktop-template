@@ -80,8 +80,8 @@ const editorVariants = cva(
         comment: cn('rounded-none border-none bg-transparent'),
         default:
           'size-full px-16 pt-4 pb-72 sm:px-[max(64px,calc(50%-350px))]',
-        demo: 'size-full px-16 pt-4 pb-72 sm:px-[max(64px,calc(50%-350px))]',
-        fullWidth: 'size-full px-16 pt-4 pb-72 sm:px-24',
+        demo: 'size-full px-8 pt-4 pb-72 sm:px-12',
+        fullWidth: 'size-full px-4 pt-4 pb-72 sm:px-6',
         none: '',
         select: 'px-3 py-2 data-readonly:w-fit',
       },

@@ -436,33 +436,13 @@ export function DocumentEditor({
             debouncedSave(value);
           }}
         >
-          {isZenMode ? (
-            // Zen mode: Full-width scrollable container with centered content
-            <div className="flex justify-center min-h-full">
-              <div
-                className="w-full pt-24 pb-16 px-8 md:px-12 lg:px-16"
-                style={{
-                  width: '120ch',
-                  maxWidth: '120ch'
-                }}
-              >
-                <EditorContainer className="plate-editor h-full">
-                  <Editor
-                    variant="fullWidth"
-                    className="w-full"
-                  />
-                </EditorContainer>
-              </div>
-            </div>
-          ) : (
-            // Normal mode: Standard layout
-            <EditorContainer className="plate-editor h-full">
-              <Editor
-                variant="demo"
-                className="h-full overflow-y-auto"
-              />
-            </EditorContainer>
-          )}
+          {/* Use same structure for both modes to preserve settings */}
+          <EditorContainer className="plate-editor h-full">
+            <Editor
+              variant="demo"
+              className="h-full overflow-y-auto"
+            />
+          </EditorContainer>
           <SettingsDialog />
         </Plate>
       </div>
