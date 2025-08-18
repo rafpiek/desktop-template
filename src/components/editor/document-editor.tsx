@@ -49,10 +49,6 @@ const calculateTextStats = (content: Value): {
   return { wordCount, charactersWithSpaces, charactersWithoutSpaces };
 };
 
-// Backward compatibility function for legacy code
-const calculateWordCount = (content: Value): number => {
-  return calculateTextStats(content).wordCount;
-};
 
 const getDocumentStorageKey = (documentId: string) => `document-data-${documentId}`;
 
@@ -89,16 +85,20 @@ export function DocumentEditor({
   onContentChange
 }: DocumentEditorProps) {
   const [isZenMode, setIsZenMode] = React.useState(false);
+  const [zenModePortalContainer, setZenModePortalContainer] = React.useState<HTMLElement | null>(null);
   const isTauriApp = useIsTauri();
   const currentDocumentIdRef = React.useRef<string | null>(null);
   const lastSavedContentRef = React.useRef<Value>(emptyValue);
 
   console.log(`🔵 DocumentEditor render - documentId: ${documentId}, isZenMode: ${isZenMode}`);
 
-  // Debug zen mode state changes
+  // Debug zen mode state changes and portal container
   React.useEffect(() => {
-    console.log(`🧘 Zen mode state changed to: ${isZenMode}`);
-  }, [isZenMode]);
+    console.log(`🧘 Zen mode: ${isZenMode}, Portal container:`, zenModePortalContainer);
+    if (zenModePortalContainer) {
+      console.log(`🌀 Portal container id: ${zenModePortalContainer.id}, class: ${zenModePortalContainer.className}`);
+    }
+  }, [isZenMode, zenModePortalContainer]);
 
   // Load document data (content + metadata)
   const loadDocumentData = React.useCallback((docId: string): {
@@ -396,6 +396,7 @@ export function DocumentEditor({
       isZenMode={isZenMode}
       onToggleZenMode={toggleZenMode}
       className="relative"
+      onPortalContainerReady={setZenModePortalContainer}
     >
       <div className="absolute top-4 right-4 z-10 flex gap-2">
         <Button
@@ -420,7 +421,7 @@ export function DocumentEditor({
             </>
           )}
         </Button>
-        <EditorSettingsSheet />
+        <EditorSettingsSheet container={isZenMode ? zenModePortalContainer : undefined} />
       </div>
 
       <div className={cn(

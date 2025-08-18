@@ -190,3 +190,33 @@ body:has(.zen-mode-portal) {
 body:not(:has(.zen-mode-portal)) {
   overflow: auto;
 }
+
+/* Fix z-index for sheet components when inside zen mode portal */
+.zen-mode-portal [data-radix-dialog-overlay] {
+  z-index: 10000 !important;
+}
+
+.zen-mode-portal [data-radix-dialog-content] {
+  z-index: 10001 !important;
+}
+
+/* Ensure sheet components are properly positioned within zen mode */
+.zen-mode-container [data-radix-dialog-overlay] {
+  z-index: 10000 !important;
+}
+
+.zen-mode-container [data-radix-dialog-content] {
+  z-index: 10001 !important;
+}
+
+/* Ensure sheet trigger buttons are clickable in zen mode */
+.zen-mode-container [data-radix-dialog-trigger] {
+  pointer-events: auto !important;
+  z-index: 10002 !important;
+  position: relative;
+}
+
+/* Ensure all sheet-related elements are interactive in zen mode */
+.zen-mode-container [data-state] {
+  pointer-events: auto !important;
+}

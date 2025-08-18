@@ -8,17 +8,19 @@ interface ZenModeContainerProps {
   onToggleZenMode: () => void;
   children: React.ReactNode;
   className?: string;
+  onPortalContainerReady?: (container: HTMLElement | null) => void;
 }
 
 export function ZenModeContainer({ 
   isZenMode, 
   onToggleZenMode, 
   children, 
-  className 
+  className,
+  onPortalContainerReady
 }: ZenModeContainerProps) {
   const [portalContainer, setPortalContainer] = useState<HTMLElement | null>(null);
   const [isFullscreenSupported, setIsFullscreenSupported] = useState(false);
-  const [isInBrowserFullscreen, setIsInBrowserFullscreen] = useState(false);
+  const [, setIsInBrowserFullscreen] = useState(false);
   const isTauriApp = useIsTauri();
   const fullscreenElementRef = useRef<HTMLDivElement>(null);
 
@@ -46,6 +48,14 @@ export function ZenModeContainer({
       }
     };
   }, []);
+
+  // Notify parent component when portal container is ready or zen mode changes
+  useEffect(() => {
+    if (onPortalContainerReady) {
+      // Pass the portal container when zen mode is active, null otherwise
+      onPortalContainerReady(isZenMode ? portalContainer : null);
+    }
+  }, [portalContainer, isZenMode, onPortalContainerReady]);
 
   // Handle fullscreen change events
   useEffect(() => {

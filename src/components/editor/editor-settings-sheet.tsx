@@ -8,9 +8,8 @@ import {
 } from '@/components/ui/sheet';
 import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
-import { useFontSize, type FontSize } from '@/hooks/use-font-size';
-import { useFontFamily, type FontFamily } from '@/hooks/use-font-family';
-import { cn } from '@udecode/cn';
+import { type FontSize } from '@/hooks/use-font-size';
+import { type FontFamily } from '@/hooks/use-font-family';
 import { SettingsSlider } from '@/components/ui/settings-slider';
 
 
@@ -127,7 +126,13 @@ const lineWidthOptions = [
   }
 ];
 
-export function EditorSettingsSheet() {
+interface EditorSettingsSheetProps {
+  container?: HTMLElement | null;
+}
+
+export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}) {
+  console.log('🔧 EditorSettingsSheet render - container:', container);
+  
   // Get current values directly from DOM/localStorage
   const getCurrentFontSize = (): FontSize => {
     const saved = localStorage.getItem('zeyn-font-size');
@@ -236,7 +241,10 @@ export function EditorSettingsSheet() {
           <Settings className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent className="w-[400px] sm:w-[540px] overflow-y-auto max-h-screen">
+      <SheetContent 
+        className="w-[400px] sm:w-[540px] overflow-y-auto max-h-screen"
+        container={container}
+      >
         <SheetHeader>
           <SheetTitle>Editor Settings</SheetTitle>
         </SheetHeader>
