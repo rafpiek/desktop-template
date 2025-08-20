@@ -37,7 +37,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class: cn(
-          'tiptap-prose prose prose-lg max-w-none',
+          'tiptap-prose prose prose-lg',
           'min-h-full w-full resize-none',
           'focus:outline-none',
           'px-16 pt-4 pb-16',
