@@ -66,12 +66,25 @@ export function TiptapEditor({
       console.log(`✅ TipTap: Editor created for ${documentId}`);
       onReady(editor);
       
-      // Auto-focus if requested
+      // Auto-focus if requested, but ensure editor view is ready
       if (autoFocus) {
-        setTimeout(() => {
-          editor.commands.focus();
-          console.log(`🎯 TipTap: Auto-focused editor for ${documentId}`);
-        }, 100);
+        const focusWhenReady = () => {
+          try {
+            // Check if editor and view are available
+            if (editor && editor.view && editor.view.dom && editor.commands) {
+              editor.commands.focus();
+              console.log(`🎯 TipTap: Auto-focused editor for ${documentId}`);
+            } else {
+              // Retry after a short delay if not ready
+              setTimeout(focusWhenReady, 50);
+            }
+          } catch (error) {
+            console.warn(`🎯 TipTap: Could not focus editor for ${documentId}:`, error);
+          }
+        };
+        
+        // Start focus attempt after a small delay
+        setTimeout(focusWhenReady, 100);
       }
     },
     

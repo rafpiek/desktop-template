@@ -347,24 +347,51 @@ export function createEmptyChapter(input: CreateChapterInput): Chapter {
   };
 }
 
-export function calculateWordCount(content: MyValue): number {
-  function extractText(node: any): string {
+export function calculateWordCount(content: MyValue | unknown): number {
+  // Handle TipTap content format: { type: 'doc', content: [...] }
+  let contentArray: unknown[];
+  
+  if (content && typeof content === 'object' && 'type' in content && content.type === 'doc' && 'content' in content) {
+    // TipTap format
+    contentArray = Array.isArray(content.content) ? content.content : [];
+  } else if (Array.isArray(content)) {
+    // Plate.js format (original)
+    contentArray = content;
+  } else {
+    // Unknown format or null/undefined
+    return 0;
+  }
+
+  function extractText(node: unknown): string {
     if (typeof node === 'string') {
       return node;
     }
     
-    if (node.text) {
-      return node.text;
+    if (!node || typeof node !== 'object') {
+      return '';
     }
     
-    if (node.children && Array.isArray(node.children)) {
-      return node.children.map(extractText).join(' ');
+    const nodeObj = node as Record<string, unknown>;
+    
+    // Handle text nodes (both Plate.js and TipTap)
+    if ('text' in nodeObj && typeof nodeObj.text === 'string') {
+      return nodeObj.text;
+    }
+    
+    // Handle nodes with children (Plate.js format)
+    if ('children' in nodeObj && Array.isArray(nodeObj.children)) {
+      return nodeObj.children.map(extractText).join(' ');
+    }
+    
+    // Handle nodes with content (TipTap format)
+    if ('content' in nodeObj && Array.isArray(nodeObj.content)) {
+      return nodeObj.content.map(extractText).join(' ');
     }
     
     return '';
   }
   
-  const text = content.map(extractText).join(' ').trim();
+  const text = contentArray.map(extractText).join(' ').trim();
   if (!text) return 0;
   
   // Count words by splitting on whitespace and filtering empty strings
