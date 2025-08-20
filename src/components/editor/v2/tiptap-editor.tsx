@@ -6,6 +6,7 @@ import { useEditor, EditorContent } from '@tiptap/react';
 import { cn } from '@/lib/utils';
 import { type TiptapValue } from './tiptap-types';
 import { NovelWriterKit } from './plugins/novel-writer-kit';
+import { type TypewriterMode } from '@/hooks/use-typewriter';
 
 interface TiptapEditorProps {
   documentId: string;
@@ -14,6 +15,7 @@ interface TiptapEditorProps {
   onReady: (editor: unknown) => void;
   autoFocus: boolean;
   focusMode: boolean;
+  typewriterMode: TypewriterMode;
 }
 
 export function TiptapEditor({ 
@@ -22,9 +24,10 @@ export function TiptapEditor({
   onUpdate, 
   onReady, 
   autoFocus,
-  focusMode 
+  focusMode,
+  typewriterMode
 }: TiptapEditorProps) {
-  console.log(`🔧 TipTap: Creating editor for ${documentId}`, { initialContent, autoFocus, focusMode });
+  console.log(`🔧 TipTap: Creating editor for ${documentId}`, { initialContent, autoFocus, focusMode, typewriterMode });
 
   const editor = useEditor({
     extensions: NovelWriterKit,
@@ -91,6 +94,26 @@ export function TiptapEditor({
     }
   }, [focusMode, editor, documentId]);
 
+  // Update typewriter mode when prop changes
+  React.useEffect(() => {
+    if (editor) {
+      const typewriterExtension = editor.extensionManager.extensions.find(ext => ext.name === 'typewriter');
+      if (typewriterExtension) {
+        // Update typewriter mode through the extension's updateOptions method
+        try {
+          editor.extensionManager.extensions.forEach(ext => {
+            if (ext.name === 'typewriter' && ext.options) {
+              ext.options.mode = typewriterMode;
+            }
+          });
+          console.log(`🎯 TipTap: Updated typewriter mode to ${typewriterMode} for ${documentId}`);
+        } catch (error) {
+          console.error('TipTap: Error updating typewriter mode:', error);
+        }
+      }
+    }
+  }, [typewriterMode, editor, documentId]);
+
   // Log character count for debugging
   React.useEffect(() => {
     if (editor) {
@@ -126,11 +149,12 @@ export function TiptapEditor({
   return (
     <div className={cn(
       'tiptap-editor-wrapper h-full',
-      focusMode && 'focus-mode-active'
+      focusMode && 'focus-mode-active',
+      typewriterMode === 'center' && 'typewriter-active'
     )}>
       <EditorContent 
         editor={editor} 
-        className="tiptap-content h-full overflow-y-auto"
+        className="tiptap-content h-full overflow-y-auto editor-scroll"
       />
     </div>
   );

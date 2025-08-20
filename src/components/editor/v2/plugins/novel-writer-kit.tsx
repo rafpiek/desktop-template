@@ -8,6 +8,9 @@ import { BasicBlocksTiptapKit } from './basic-blocks-tiptap-kit';
 import { MediaTiptapKit } from './media-tiptap-kit';
 import { FocusModeTiptapKit } from './focus-mode-tiptap-kit';
 import { CharacterCountTiptapKit } from './character-count-tiptap-kit';
+import { SlashCommandTiptapKit } from './slash-command-tiptap-kit';
+import { DragDropTiptapKit } from './drag-drop-tiptap-kit';
+import { TypewriterTiptapKit } from './typewriter-tiptap-kit';
 
 // Main plugin kit for novel writers - combines all needed extensions
 export const NovelWriterKit: Extension[] = [
@@ -82,4 +85,7 @@ export const NovelWriterKit: Extension[] = [
   ...MediaTiptapKit,
   ...FocusModeTiptapKit,
   ...CharacterCountTiptapKit,
+  ...SlashCommandTiptapKit,
+  ...DragDropTiptapKit,
+  ...TypewriterTiptapKit,
 ];

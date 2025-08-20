@@ -15,13 +15,15 @@ import { TiptapEditor } from './tiptap-editor';
 import { type TiptapValue } from './tiptap-types';
 import { useTiptapStorage } from '@/hooks/use-tiptap-storage';
 import { useTiptapFocusMode } from '@/hooks/use-tiptap-focus-mode';
+import { useTiptapTypewriter } from '@/hooks/use-tiptap-typewriter';
+import { TiptapSettingsIntegration } from './settings/tiptap-settings-integration';
 
 // Exact same interface as original DocumentEditor to ensure drop-in compatibility
 interface DocumentEditorV2Props {
   documentId: string;
   onEditorReady?: (focusEditor: () => void) => void;
   autoFocus?: boolean;
-  onContentChange?: (content: any, stats: {
+  onContentChange?: (content: unknown, stats: {
     wordCount: number;
     charactersWithSpaces: number;
     charactersWithoutSpaces: number;
@@ -45,6 +47,7 @@ export function DocumentEditorV2({
   
   // Use our custom hooks
   const { focusMode } = useTiptapFocusMode();
+  const { mode: typewriterMode } = useTiptapTypewriter();
   const { 
     content, 
     setContent, 
@@ -172,6 +175,7 @@ export function DocumentEditorV2({
             onReady={handleEditorReady}
             autoFocus={autoFocus}
             focusMode={focusMode}
+            typewriterMode={typewriterMode}
           />
         ) : (
           <div className="flex items-center justify-center h-64">
@@ -179,6 +183,7 @@ export function DocumentEditorV2({
           </div>
         )}
         <SettingsDialog />
+        <TiptapSettingsIntegration editor={editor} />
       </div>
     </ZenModeContainer>
   );

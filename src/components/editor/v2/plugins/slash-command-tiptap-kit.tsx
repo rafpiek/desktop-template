@@ -1,0 +1,153 @@
+'use client';
+
+import { Extension } from '@tiptap/core';
+import { ReactRenderer } from '@tiptap/react';
+import { suggestion, type SuggestionOptions } from '@tiptap/suggestion';
+import tippy, { type Instance as TippyInstance } from 'tippy.js';
+
+import { SlashCommandMenu, type SlashCommandMenuRef } from '../slash-commands/slash-command-menu';
+import { NOVEL_WRITER_SLASH_COMMANDS, searchCommands, type SlashCommand } from '../slash-commands/novel-writer-commands';
+
+// Slash command extension using TipTap's suggestion
+const SlashCommand = Extension.create({
+  name: 'slashCommand',
+
+  addOptions() {
+    return {
+      suggestion: {
+        char: '/',
+        allowedPrefixes: [' '],
+        startOfLine: false,
+        command: ({ editor, range, props }: { 
+          editor: unknown; 
+          range: unknown; 
+          props: SlashCommand 
+        }) => {
+          props.command({ editor, range });
+        },
+      } as Partial<SuggestionOptions>,
+    };
+  },
+
+  addProseMirrorPlugins() {
+    return [
+      suggestion({
+        editor: this.editor,
+        ...this.options.suggestion,
+        
+        items: ({ query }: { query: string }) => {
+          if (!query.trim()) {
+            return NOVEL_WRITER_SLASH_COMMANDS;
+          }
+          return searchCommands(query);
+        },
+
+        render: () => {
+          let component: ReactRenderer<SlashCommandMenuRef>;
+          let popup: TippyInstance;
+
+          return {
+            onStart: (props: unknown) => {
+              console.log('🔥 Slash command started:', props);
+              
+              component = new ReactRenderer(SlashCommandMenu, {
+                props: {
+                  ...props,
+                  command: (item: SlashCommand) => {
+                    console.log('🔥 Executing slash command:', item.title);
+                    item.command({ editor: props.editor, range: props.range });
+                  },
+                },
+                editor: props.editor,
+              });
+
+              if (!props.clientRect) {
+                return;
+              }
+
+              popup = tippy('body', {
+                getReferenceClientRect: props.clientRect,
+                appendTo: () => document.body,
+                content: component.element,
+                showOnCreate: true,
+                interactive: true,
+                trigger: 'manual',
+                placement: 'bottom-start',
+                theme: 'slash-command',
+                maxWidth: 'none',
+                offset: [0, 8],
+                zIndex: 9999,
+              })[0];
+            },
+
+            onUpdate(props: unknown) {
+              console.log('🔥 Slash command updated:', props.query);
+              
+              component?.updateProps({
+                ...props,
+                command: (item: SlashCommand) => {
+                  console.log('🔥 Executing slash command:', item.title);
+                  item.command({ editor: props.editor, range: props.range });
+                },
+              });
+
+              if (!props.clientRect) {
+                return;
+              }
+
+              popup?.setProps({
+                getReferenceClientRect: props.clientRect,
+              });
+            },
+
+            onKeyDown(props: unknown) {
+              if (props.event.key === 'Escape') {
+                popup?.hide();
+                return true;
+              }
+
+              if (component?.ref?.onKeyDown) {
+                return component.ref.onKeyDown(props.event);
+              }
+
+              return false;
+            },
+
+            onExit() {
+              console.log('🔥 Slash command exited');
+              popup?.destroy();
+              component?.destroy();
+            },
+          };
+        },
+      }),
+    ];
+  },
+});
+
+// CSS styles for the slash command menu
+const slashCommandStyles = `
+  .tippy-box[data-theme~='slash-command'] {
+    background: transparent;
+    border: none;
+    box-shadow: none;
+  }
+  
+  .tippy-box[data-theme~='slash-command'] .tippy-content {
+    padding: 0;
+  }
+  
+  .tiptap-slash-menu {
+    font-family: inherit;
+  }
+`;
+
+// Inject styles when the extension is used
+if (typeof document !== 'undefined' && !document.getElementById('slash-command-styles')) {
+  const style = document.createElement('style');
+  style.id = 'slash-command-styles';
+  style.textContent = slashCommandStyles;
+  document.head.appendChild(style);
+}
+
+export const SlashCommandTiptapKit: Extension[] = [SlashCommand];
