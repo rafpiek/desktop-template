@@ -16,6 +16,13 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
     if (!editor) return;
 
     const applyStoredSettings = () => {
+      // Check if editor view is ready before accessing it
+      if (!editor.view || !editor.view.dom) {
+        console.warn('🔧 TipTap Settings: Editor view not ready, retrying...');
+        setTimeout(applyStoredSettings, 100);
+        return;
+      }
+
       const fontSize = (localStorage.getItem('zeyn-font-size') as FontSize) || 'md';
       const fontFamily = (localStorage.getItem('zeyn-font-family') as FontFamily) || 'sans';
       const lineWidth = localStorage.getItem('zeyn-line-width') || 'default';
@@ -83,8 +90,8 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
       }
     };
 
-    // Apply settings immediately
-    applyStoredSettings();
+    // Apply settings with a small delay to ensure editor is ready
+    setTimeout(applyStoredSettings, 200);
 
     // Listen for localStorage changes (when settings are updated)
     const handleStorageChange = (e: StorageEvent) => {
@@ -136,6 +143,13 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
     if (!editor) return;
 
     const applyFocusMode = () => {
+      // Check if editor view is ready before accessing extensions
+      if (!editor.view || !editor.view.dom || !editor.extensionManager) {
+        console.warn('🎯 TipTap Settings: Editor not ready for focus mode, retrying...');
+        setTimeout(applyFocusMode, 100);
+        return;
+      }
+
       const focusSettings = localStorage.getItem('tiptap-focus-mode-settings');
       if (focusSettings) {
         try {
@@ -154,7 +168,8 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
       }
     };
 
-    applyFocusMode();
+    // Apply focus mode with a small delay to ensure editor is ready
+    setTimeout(applyFocusMode, 200);
 
     const handleFocusChange = (e: StorageEvent) => {
       if (e.key === 'tiptap-focus-mode-settings') {
