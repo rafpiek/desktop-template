@@ -31,7 +31,6 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
 
         state: {
           init() {
-            console.log('🎯 TipTap Typewriter: init called', extension.options.mode);
             return new TypewriterView(null, extension.options.mode);
           },
           apply(tr, pluginState, oldState, newState) {
@@ -76,10 +75,8 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
                     pluginState.updateMode(newMode);
                   }
 
-                  console.log('🎯 TipTap Typewriter: Updated mode from custom event to:', newMode);
                 }
               } catch (error) {
-                console.error('🎯 TipTap Typewriter: Error handling settings change:', error);
               }
             };
 
@@ -96,7 +93,6 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
 
         props: {
           handleKeyDown(view, event) {
-            console.log('🎯 TipTap Typewriter: handleKeyDown called');
             const pluginState = typewriterPluginKey.getState(view.state);
             if (!pluginState || pluginState.mode === 'off') return false;
             if (event.shiftKey) return false; // Don't center while extending selection
@@ -131,7 +127,6 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
           // Add handleDOMEvents to catch all selection changes
           handleDOMEvents: {
             selectionchange: (view) => {
-              console.log('🎯 TipTap Typewriter: DOM selectionchange event');
               const pluginState = typewriterPluginKey.getState(view.state);
               if (pluginState && pluginState.mode !== 'off') {
                 pluginState.handleSelectionChange();
@@ -140,7 +135,6 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
             },
 
             click: (view) => {
-              console.log('🎯 TipTap Typewriter: Click event');
               const pluginState = typewriterPluginKey.getState(view.state);
               if (pluginState && pluginState.mode !== 'off') {
                 setTimeout(() => {
@@ -151,7 +145,6 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
             },
 
             input: (view) => {
-              console.log('🎯 TipTap Typewriter: Input event');
               const pluginState = typewriterPluginKey.getState(view.state);
               if (pluginState && pluginState.mode !== 'off') {
                 setTimeout(() => {
@@ -162,7 +155,6 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
             },
 
             keyup: (view) => {
-              console.log('🎯 TipTap Typewriter: Keyup event');
               const pluginState = typewriterPluginKey.getState(view.state);
               if (pluginState && pluginState.mode !== 'off') {
                 // Only handle if not already handled by handleKeyDown
@@ -227,7 +219,6 @@ class TypewriterView {
 
         // Immediately update if mode is active
         if (this.mode !== 'off' && this.view && (this.view as any).docView) {
-          console.log('🎯 TipTap Typewriter: Initial setup - triggering centering');
           this.handleSelectionChange();
         }
       }, 200); // Increased delay to ensure DOM is ready
@@ -262,7 +253,6 @@ class TypewriterView {
 
   public handleSelectionChange() {
     if (this.mode === 'off' || !this.view) return;
-    console.log('mode', this.mode);
     if (performance.now() < this.suppressSelectionUntil) return;
 
     // Cancel any pending animation frame
@@ -276,7 +266,6 @@ class TypewriterView {
         this.updateActiveBlockHighlight();
         centerActiveBlock(this.view, this.mode);
       } else {
-        console.warn('🎯 TipTap Typewriter: View not ready in handleSelectionChange, skipping');
       }
       this.rafToken = null;
     });
@@ -285,7 +274,6 @@ class TypewriterView {
     private updateActiveBlockHighlight() {
     if (this.mode === 'off' || !this.view) return;
 
-    console.log('🎯 TipTap Typewriter: updateActiveBlockHighlight called');
 
     // Remove existing active class (check both with and without parent)
     const existingActive = document.querySelector('.tw-active');
@@ -299,7 +287,6 @@ class TypewriterView {
       const pos = selection.from;
       const resolvedPos = this.view.state.doc.resolve(pos);
 
-      console.log('🎯 TipTap Typewriter: Selection position:', pos, 'Resolved depth:', resolvedPos.depth);
 
       // Get the position of the current block
       let blockPos = pos;
@@ -314,7 +301,6 @@ class TypewriterView {
                              node.type.name === 'listItem')) {
           blockNode = node;
           blockPos = d === resolvedPos.depth ? resolvedPos.start() - 1 : resolvedPos.before(d + 1);
-          console.log('🎯 TipTap Typewriter: Found block node:', node.type.name, 'at pos:', blockPos);
           break;
         }
       }
@@ -324,7 +310,6 @@ class TypewriterView {
         try {
           // Check if view is ready for DOM operations
           if (!(this.view as any).docView) {
-            console.warn('🎯 TipTap Typewriter: View docView not ready yet');
             return;
           }
 
@@ -333,7 +318,6 @@ class TypewriterView {
           const domPos = this.view.domAtPos(actualPos);
           let blockElement: Node | null = domPos.node;
 
-          console.log('🎯 TipTap Typewriter: DOM position found:', domPos, 'Initial element:', blockElement);
 
           // If we got a text node, get its parent element
           if (blockElement && blockElement.nodeType === Node.TEXT_NODE) {
@@ -347,14 +331,12 @@ class TypewriterView {
 
             // Check if this is a block-level element
             if (tagName && ['p', 'h1', 'h2', 'h3', 'h4', 'h5', 'h6', 'blockquote', 'li'].includes(tagName)) {
-              console.log('🎯 TipTap Typewriter: Adding tw-active to element:', blockElement, 'tag:', tagName);
               (blockElement as Element).classList.add('tw-active');
               break;
             }
 
             // Also check if it has a data attribute that indicates it's a tiptap heading
             if ((blockElement as Element).hasAttribute?.('data-level')) {
-              console.log('🎯 TipTap Typewriter: Found element with data-level, adding tw-active:', blockElement);
               (blockElement as Element).classList.add('tw-active');
               break;
             }
@@ -363,17 +345,14 @@ class TypewriterView {
           }
 
           if (!blockElement || blockElement === this.view.dom) {
-            console.warn('🎯 TipTap Typewriter: Could not find suitable block element');
           }
         } catch (error) {
-          console.error('🎯 TipTap Typewriter: Error finding DOM element:', error);
         }
       }
     }
   }
 
   public updateMode(newMode: TypewriterMode) {
-    console.log('🎯 TipTap Typewriter: Updating mode from', this.mode, 'to', newMode);
     this.mode = newMode;
 
     // Update scroll padding
@@ -390,7 +369,6 @@ class TypewriterView {
       }
     } else {
       // Immediately apply when enabling
-      console.log('🎯 TipTap Typewriter: Mode enabled, triggering highlight');
       this.handleSelectionChange();
     }
   }
@@ -425,19 +403,14 @@ function centerActiveBlock(view: EditorView, mode: TypewriterMode) {
       // Fallback: try finding just .tw-active without parent check
       activeElement = document.querySelector('.tw-active') as HTMLElement;
       if (!activeElement) {
-        console.warn('🎯 TipTap Typewriter: No active element found with .tw-active class');
-        console.log('🎯 TipTap Typewriter: Looking for .typewriter-active container:', document.querySelector('.typewriter-active'));
-        console.log('🎯 TipTap Typewriter: Looking for any .tw-active element:', document.querySelector('.tw-active'));
         return;
       } else {
-        console.log('🎯 TipTap Typewriter: Found .tw-active element without .typewriter-active parent');
       }
     }
 
     // Find the scroll container
     const scrollContainer = findScrollContainer(activeElement);
     if (!scrollContainer) {
-      console.warn('🎯 TipTap Typewriter: No scroll container found');
       return;
     }
 
@@ -449,13 +422,6 @@ function centerActiveBlock(view: EditorView, mode: TypewriterMode) {
     const containerCenter = containerRect.top + containerRect.height / 2;
     const offset = elementCenter - containerCenter;
 
-    console.log('🎯 TipTap Typewriter: Centering block', {
-      activeElement,
-      scrollContainer,
-      elementRect,
-      containerRect,
-      offset
-    });
 
     // Apply smooth scroll to center the element
     scrollContainer.scrollBy({
@@ -463,9 +429,7 @@ function centerActiveBlock(view: EditorView, mode: TypewriterMode) {
       behavior: 'smooth',
     });
 
-    console.log('🎯 TipTap Typewriter: Centered active block');
   } catch (error) {
-    console.error('TipTap Typewriter: Error centering block:', error);
   }
 }
 
@@ -474,21 +438,18 @@ function findScrollContainer(element: HTMLElement | null): HTMLElement | null {
   // First, try to find the editor-specific scroll container by class
   const editorScroll = document.querySelector('.editor-scroll') as HTMLElement;
   if (editorScroll) {
-    console.log('🎯 TipTap Typewriter: Found editor-scroll container by query');
     return editorScroll;
   }
 
   // Try to find it relative to the element
   const editorScrollRelative = element?.closest('.editor-scroll') as HTMLElement;
   if (editorScrollRelative) {
-    console.log('🎯 TipTap Typewriter: Found editor-scroll container relative to element');
     return editorScrollRelative;
   }
 
   // Fallback: look for the tiptap-content container with overflow
   const tiptapContent = document.querySelector('.tiptap-content.overflow-y-auto') as HTMLElement;
   if (tiptapContent) {
-    console.log('🎯 TipTap Typewriter: Found tiptap-content scroll container');
     return tiptapContent;
   }
 
@@ -497,7 +458,6 @@ function findScrollContainer(element: HTMLElement | null): HTMLElement | null {
   if (tiptapContentRelative) {
     const style = window.getComputedStyle(tiptapContentRelative);
     if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
-      console.log('🎯 TipTap Typewriter: Found tiptap-content scroll container relative');
       return tiptapContentRelative;
     }
   }
@@ -511,7 +471,6 @@ function findScrollContainer(element: HTMLElement | null): HTMLElement | null {
       // Don't go beyond the editor container
       const style = window.getComputedStyle(current);
       if (style.overflowY === 'auto' || style.overflowY === 'scroll') {
-        console.log('🎯 TipTap Typewriter: Found editor boundary scroll container');
         return current;
       }
       break; // Don't scroll anything outside the editor
@@ -520,13 +479,11 @@ function findScrollContainer(element: HTMLElement | null): HTMLElement | null {
     const style = window.getComputedStyle(current);
     if ((style.overflowY === 'auto' || style.overflowY === 'scroll') &&
         current.scrollHeight > current.clientHeight) {
-      console.log('🎯 TipTap Typewriter: Found overflow container within editor');
       return current;
     }
     current = current.parentElement;
   }
 
-  console.warn('🎯 TipTap Typewriter: No scroll container found, typewriter disabled');
   return null; // Don't scroll the document
 }
 

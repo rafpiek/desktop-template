@@ -13,7 +13,6 @@ export function ContinueOnSection() {
     try {
       if (type === 'project') {
         const projects = JSON.parse(localStorage.getItem('zeyn-projects') || '[]');
-        console.log('projects', projects)
         const currentProject = projects.find((p: any) => p.id === item.id);
         // If we find the project and it has a valid name (not empty, not "Untitled Project"), use it
         if (currentProject?.name && currentProject.name !== 'Untitled Project') {

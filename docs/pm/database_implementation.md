@@ -107,10 +107,10 @@ model User {
   email     String   @unique
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Writing data
   projects  Project[]
-  
+
   @@map("users")
 }
 
@@ -124,11 +124,11 @@ model Project {
   wordCount   Int           @default(0)
   status      ProjectStatus @default(draft)
   label       ProjectLabel
-  
+
   // Timestamps
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Goals & settings
   targetWordCount Int?
   deadline        DateTime?
@@ -136,13 +136,13 @@ model Project {
   isArchived     Boolean @default(false)
   genre          String?
   notes          String?
-  
+
   // Relationships
   user      User         @relation(fields: [userId], references: [id], onDelete: Cascade)
   tags      ProjectTag[]
   chapters  Chapter[]
   documents Document[]
-  
+
   @@map("projects")
 }
 
@@ -153,15 +153,15 @@ model Chapter {
   order       Int
   isCompleted Boolean @default(false)
   wordCount   Int     @default(0)
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relationships
   projectId String
   project   Project    @relation(fields: [projectId], references: [id], onDelete: Cascade)
   documents Document[]
-  
+
   @@unique([projectId, order])
   @@map("chapters")
 }
@@ -174,19 +174,19 @@ model Document {
   status      DocumentStatus @default(draft)
   isCompleted Boolean        @default(false)
   notes       String?
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   // Relationships
   projectId String
   project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
-  
+
   chapterId String?
   chapter   Chapter? @relation(fields: [chapterId], references: [id], onDelete: SetNull)
-  
+
   tags ProjectTag[]
-  
+
   @@map("documents")
 }
 
@@ -194,13 +194,13 @@ model ProjectTag {
   id       String @id @default(cuid())
   name     String @unique
   color    String?
-  
+
   projects  Project[]
   documents Document[]
-  
+
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
-  
+
   @@map("project_tags")
 }
 
@@ -268,9 +268,9 @@ CREATE POLICY "Anyone can read project tags" ON project_tags
 
 CREATE POLICY "Users can manage tags on their projects" ON project_tags
   FOR ALL USING (EXISTS (
-    SELECT 1 FROM projects p 
-    JOIN project_tags_projects ptp ON p.id = ptp.project_id 
-    WHERE ptp.tag_id = project_tags.id 
+    SELECT 1 FROM projects p
+    JOIN project_tags_projects ptp ON p.id = ptp.project_id
+    WHERE ptp.tag_id = project_tags.id
     AND p.user_id = auth.uid()::text
   ));
 ```
@@ -407,7 +407,7 @@ import type { Project, CreateProjectInput, UpdateProjectInput } from '@/lib/type
 export class ProjectRepository extends BaseRepository {
   async getProjects(): Promise<Project[]> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.project.findMany({
       where: { userId: this.userId },
       include: {
@@ -428,7 +428,7 @@ export class ProjectRepository extends BaseRepository {
 
   async createProject(input: CreateProjectInput): Promise<Project> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.project.create({
       data: {
         ...input,
@@ -444,9 +444,9 @@ export class ProjectRepository extends BaseRepository {
 
   async updateProject(input: UpdateProjectInput): Promise<Project> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.project.update({
-      where: { 
+      where: {
         id: input.id,
         userId: this.userId, // Ensure user owns this project
       },
@@ -461,9 +461,9 @@ export class ProjectRepository extends BaseRepository {
 
   async deleteProject(id: string): Promise<void> {
     this.ensureUserOwnership()
-    
+
     await this.prisma.project.delete({
-      where: { 
+      where: {
         id,
         userId: this.userId, // Ensure user owns this project
       },
@@ -472,9 +472,9 @@ export class ProjectRepository extends BaseRepository {
 
   async getProject(id: string): Promise<Project | null> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.project.findFirst({
-      where: { 
+      where: {
         id,
         userId: this.userId,
       },
@@ -504,9 +504,9 @@ import type { Document, CreateDocumentInput, UpdateDocumentInput } from '@/lib/t
 export class DocumentRepository extends BaseRepository {
   async getDocuments(projectId: string): Promise<Document[]> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.document.findMany({
-      where: { 
+      where: {
         projectId,
         project: { userId: this.userId }, // Ensure user owns the project
       },
@@ -520,13 +520,13 @@ export class DocumentRepository extends BaseRepository {
 
   async createDocument(input: CreateDocumentInput): Promise<Document> {
     this.ensureUserOwnership()
-    
+
     // Verify user owns the project
     const project = await this.prisma.project.findFirst({
       where: { id: input.projectId, userId: this.userId },
     })
     if (!project) throw new Error('Project not found or access denied')
-    
+
     return await this.prisma.document.create({
       data: input,
       include: {
@@ -538,9 +538,9 @@ export class DocumentRepository extends BaseRepository {
 
   async updateDocument(input: UpdateDocumentInput): Promise<Document> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.document.update({
-      where: { 
+      where: {
         id: input.id,
         project: { userId: this.userId }, // Ensure user owns the project
       },
@@ -554,9 +554,9 @@ export class DocumentRepository extends BaseRepository {
 
   async deleteDocument(id: string): Promise<void> {
     this.ensureUserOwnership()
-    
+
     await this.prisma.document.delete({
-      where: { 
+      where: {
         id,
         project: { userId: this.userId },
       },
@@ -574,9 +574,9 @@ import type { Chapter, CreateChapterInput, UpdateChapterInput } from '@/lib/type
 export class ChapterRepository extends BaseRepository {
   async getChapters(projectId: string): Promise<Chapter[]> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.chapter.findMany({
-      where: { 
+      where: {
         projectId,
         project: { userId: this.userId },
       },
@@ -589,13 +589,13 @@ export class ChapterRepository extends BaseRepository {
 
   async createChapter(input: CreateChapterInput): Promise<Chapter> {
     this.ensureUserOwnership()
-    
+
     // Verify user owns the project
     const project = await this.prisma.project.findFirst({
       where: { id: input.projectId, userId: this.userId },
     })
     if (!project) throw new Error('Project not found or access denied')
-    
+
     // Auto-calculate order if not provided
     if (!input.order) {
       const maxOrder = await this.prisma.chapter.aggregate({
@@ -604,7 +604,7 @@ export class ChapterRepository extends BaseRepository {
       })
       input.order = (maxOrder._max.order || 0) + 1
     }
-    
+
     return await this.prisma.chapter.create({
       data: input,
       include: {
@@ -615,9 +615,9 @@ export class ChapterRepository extends BaseRepository {
 
   async updateChapter(input: UpdateChapterInput): Promise<Chapter> {
     this.ensureUserOwnership()
-    
+
     return await this.prisma.chapter.update({
-      where: { 
+      where: {
         id: input.id,
         project: { userId: this.userId },
       },
@@ -630,9 +630,9 @@ export class ChapterRepository extends BaseRepository {
 
   async deleteChapter(id: string): Promise<void> {
     this.ensureUserOwnership()
-    
+
     await this.prisma.chapter.delete({
-      where: { 
+      where: {
         id,
         project: { userId: this.userId },
       },
@@ -658,7 +658,7 @@ export function useProjects() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  const repository = useMemo(() => 
+  const repository = useMemo(() =>
     user ? new ProjectRepository(prisma, user.id) : null,
     [user?.id]
   )
@@ -689,7 +689,7 @@ export function useProjects() {
 
   const createProject = useCallback(async (input: CreateProjectInput) => {
     if (!repository) throw new Error('Not authenticated')
-    
+
     try {
       const newProject = await repository.createProject(input)
       setProjects(prev => [newProject, ...prev])
@@ -702,10 +702,10 @@ export function useProjects() {
 
   const updateProject = useCallback(async (input: UpdateProjectInput) => {
     if (!repository) throw new Error('Not authenticated')
-    
+
     try {
       const updatedProject = await repository.updateProject(input)
-      setProjects(prev => prev.map(p => 
+      setProjects(prev => prev.map(p =>
         p.id === input.id ? updatedProject : p
       ))
       return updatedProject
@@ -717,7 +717,7 @@ export function useProjects() {
 
   const deleteProject = useCallback(async (id: string) => {
     if (!repository) throw new Error('Not authenticated')
-    
+
     try {
       await repository.deleteProject(id)
       setProjects(prev => prev.filter(p => p.id !== id))
@@ -760,26 +760,26 @@ interface ProjectContextValue {
   projects: Project[]
   projectsLoading: boolean
   projectsError: string | null
-  
+
   // Documents
   documents: Document[]
   documentsLoading: boolean
   documentsError: string | null
-  
+
   // Chapters
   chapters: Chapter[]
   chaptersLoading: boolean
   chaptersError: string | null
-  
+
   // Methods (all async now)
   createProject: (input: CreateProjectInput) => Promise<Project>
   updateProject: (input: UpdateProjectInput) => Promise<Project>
   deleteProject: (id: string) => Promise<void>
-  
+
   createDocument: (input: CreateDocumentInput) => Promise<Document>
   updateDocument: (input: UpdateDocumentInput) => Promise<Document>
   deleteDocument: (id: string) => Promise<void>
-  
+
   createChapter: (input: CreateChapterInput) => Promise<Chapter>
   updateChapter: (input: UpdateChapterInput) => Promise<Chapter>
   deleteChapter: (id: string) => Promise<void>
@@ -795,37 +795,37 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
   const projects = useProjects()
   const documents = useDocuments()
   const chapters = useChapters()
-  
+
   const value: ProjectContextValue = {
     // Projects
     projects: projects.projects,
     projectsLoading: projects.loading,
     projectsError: projects.error,
-    
+
     // Documents
     documents: documents.documents,
     documentsLoading: documents.loading,
     documentsError: documents.error,
-    
+
     // Chapters
     chapters: chapters.chapters,
     chaptersLoading: chapters.loading,
     chaptersError: chapters.error,
-    
+
     // Methods
     createProject: projects.createProject,
     updateProject: projects.updateProject,
     deleteProject: projects.deleteProject,
-    
+
     createDocument: documents.createDocument,
     updateDocument: documents.updateDocument,
     deleteDocument: documents.deleteDocument,
-    
+
     createChapter: chapters.createChapter,
     updateChapter: chapters.updateChapter,
     deleteChapter: chapters.deleteChapter,
   }
-  
+
   return (
     <ProjectContext.Provider value={value}>
       {children}
@@ -860,7 +860,7 @@ export function LoginForm() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    
+
     try {
       if (isSignUp) {
         await signUp(email, password)
@@ -1012,7 +1012,7 @@ export class OfflineManager {
   async syncPendingOperations() {
     const operations = [...this.pendingOperations]
     this.pendingOperations = []
-    
+
     for (const operation of operations) {
       try {
         await operation()
@@ -1106,7 +1106,6 @@ async function main() {
     }),
   ])
 
-  console.log('Created tags:', tags)
 }
 
 main()
@@ -1125,7 +1124,7 @@ main()
 - **Day 1-2**: Cleanup API routes, setup Supabase project, environment configuration
 - **Day 3-4**: Update Prisma schema, run migrations, set up RLS policies
 
-### Week 2: Core Implementation  
+### Week 2: Core Implementation
 - **Day 5-6**: Create auth hooks, context providers, and repository classes
 - **Day 7-8**: Update existing hooks to use async operations
 

@@ -16,12 +16,10 @@ export function TiptapTest() {
   });
 
   const handleContentChange = React.useCallback((content: unknown, newStats: typeof stats) => {
-    console.log('📊 TipTap Test: Content changed', { content, stats: newStats });
     setStats(newStats);
   }, []);
 
   const handleEditorReady = React.useCallback((focusEditor: () => void) => {
-    console.log('🎯 TipTap Test: Editor ready, focusing...');
     focusEditor();
   }, []);
 

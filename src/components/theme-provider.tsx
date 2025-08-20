@@ -53,7 +53,6 @@ export function ThemeProvider({
     }
 
     root.classList.add(theme)
-    console.log("Applied theme:", theme, "Classes:", root.classList.toString())
 
     // Force a style recalculation
     root.style.colorScheme = theme === "dark" ? "dark" : "light"
@@ -64,7 +63,6 @@ export function ThemeProvider({
     setTheme: (theme: Theme) => {
       localStorage.setItem(storageKey, theme)
       setTheme(theme)
-      console.log("Theme changed to:", theme) // Debug log
     },
   }
 

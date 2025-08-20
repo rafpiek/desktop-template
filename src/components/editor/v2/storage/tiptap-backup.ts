@@ -60,7 +60,6 @@ export const createTiptapBackup = (
       backup.data.markdown = tiptapToMarkdown(documentData.content);
     }
 
-    console.log(`💾 TipTap Backup: Created backup for ${documentId}`, backup);
     return backup;
   } catch (error) {
     console.error('TipTap Backup: Error creating backup:', error);
@@ -76,7 +75,6 @@ export const saveTiptapBackup = (backup: TiptapBackup): boolean => {
     const backupKey = `tiptap-backup-${backup.documentId}-${Date.now()}`;
     localStorage.setItem(backupKey, JSON.stringify(backup));
     
-    console.log(`💾 TipTap Backup: Saved backup with key ${backupKey}`);
     return true;
   } catch (error) {
     console.error('TipTap Backup: Error saving backup:', error);
@@ -132,7 +130,6 @@ export const exportTiptapBackup = (
     
     URL.revokeObjectURL(url);
     
-    console.log(`📄 TipTap Backup: Exported ${finalFilename}`);
   } catch (error) {
     console.error('TipTap Backup: Error exporting backup:', error);
   }
@@ -173,7 +170,6 @@ export const getAllTiptapBackups = (): TiptapBackup[] => {
     // Sort by creation date (newest first)
     backups.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     
-    console.log(`📋 TipTap Backup: Found ${backups.length} backups`);
     return backups;
   } catch (error) {
     console.error('TipTap Backup: Error loading backups:', error);
@@ -215,7 +211,6 @@ export const cleanupOldTiptapBackups = (retentionDays: number = 30): number => {
       deletedCount++;
     });
 
-    console.log(`🧹 TipTap Backup: Cleaned up ${deletedCount} old backups`);
     return deletedCount;
   } catch (error) {
     console.error('TipTap Backup: Error cleaning up backups:', error);
@@ -231,7 +226,6 @@ export const restoreTiptapFromBackup = (backup: TiptapBackup): boolean => {
     const storageKey = getTiptapStorageKey(backup.documentId);
     localStorage.setItem(storageKey, JSON.stringify(backup.data.json));
     
-    console.log(`🔄 TipTap Backup: Restored document ${backup.documentId} from backup`);
     return true;
   } catch (error) {
     console.error('TipTap Backup: Error restoring from backup:', error);
@@ -251,7 +245,6 @@ export const autoBackupTiptapDocument = (documentId: string, title?: string): vo
     const backup = createTiptapBackup(documentId, 'json', title);
     if (backup && saveTiptapBackup(backup)) {
       localStorage.setItem(lastAutoBackupKey, now.toString());
-      console.log(`🔄 TipTap Backup: Auto-backup completed for ${documentId}`);
     }
   }
 };

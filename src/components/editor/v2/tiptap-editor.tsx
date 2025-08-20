@@ -86,7 +86,6 @@ export function TiptapEditor({
                     const event = new Event('selectionchange');
                     editor.view.dom.dispatchEvent(event);
 
-                    console.log('🎯 TipTap Editor: Manually triggered typewriter after focus');
                   }
                 }, 300);
               }
@@ -123,12 +122,10 @@ export function TiptapEditor({
 
   // Update typewriter mode when prop changes
   React.useEffect(() => {
-    console.log('🎯 TipTap Editor: typewriter mode prop changed to:', typewriterMode);
     if (editor && editor.isEditable) {
       // Update the extension configuration
       editor.extensionManager.extensions.forEach(extension => {
         if (extension.name === 'typewriter') {
-          console.log('🎯 TipTap Editor: Updating typewriter extension mode to:', typewriterMode);
           // Update the options
           extension.options.mode = typewriterMode;
 

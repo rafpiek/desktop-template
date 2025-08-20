@@ -58,13 +58,11 @@ const SlashCommand = Extension.create({
 
           return {
             onStart: (props: unknown) => {
-              console.log('🔥 Slash command started:', props);
               
               component = new ReactRenderer(SlashCommandMenu, {
                 props: {
                   ...props,
                   command: (item: SlashCommand) => {
-                    console.log('🔥 Executing slash command:', item.title);
                     item.command({ editor: props.editor, range: props.range });
                   },
                 },
@@ -91,12 +89,10 @@ const SlashCommand = Extension.create({
             },
 
             onUpdate(props: unknown) {
-              console.log('🔥 Slash command updated:', props.query);
               
               component?.updateProps({
                 ...props,
                 command: (item: SlashCommand) => {
-                  console.log('🔥 Executing slash command:', item.title);
                   item.command({ editor: props.editor, range: props.range });
                 },
               });
@@ -124,7 +120,6 @@ const SlashCommand = Extension.create({
             },
 
             onExit() {
-              console.log('🔥 Slash command exited');
               popup?.destroy();
               component?.destroy();
             },

@@ -48,7 +48,6 @@ const DragDropPlugin = Extension.create({
                     
                     // Add drag event listeners
                     handle.addEventListener('dragstart', (e) => {
-                      console.log('🔀 Drag started at position:', pos);
                       e.dataTransfer?.setData('text/plain', pos.toString());
                       
                       // Add visual feedback
@@ -63,7 +62,6 @@ const DragDropPlugin = Extension.create({
                     });
                     
                     handle.addEventListener('dragend', () => {
-                      console.log('🔀 Drag ended');
                       handle.style.cursor = 'grab';
                       
                       // Remove drag feedback
@@ -91,7 +89,6 @@ const DragDropPlugin = Extension.create({
           
           // Handle drop events
           handleDrop: (view, event, slice, moved) => {
-            console.log('🔀 Drop event:', { event, slice, moved });
             
             // For now, let the default behavior handle it
             // TODO: Implement custom drop logic for better UX
@@ -184,7 +181,6 @@ const BlockSelectionPlugin = Extension.create({
           handleClick: (view, pos, event) => {
             // Check if Shift key is pressed for multi-select
             if (event.shiftKey) {
-              console.log('🎯 Multi-select click at position:', pos);
               // TODO: Implement multi-select logic
               return false;
             }

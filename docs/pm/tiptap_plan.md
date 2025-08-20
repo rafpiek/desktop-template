@@ -12,7 +12,7 @@ bun add @tiptap/extension-unique-id @tiptap/extension-slash-command
 bun add @tiptap/extension-drag-handle-react @tiptap/extension-block-selection
 
 # Novel Writers specific extensions
-bun add @tiptap/extension-heading @tiptap/extension-blockquote 
+bun add @tiptap/extension-heading @tiptap/extension-blockquote
 bun add @tiptap/extension-image @tiptap/extension-horizontal-rule
 bun add @tiptap/extension-callout @tiptap/extension-indent
 
@@ -121,15 +121,15 @@ export function DocumentEditorV2({
   const [editor, setEditor] = React.useState<Editor | null>(null);
   const [isZenMode, setIsZenMode] = React.useState(false);
   const [zenModePortalContainer, setZenModePortalContainer] = React.useState<HTMLElement | null>(null);
-  
+
   const isTauriApp = useIsTauri();
   const { focusMode, toggleFocusMode } = useTiptapFocusMode();
-  const { 
-    content, 
-    saveContent, 
+  const {
+    content,
+    saveContent,
     textStats,
     loadDocumentData,
-    saveDocumentData 
+    saveDocumentData
   } = useTiptapStorage(documentId);
 
   // ... implementation matching original DocumentEditor interface
@@ -154,13 +154,13 @@ interface TiptapEditorProps {
   documentId: string;
 }
 
-export function TiptapEditor({ 
-  initialContent, 
-  onUpdate, 
-  onReady, 
+export function TiptapEditor({
+  initialContent,
+  onUpdate,
+  onReady,
   focusMode,
   autoFocus,
-  documentId 
+  documentId
 }: TiptapEditorProps) {
   const editor = useEditor({
     extensions: NovelWriterKit,
@@ -312,7 +312,7 @@ export const BasicBlocksTiptapKit = [
       class: 'tiptap-heading',
     },
   }),
-  
+
   Blockquote.extend({
     addNodeView() {
       return ({ node, HTMLAttributes, editor }) => {
@@ -324,7 +324,7 @@ export const BasicBlocksTiptapKit = [
       class: 'tiptap-blockquote',
     },
   }),
-  
+
   HorizontalRule.extend({
     addNodeView() {
       return ({ node, HTMLAttributes, editor }) => {
@@ -408,7 +408,7 @@ export function useTiptapStorage(documentId: string) {
 
   const loadDocumentData = useCallback((docId: string): TiptapDocumentData => {
     const storageKey = getTiptapStorageKey(docId);
-    
+
     try {
       const saved = localStorage.getItem(storageKey);
       if (saved) {
@@ -433,7 +433,7 @@ export function useTiptapStorage(documentId: string) {
   const saveDocumentData = useCallback((content: TiptapValue, docId: string) => {
     const storageKey = getTiptapStorageKey(docId);
     const stats = calculateTiptapTextStats(content);
-    
+
     const documentData: TiptapDocumentData = {
       content,
       ...stats,
@@ -444,7 +444,6 @@ export function useTiptapStorage(documentId: string) {
     try {
       localStorage.setItem(storageKey, JSON.stringify(documentData));
       setTextStats(stats);
-      console.log(`💾 TipTap: Saved document ${docId} (${stats.wordCount} words)`);
     } catch (error) {
       console.error('Failed to save TipTap document data:', error);
     }
@@ -484,9 +483,9 @@ interface TiptapHeadingNodeProps extends NodeViewProps {
 
 export function TiptapHeadingNode({ node, HTMLAttributes, updateAttributes }: TiptapHeadingNodeProps) {
   const level = node.attrs.level as 1 | 2 | 3 | 4 | 5 | 6;
-  
+
   const HeadingTag = `h${level}` as keyof JSX.IntrinsicElements;
-  
+
   const headingClasses = cn(
     'tiptap-heading',
     `tiptap-h${level}`,
@@ -502,8 +501,8 @@ export function TiptapHeadingNode({ node, HTMLAttributes, updateAttributes }: Ti
 
   return (
     <NodeViewWrapper className="tiptap-heading-wrapper">
-      <HeadingTag 
-        {...HTMLAttributes} 
+      <HeadingTag
+        {...HTMLAttributes}
         className={cn(HTMLAttributes.class, headingClasses)}
         data-level={level}
       />
@@ -538,7 +537,7 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
       const lineWidth = localStorage.getItem('zeyn-line-width') || 'default';
 
       const editorElement = editor.view.dom as HTMLElement;
-      
+
       // Remove old classes
       editorElement.classList.remove(
         'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
@@ -555,7 +554,7 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
     };
 
     applyStoredSettings();
-    
+
     // Listen for storage changes to apply settings in real-time
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key?.startsWith('zeyn-font') || e.key?.startsWith('zeyn-line')) {
@@ -605,7 +604,7 @@ const USE_TIPTAP_EDITOR = true; // Toggle between editors
 1. **Setup Dependencies**
    - Install TipTap packages with Bun
    - Create directory structure
-   
+
 2. **Core Files**
    - `tiptap-types.ts` - Type definitions
    - `document-editor-v2.tsx` - Main component skeleton
@@ -646,7 +645,7 @@ const USE_TIPTAP_EDITOR = true; // Toggle between editors
 1. **Testing**
    - A/B testing setup
    - Data migration validation
-   
+
 2. **Documentation**
    - Save implementation plan
    - Add code comments
