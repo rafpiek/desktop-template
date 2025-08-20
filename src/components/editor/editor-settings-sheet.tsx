@@ -149,7 +149,6 @@ interface EditorSettingsSheetProps {
 }
 
 export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}) {
-  console.log('🔧 EditorSettingsSheet render - container:', container);
 
   const [typewriterSettings, setTypewriterSettings] = useTypewriter();
 
@@ -222,7 +221,7 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
     });
   };
 
-  // Apply stored settings on mount and when editor appears
+  // Apply stored settings on mount only
   React.useEffect(() => {
     const applyStoredSettings = () => {
       const storedSize = getCurrentFontSize();
@@ -245,17 +244,9 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
       });
     };
 
-    // Apply immediately
+    // Apply immediately on mount only
+    // TiptapSettingsIntegration will handle ongoing updates
     applyStoredSettings();
-
-    // Also apply when new editors are added (with a small delay)
-    const observer = new MutationObserver(() => {
-      setTimeout(applyStoredSettings, 100);
-    });
-
-    observer.observe(document.body, { childList: true, subtree: true });
-
-    return () => observer.disconnect();
   }, []);
 
   return (

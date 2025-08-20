@@ -25,19 +25,11 @@ export function useTiptapStorage(documentId: string) {
 
   // Load document data
   const loadDocumentData = useCallback((docId: string): TiptapDocumentData => {
-    console.log(`📖 useTiptapStorage: Loading document data for ${docId}`);
     
     try {
       const data = loadTiptapDocumentData(docId);
-      console.log(`📖 useTiptapStorage: Loaded document ${docId}:`, {
-        wordCount: data.wordCount,
-        charactersWithSpaces: data.charactersWithSpaces,
-        charactersWithoutSpaces: data.charactersWithoutSpaces,
-        hasContent: !!data.content
-      });
       return data;
     } catch (error) {
-      console.error(`useTiptapStorage: Error loading document ${docId}:`, error);
       return getEmptyTiptapDocument();
     }
   }, []);
@@ -45,24 +37,20 @@ export function useTiptapStorage(documentId: string) {
   // Save document data
   const saveDocumentData = useCallback((content: TiptapValue, docId: string) => {
     if (!content) {
-      console.warn(`useTiptapStorage: Skipping save for ${docId} - no content`);
       return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 };
     }
 
-    console.log(`💾 useTiptapStorage: Saving document data for ${docId}`);
     
     try {
       const stats = saveTiptapContent(docId, content);
       setTextStats(stats);
       lastSavedContentRef.current = content;
       
-      console.log(`💾 useTiptapStorage: Successfully saved ${docId}:`, stats);
       return stats;
     } catch (error) {
-      console.error(`useTiptapStorage: Error saving document ${docId}:`, error);
-      return textStats; // Return current stats if save fails
+      return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 }; // Return empty stats if save fails
     }
-  }, [textStats]);
+  }, []);
 
   // Manual save function for immediate saves
   const saveNow = useCallback((contentToSave?: TiptapValue) => {
@@ -70,29 +58,26 @@ export function useTiptapStorage(documentId: string) {
     if (currentContent && documentId) {
       return saveDocumentData(currentContent, documentId);
     }
-    return textStats;
-  }, [content, documentId, saveDocumentData, textStats]);
+    return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 };
+  }, [content, documentId, saveDocumentData]);
 
   // Update content and trigger stats calculation
   const updateContent = useCallback((newContent: TiptapValue) => {
-    console.log(`🔄 useTiptapStorage: Updating content for ${documentId}`);
     setContent(newContent);
     
     // Calculate stats immediately for UI responsiveness
     const stats = calculateTiptapTextStats(newContent);
     setTextStats(stats);
-  }, [documentId]);
+  }, []);
 
   // Load content when document ID changes
   useEffect(() => {
-    console.log(`🔄 useTiptapStorage: Document effect - current=${currentDocumentIdRef.current}, new=${documentId}`);
     
     if (currentDocumentIdRef.current !== documentId) {
       setIsLoading(true);
       
       // Save current document before switching (if we have one)
       if (currentDocumentIdRef.current && lastSavedContentRef.current) {
-        console.log(`💾 useTiptapStorage: Saving current document ${currentDocumentIdRef.current} before switch`);
         saveDocumentData(lastSavedContentRef.current, currentDocumentIdRef.current);
       }
 
@@ -111,30 +96,23 @@ export function useTiptapStorage(documentId: string) {
       
       setIsLoading(false);
       
-      console.log(`✅ useTiptapStorage: Successfully loaded document ${documentId}`, {
-        wordCount: documentData.wordCount,
-        charactersWithSpaces: documentData.charactersWithSpaces,
-        charactersWithoutSpaces: documentData.charactersWithoutSpaces
-      });
     }
-  }, [documentId, loadDocumentData, saveDocumentData]);
+  }, [documentId]);
 
   // Auto-save when content changes (debounced)
   useEffect(() => {
     if (debouncedContent && documentId && !isLoading) {
       // Only save if content has actually changed
       if (JSON.stringify(debouncedContent) !== JSON.stringify(lastSavedContentRef.current)) {
-        console.log(`⏰ useTiptapStorage: Debounced save triggered for ${documentId}`);
         saveDocumentData(debouncedContent, documentId);
       }
     }
-  }, [debouncedContent, documentId, isLoading, saveDocumentData]);
+  }, [debouncedContent, documentId, isLoading]);
 
   // Save on unmount or when document changes
   useEffect(() => {
     return () => {
       if (currentDocumentIdRef.current && lastSavedContentRef.current) {
-        console.log(`🚪 useTiptapStorage: Saving on unmount for ${currentDocumentIdRef.current}`);
         saveTiptapContent(currentDocumentIdRef.current, lastSavedContentRef.current);
       }
     };

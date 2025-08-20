@@ -35,6 +35,16 @@ const SlashCommand = Extension.create({
         editor: this.editor,
         ...this.options.suggestion,
         
+        // Only trigger when a slash is typed, not when cursor is placed on existing slash
+        allow: ({ editor, range }) => {
+          // Check if we're at the beginning of the document or after a space
+          const $pos = editor.state.doc.resolve(range.from);
+          const textBefore = $pos.parent.textBetween(Math.max(0, $pos.parentOffset - 1), $pos.parentOffset, null, "\uFFFD");
+          
+          // Allow if we're at the start of the line or after a space
+          return range.from === 0 || textBefore === ' ' || textBefore === '' || textBefore === '\n';
+        },
+        
         items: ({ query }: { query: string }) => {
           if (!query.trim()) {
             return NOVEL_WRITER_SLASH_COMMANDS;

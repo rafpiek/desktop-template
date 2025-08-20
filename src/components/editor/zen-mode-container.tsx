@@ -31,7 +31,6 @@ export function ZenModeContainer({
     container.className = 'zen-mode-portal';
     document.body.appendChild(container);
     setPortalContainer(container);
-    console.log('🌀 Created zen mode portal container');
 
     // Check if fullscreen API is supported
     setIsFullscreenSupported(
@@ -44,7 +43,6 @@ export function ZenModeContainer({
     return () => {
       if (container && container.parentNode) {
         container.parentNode.removeChild(container);
-        console.log('🗑️ Removed zen mode portal container');
       }
     };
   }, []);
@@ -72,7 +70,6 @@ export function ZenModeContainer({
       // If user exits fullscreen via browser controls, keep zen mode active
       // (they need to use Cmd/Ctrl+Shift+F or button to exit zen mode)
       if (!isCurrentlyFullscreen && isZenMode && !isTauriApp) {
-        console.log('🚪 Browser fullscreen exited, but zen mode remains active');
       }
     };
 
@@ -99,9 +96,7 @@ export function ZenModeContainer({
       const editorElement = document.querySelector('[data-slate-editor]') as HTMLElement;
       if (editorElement) {
         editorElement.focus();
-        console.log('🎯 Focused editor in zen mode');
       } else {
-        console.warn('⚠️ Could not find editor element to focus');
       }
     };
 
@@ -124,9 +119,7 @@ export function ZenModeContainer({
             await (element as any).mozRequestFullScreen();
           }
           
-          console.log('✅ Successfully entered browser fullscreen');
         } catch (error) {
-          console.warn('⚠️ Fullscreen request failed, using fallback overlay:', error);
         }
       };
 
@@ -149,13 +142,9 @@ export function ZenModeContainer({
     return <>{children}</>;
   }
 
-  console.log('🧘 Zen mode is active, rendering zen content');
-  console.log('🌀 Portal container:', portalContainer);
-  console.log('🖥️ Is Tauri app:', isTauriApp);
 
   // If no portal container yet, don't render
   if (!portalContainer) {
-    console.log('⚠️ No portal container available yet');
     return null;
   }
 
@@ -181,11 +170,9 @@ export function ZenModeContainer({
 
   // For Tauri, render directly (Tauri handles native fullscreen)
   if (isTauriApp) {
-    console.log('🖥️ Rendering zen content directly for Tauri');
     return zenContent;
   }
 
   // For web, use portal
-  console.log('🌐 Creating portal for web zen mode');
   return createPortal(zenContent, portalContainer);
 }

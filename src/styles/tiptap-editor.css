@@ -4,29 +4,27 @@
 .tiptap-editor-wrapper {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 .tiptap-content {
   width: 100%;
   height: 100%;
-  display: flex;
-  flex-direction: column;
 }
 
 /* TipTap Prose styling - matches existing editor appearance */
 .tiptap-prose {
-  max-width: 800px; /* Temporary pixel-based default to debug */
+  max-width: 65ch; /* Default to reasonable reading width */
   margin: 0 auto;
   color: inherit;
   line-height: var(--lh-body, 1.6);
 }
 
-/* Ensure ProseMirror also has reasonable default width */
+/* Ensure ProseMirror editor has no default constraints */
 .ProseMirror {
-  max-width: 800px; /* Temporary pixel-based default to debug */
-  margin: 0 auto;
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+  width: 100%;
 }
 
 .tiptap-prose p {
@@ -233,29 +231,37 @@
 .font-family-ia-duo .tiptap-prose { font-family: "iA Writer Duo", Georgia, serif; }
 .font-family-typewriter .tiptap-prose { font-family: "Courier New", Courier, monospace; }
 
-/* Line width classes compatibility - Higher specificity to override Tailwind */
-.line-width-60 .tiptap-prose.prose { max-width: 60ch !important; margin: 0 auto; }
-.line-width-80 .tiptap-prose.prose { max-width: 80ch !important; margin: 0 auto; }
-.line-width-120 .tiptap-prose.prose { max-width: 120ch !important; margin: 0 auto; }
-.line-width-160 .tiptap-prose.prose { max-width: 160ch !important; margin: 0 auto; }
-.line-width-full .tiptap-prose.prose { max-width: none !important; }
-.line-width-default .tiptap-prose.prose { max-width: 65ch !important; margin: 0 auto; }
+/* Line width classes - Simple and effective approach */
+.line-width-60 .tiptap-prose,
+.line-width-60 .ProseMirror {
+  max-width: 60ch !important;
+}
 
-/* Also target the ProseMirror element directly for higher specificity */
-.line-width-60 .ProseMirror { max-width: 60ch !important; margin: 0 auto; }
-.line-width-80 .ProseMirror { max-width: 80ch !important; margin: 0 auto; }
-.line-width-120 .ProseMirror { max-width: 120ch !important; margin: 0 auto; }
-.line-width-160 .ProseMirror { max-width: 160ch !important; margin: 0 auto; }
-.line-width-full .ProseMirror { max-width: none !important; }
-.line-width-default .ProseMirror { max-width: 65ch !important; margin: 0 auto; }
+.line-width-80 .tiptap-prose,
+.line-width-80 .ProseMirror {
+  max-width: 80ch !important;
+}
 
-/* Emergency fallback - if line width classes don't work, use pixel values */
-.line-width-60 .ProseMirror.tiptap-prose { max-width: 480px !important; margin: 0 auto; }
-.line-width-80 .ProseMirror.tiptap-prose { max-width: 640px !important; margin: 0 auto; }
-.line-width-120 .ProseMirror.tiptap-prose { max-width: 960px !important; margin: 0 auto; }
-.line-width-160 .ProseMirror.tiptap-prose { max-width: 1280px !important; margin: 0 auto; }
-.line-width-full .ProseMirror.tiptap-prose { max-width: none !important; }
-.line-width-default .ProseMirror.tiptap-prose { max-width: 520px !important; margin: 0 auto; }
+.line-width-120 .tiptap-prose,
+.line-width-120 .ProseMirror {
+  max-width: 120ch !important;
+}
+
+.line-width-160 .tiptap-prose,
+.line-width-160 .ProseMirror {
+  max-width: 160ch !important;
+}
+
+.line-width-full .tiptap-prose,
+.line-width-full .ProseMirror {
+  max-width: none !important;
+  width: 100% !important;
+}
+
+.line-width-default .tiptap-prose,
+.line-width-default .ProseMirror {
+  max-width: 65ch !important;
+}
 
 /* Dark mode text color fix */
 .dark .tiptap-prose,
@@ -263,12 +269,6 @@
   color: hsl(var(--foreground));
 }
 
-/* Ensure editor content is properly styled */
-.ProseMirror {
-  outline: none;
-  white-space: pre-wrap;
-  word-wrap: break-word;
-}
 
 /* TipTap-specific element styling */
 .ProseMirror h1,

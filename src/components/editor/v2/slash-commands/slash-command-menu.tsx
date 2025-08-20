@@ -2,12 +2,12 @@
 
 import React, { useState, useEffect, useImperativeHandle, forwardRef, useCallback } from 'react';
 import { cn } from '@/lib/utils';
-import { 
-  NOVEL_WRITER_SLASH_COMMANDS, 
+import {
+  NOVEL_WRITER_SLASH_COMMANDS,
   COMMAND_CATEGORIES,
-  searchCommands, 
+  searchCommands,
   getCommandsByCategory,
-  type SlashCommand 
+  type SlashCommand
 } from './novel-writer-commands';
 
 interface SlashCommandMenuProps {
@@ -23,8 +23,24 @@ export interface SlashCommandMenuRef {
 export const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenuProps>(
   ({ items, command, query = '' }, ref) => {
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const [filteredItems, setFilteredItems] = useState<SlashCommand[]>([]);
+    const [filteredItems, setFilteredItems] = useState<SlashCommand[]>(NOVEL_WRITER_SLASH_COMMANDS);
+    const menuRef = React.useRef<HTMLDivElement>(null);
 
+    const { categorizedItems, displayOrderItems } = React.useMemo(() => {
+      const grouped: Record<string, SlashCommand[]> = {};
+      const displayOrder: SlashCommand[] = [];
+
+      COMMAND_CATEGORIES.forEach(category => {
+        const categoryItems = filteredItems.filter(item => item.category === category.id);
+        grouped[category.id] = categoryItems;
+        displayOrder.push(...categoryItems);
+      });
+
+      return {
+        categorizedItems: grouped,
+        displayOrderItems: displayOrder
+      };
+    }, [filteredItems]);
     // Filter items based on query
     useEffect(() => {
       if (query.trim()) {
@@ -38,29 +54,43 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenu
 
     // Ensure selectedIndex is within bounds
     useEffect(() => {
-      if (selectedIndex >= filteredItems.length) {
-        setSelectedIndex(Math.max(0, filteredItems.length - 1));
+      if (selectedIndex >= displayOrderItems.length) {
+        setSelectedIndex(Math.max(0, displayOrderItems.length - 1));
       }
-    }, [filteredItems.length, selectedIndex]);
+    }, [displayOrderItems, selectedIndex]);
+
+    // Scroll selected item into view
+    useEffect(() => {
+      if (menuRef.current) {
+        const selectedElement = menuRef.current.querySelector(`[data-selected-index="${selectedIndex}"]`) as HTMLElement;
+        if (selectedElement) {
+          selectedElement.scrollIntoView({
+            behavior: 'smooth',
+            block: 'nearest',
+            inline: 'nearest'
+          });
+        }
+      }
+    }, [selectedIndex]);
 
     const selectItem = useCallback((index: number) => {
-      const item = filteredItems[index];
+      const item = displayOrderItems[index];
       if (item) {
         command(item);
       }
-    }, [filteredItems, command]);
+    }, [displayOrderItems, command]);
 
     const upHandler = useCallback(() => {
-      setSelectedIndex((prevIndex) => 
-        prevIndex <= 0 ? filteredItems.length - 1 : prevIndex - 1
+      setSelectedIndex((prevIndex) =>
+        prevIndex <= 0 ? displayOrderItems.length - 1 : prevIndex - 1
       );
-    }, [filteredItems.length]);
+    }, [displayOrderItems]);
 
     const downHandler = useCallback(() => {
-      setSelectedIndex((prevIndex) => 
-        prevIndex >= filteredItems.length - 1 ? 0 : prevIndex + 1
+      setSelectedIndex((prevIndex) =>
+        prevIndex >= displayOrderItems.length - 1 ? 0 : prevIndex + 1
       );
-    }, [filteredItems.length]);
+    }, [displayOrderItems]);
 
     const enterHandler = useCallback(() => {
       selectItem(selectedIndex);
@@ -87,16 +117,8 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenu
       },
     }), [upHandler, downHandler, enterHandler]);
 
-    // Group items by category for display
-    const categorizedItems = React.useMemo(() => {
-      const grouped: Record<string, SlashCommand[]> = {};
-      
-      COMMAND_CATEGORIES.forEach(category => {
-        grouped[category.id] = filteredItems.filter(item => item.category === category.id);
-      });
-      
-      return grouped;
-    }, [filteredItems]);
+    // Group items by category for display and create display order array
+
 
     if (filteredItems.length === 0) {
       return (
@@ -109,19 +131,22 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenu
     }
 
     return (
-      <div className="tiptap-slash-menu bg-popover border border-border rounded-lg shadow-lg p-1 max-w-sm max-h-80 overflow-y-auto">
+      <div
+        ref={menuRef}
+        className="tiptap-slash-menu bg-popover border border-border rounded-lg shadow-lg p-1 max-w-sm max-h-80 overflow-y-auto"
+      >
         {/* Search hint */}
         {query.trim() && (
           <div className="px-3 py-2 text-xs text-muted-foreground border-b border-border">
             Searching for "{query}"
           </div>
         )}
-        
+
         {/* Render by categories */}
         {COMMAND_CATEGORIES.map(category => {
           const categoryItems = categorizedItems[category.id];
           if (categoryItems.length === 0) return null;
-          
+
           return (
             <div key={category.id} className="py-1">
               {/* Category header (only show if not searching) */}
@@ -130,16 +155,17 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenu
                   {category.label}
                 </div>
               )}
-              
+
               {/* Category items */}
               {categoryItems.map((item, index) => {
-                // Calculate global index for selection
-                const globalIndex = filteredItems.indexOf(item);
+                // Calculate global index for selection in display order
+                const globalIndex = displayOrderItems.indexOf(item);
                 const isSelected = globalIndex === selectedIndex;
-                
+
                 return (
                   <button
                     key={`${item.title}-${item.category}`}
+                    data-selected-index={isSelected ? selectedIndex : undefined}
                     className={cn(
                       'w-full flex items-center gap-3 px-3 py-2 text-left rounded-md transition-colors',
                       'hover:bg-accent hover:text-accent-foreground',
@@ -162,7 +188,7 @@ export const SlashCommandMenu = forwardRef<SlashCommandMenuRef, SlashCommandMenu
             </div>
           );
         })}
-        
+
         {/* Navigation hint */}
         <div className="border-t border-border px-3 py-2 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1">

@@ -35,7 +35,6 @@ export function DocumentEditorV2({
   autoFocus = true,
   onContentChange
 }: DocumentEditorV2Props) {
-  console.log(`🔵 DocumentEditorV2 render - documentId: ${documentId}`);
 
   // State management - mirroring original DocumentEditor
   const [editor, setEditor] = React.useState<Editor | null>(null);
@@ -57,26 +56,22 @@ export function DocumentEditorV2({
   // Notify parent component of content changes
   React.useEffect(() => {
     if (content && onContentChange) {
-      console.log(`📊 TipTap: Notifying parent of content changes for ${documentId}`, textStats);
       onContentChange(content, textStats);
     }
-  }, [content, textStats, documentId, onContentChange]);
+  }, [content, textStats, documentId]);
 
   // Handle content changes from editor
   const handleContentUpdate = React.useCallback((newContent: TiptapValue) => {
-    console.log(`✏️ TipTap: User typing in ${documentId}`);
     setContent(newContent);
-  }, [documentId, setContent]);
+  }, [documentId]);
 
   // Handle editor ready callback
   const handleEditorReady = React.useCallback((editorInstance: Editor) => {
-    console.log(`🎯 TipTap: Editor ready for ${documentId}`);
     setEditor(editorInstance);
 
     // Expose focus function to parent
     if (onEditorReady) {
       const focusEditor = () => {
-        console.log('🎯 TipTap: focusEditor called');
         if (editorInstance) {
           editorInstance.commands.focus();
         }
@@ -87,7 +82,6 @@ export function DocumentEditorV2({
 
   // Zen mode toggle - mirroring original implementation
   const toggleZenMode = React.useCallback(async () => {
-    console.log(`🎯 TipTap: Toggle zen mode called - current state: ${isZenMode}`);
 
     if (isTauriApp) {
       try {
@@ -96,15 +90,12 @@ export function DocumentEditorV2({
         const newFullscreenState = !isZenMode;
         await currentWindow.setFullscreen(newFullscreenState);
         setIsZenMode(newFullscreenState);
-        console.log(`🖥️ TipTap: Tauri fullscreen ${newFullscreenState ? 'enabled' : 'disabled'}`);
       } catch (error) {
-        console.error('❌ TipTap: Failed to toggle Tauri fullscreen:', error);
         setIsZenMode(!isZenMode);
       }
     } else {
       const newState = !isZenMode;
       setIsZenMode(newState);
-      console.log(`🌐 TipTap: Web zen mode ${newState ? 'enabled' : 'disabled'}`);
     }
   }, [isTauriApp, isZenMode]);
 
@@ -114,7 +105,6 @@ export function DocumentEditorV2({
       if ((event.metaKey || event.ctrlKey) && event.shiftKey && event.key.toLowerCase() === 'f') {
         event.preventDefault();
         event.stopPropagation();
-        console.log('⌨️ TipTap: Zen mode shortcut triggered');
         toggleZenMode();
         return false;
       }

@@ -69,23 +69,19 @@ export const loadTiptapDocumentData = (documentId: string): TiptapDocumentData =
   if (typeof window === 'undefined') return getEmptyTiptapDocument();
 
   const storageKey = getTiptapStorageKey(documentId);
-  console.log(`📖 TipTap Storage: Loading document data for ${documentId} with key: ${storageKey}`);
 
   try {
     const saved = localStorage.getItem(storageKey);
     if (saved) {
       const documentData = JSON.parse(saved) as TiptapDocumentData;
-      console.log(`📖 TipTap Storage: Found saved document data for ${documentId}:`, documentData);
 
       // Validate content structure
       if (!documentData.content || !documentData.content.content) {
-        console.warn(`📖 TipTap Storage: Invalid content structure for ${documentId}, using empty document`);
         return getEmptyTiptapDocument();
       }
 
       // Handle backward compatibility - if character counts are missing, calculate them
       if (documentData.charactersWithSpaces === undefined || documentData.charactersWithoutSpaces === undefined) {
-        console.log(`📖 TipTap Storage: Missing character counts for ${documentId}, calculating...`);
         const stats = calculateTiptapTextStats(documentData.content);
 
         // Update stored data with new fields
@@ -111,10 +107,8 @@ export const loadTiptapDocumentData = (documentId: string): TiptapDocumentData =
         version: documentData.version || '1.0',
       };
     } else {
-      console.log(`📖 TipTap Storage: No saved data found for ${documentId}, using empty document`);
     }
   } catch (error) {
-    console.error('TipTap Storage: Failed to load document data:', error);
   }
 
   return getEmptyTiptapDocument();
@@ -126,30 +120,19 @@ export const saveTiptapDocumentData = (documentId: string, documentData: TiptapD
 
   const storageKey = getTiptapStorageKey(documentId);
 
-  console.log(`💾 TipTap Storage: Saving document data for ${documentId}:`, {
-    wordCount: documentData.wordCount,
-    charactersWithSpaces: documentData.charactersWithSpaces,
-    charactersWithoutSpaces: documentData.charactersWithoutSpaces,
-    contentLength: JSON.stringify(documentData.content).length
-  });
 
   try {
     localStorage.setItem(storageKey, JSON.stringify(documentData));
-    console.log(`💾 TipTap Storage: Successfully saved document data for ${documentId} (${documentData.wordCount} words, ${documentData.charactersWithSpaces} chars)`);
   } catch (error) {
-    console.error('TipTap Storage: Failed to save document data:', error);
     
     // Try to free up space by removing old backups
     try {
       const backupKey = getTiptapBackupKey(documentId);
       localStorage.removeItem(backupKey);
-      console.log('TipTap Storage: Removed old backup to free space');
       
       // Retry saving
       localStorage.setItem(storageKey, JSON.stringify(documentData));
-      console.log(`💾 TipTap Storage: Successfully saved document data after cleanup for ${documentId}`);
     } catch (retryError) {
-      console.error('TipTap Storage: Failed to save even after cleanup:', retryError);
     }
   }
 };
@@ -180,9 +163,7 @@ export const createTiptapBackup = (documentId: string): void => {
 
   try {
     localStorage.setItem(backupKey, JSON.stringify(backup));
-    console.log(`💾 TipTap Storage: Created backup for ${documentId}`);
   } catch (error) {
-    console.error('TipTap Storage: Failed to create backup:', error);
   }
 };
 
@@ -227,13 +208,10 @@ export const cleanupOldTiptapData = (retentionDays: number = 30): number => {
         localStorage.removeItem(backupKey);
         
         cleanedCount++;
-        console.log(`🧹 TipTap Storage: Cleaned up old data for ${documentId}`);
       }
     } catch (error) {
-      console.error(`TipTap Storage: Error cleaning up ${documentId}:`, error);
     }
   }
 
-  console.log(`🧹 TipTap Storage: Cleaned up ${cleanedCount} old documents`);
   return cleanedCount;
 };

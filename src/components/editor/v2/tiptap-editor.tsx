@@ -27,7 +27,6 @@ export function TiptapEditor({
   focusMode,
   typewriterMode
 }: TiptapEditorProps) {
-  console.log(`🔧 TipTap: Creating editor for ${documentId}`, { initialContent, autoFocus, focusMode, typewriterMode });
 
   const editor = useEditor({
     extensions: NovelWriterKit,
@@ -37,7 +36,7 @@ export function TiptapEditor({
     editorProps: {
       attributes: {
         class: cn(
-          'tiptap-prose prose prose-lg',
+          'tiptap-prose',
           'min-h-full w-full resize-none',
           'focus:outline-none',
           'px-16 pt-4 pb-16',
@@ -49,38 +48,36 @@ export function TiptapEditor({
       },
       handleDOMEvents: {
         focus: () => {
-          console.log(`🎯 TipTap: Editor focused for ${documentId}`);
         },
         blur: () => {
-          console.log(`🎯 TipTap: Editor blurred for ${documentId}`);
         }
       }
     },
     
     onUpdate: ({ editor }) => {
       const content = editor.getJSON() as TiptapValue;
-      console.log(`✏️ TipTap: Content updated for ${documentId}`);
       onUpdate(content);
     },
     
     onCreate: ({ editor }) => {
-      console.log(`✅ TipTap: Editor created for ${documentId}`);
       onReady(editor);
       
       // Auto-focus if requested, but ensure editor view is ready
       if (autoFocus) {
+        let retryCount = 0;
+        const maxRetries = 10; // Prevent infinite loops
+        
         const focusWhenReady = () => {
           try {
             // Check if editor and view are available
             if (editor && editor.view && editor.view.dom && editor.commands) {
               editor.commands.focus();
-              console.log(`🎯 TipTap: Auto-focused editor for ${documentId}`);
-            } else {
-              // Retry after a short delay if not ready
+            } else if (retryCount < maxRetries) {
+              // Retry after a short delay if not ready, but limit retries
+              retryCount++;
               setTimeout(focusWhenReady, 50);
             }
           } catch (error) {
-            console.warn(`🎯 TipTap: Could not focus editor for ${documentId}:`, error);
           }
         };
         
@@ -90,7 +87,6 @@ export function TiptapEditor({
     },
     
     onDestroy: () => {
-      console.log(`💀 TipTap: Editor destroyed for ${documentId}`);
     },
     
     // Enable immediate updates for better UX
@@ -103,10 +99,9 @@ export function TiptapEditor({
       const focusExtension = editor.extensionManager.extensions.find(ext => ext.name === 'focus');
       if (focusExtension) {
         // Update focus mode
-        console.log(`🔧 TipTap: Updating focus mode to ${focusMode} for ${documentId}`);
       }
     }
-  }, [focusMode, editor, documentId]);
+  }, [focusMode, documentId]);
 
   // Update typewriter mode when prop changes
   React.useEffect(() => {
@@ -120,24 +115,18 @@ export function TiptapEditor({
               ext.options.mode = typewriterMode;
             }
           });
-          console.log(`🎯 TipTap: Updated typewriter mode to ${typewriterMode} for ${documentId}`);
         } catch (error) {
-          console.error('TipTap: Error updating typewriter mode:', error);
         }
       }
     }
-  }, [typewriterMode, editor, documentId]);
+  }, [typewriterMode, documentId]);
 
   // Log character count for debugging
   React.useEffect(() => {
     if (editor) {
       const characterCount = editor.storage.characterCount || {};
-      console.log(`📊 TipTap: Stats for ${documentId}:`, {
-        characters: characterCount.characters || 0,
-        words: characterCount.words || 0
-      });
     }
-  }, [editor?.state.doc, documentId, editor]);
+  }, [documentId]);
 
   // Handle content updates from props
   React.useEffect(() => {
@@ -146,11 +135,10 @@ export function TiptapEditor({
       
       // Only update if content is actually different
       if (JSON.stringify(currentContent) !== JSON.stringify(initialContent)) {
-        console.log(`🔄 TipTap: Updating content from props for ${documentId}`);
         editor.commands.setContent(initialContent, false);
       }
     }
-  }, [initialContent, editor, documentId]);
+  }, [initialContent, documentId]);
 
   if (!editor) {
     return (

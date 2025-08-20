@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import type { Editor } from '@tiptap/react';
 import { type FontSize } from '@/hooks/use-font-size';
 import { type FontFamily } from '@/hooks/use-font-family';
@@ -11,87 +11,104 @@ interface TiptapSettingsIntegrationProps {
 }
 
 export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationProps) {
+  const isApplyingRef = useRef(false);
+  const timeoutRef = useRef<NodeJS.Timeout>();
+
   // Apply settings when editor is ready and when settings change
   useEffect(() => {
     if (!editor) return;
 
     const applyStoredSettings = () => {
+      // Prevent recursive calls
+      if (isApplyingRef.current) return;
+      
       // Check if editor view is ready before accessing it
-      if (!editor.view || !editor.view.dom) {
-        console.warn('🔧 TipTap Settings: Editor view not ready, retrying...');
-        setTimeout(applyStoredSettings, 100);
-        return;
+      if (!editor.view || !editor.view.dom || editor.isDestroyed) {
+        return; // Don't retry recursively
       }
 
-      const fontSize = (localStorage.getItem('zeyn-font-size') as FontSize) || 'md';
-      const fontFamily = (localStorage.getItem('zeyn-font-family') as FontFamily) || 'sans';
-      const lineWidth = localStorage.getItem('zeyn-line-width') || 'default';
-      const typewriterMode = (localStorage.getItem('typewriter-settings') ? 
-        JSON.parse(localStorage.getItem('typewriter-settings')!)?.mode : 'off') as TypewriterMode;
+      isApplyingRef.current = true;
 
-      console.log('🔧 TipTap Settings: Applying settings', {
-        fontSize,
-        fontFamily,
-        lineWidth,
-        typewriterMode
-      });
+      try {
+        const fontSize = (localStorage.getItem('zeyn-font-size') as FontSize) || 'md';
+        const fontFamily = (localStorage.getItem('zeyn-font-family') as FontFamily) || 'sans';
+        const lineWidth = localStorage.getItem('zeyn-line-width') || 'default';
+        const typewriterMode = (localStorage.getItem('typewriter-settings') ? 
+          JSON.parse(localStorage.getItem('typewriter-settings')!)?.mode : 'off') as TypewriterMode;
 
-      const editorElement = editor.view.dom as HTMLElement;
-      const editorContainer = editorElement.closest('.tiptap-editor-container') as HTMLElement;
-      const editorWrapper = document.querySelector('.tiptap-editor-wrapper') as HTMLElement;
+        const editorElement = editor.view.dom as HTMLElement;
+        const editorContainer = editorElement.closest('.tiptap-editor-container') as HTMLElement;
+        const editorWrapper = document.querySelector('.tiptap-editor-wrapper') as HTMLElement;
 
-      // Apply settings to editor element, container, and wrapper
-      [editorElement, editorContainer, editorWrapper].forEach(element => {
-        if (!element) return;
+        // Apply settings to editor element, container, and wrapper
+        [editorElement, editorContainer, editorWrapper].forEach(element => {
+          if (!element) return;
 
-        // Remove old classes
-        element.classList.remove(
-          // Font sizes
-          'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
-          // Font families  
-          'font-family-sans', 'font-family-serif', 'font-family-mono', 
-          'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
-          // Line widths
-          'line-width-60', 'line-width-80', 'line-width-120', 
-          'line-width-160', 'line-width-full', 'line-width-default',
-          // Typewriter
-          'typewriter-active', 'typewriter-center'
-        );
+          // Remove old classes
+          element.classList.remove(
+            // Font sizes
+            'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
+            // Font families  
+            'font-family-sans', 'font-family-serif', 'font-family-mono', 
+            'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
+            // Line widths
+            'line-width-60', 'line-width-80', 'line-width-120', 
+            'line-width-160', 'line-width-full', 'line-width-default',
+            // Typewriter
+            'typewriter-active', 'typewriter-center'
+          );
 
-        // Apply new classes
-        element.classList.add(
-          `font-size-${fontSize}`,
-          `font-family-${fontFamily}`,
-          `line-width-${lineWidth}`
-        );
+          // Apply new classes
+          element.classList.add(
+            `font-size-${fontSize}`,
+            `font-family-${fontFamily}`,
+            `line-width-${lineWidth}`
+          );
 
-        // Apply typewriter classes - TipTap wrapper handles this differently
-        if (typewriterMode === 'center' && element.classList.contains('tiptap-editor-wrapper')) {
-          element.classList.add('typewriter-active');
+          // Apply typewriter classes - TipTap wrapper handles this differently
+          if (typewriterMode === 'center' && element.classList.contains('tiptap-editor-wrapper')) {
+            element.classList.add('typewriter-active');
+          }
+        });
+
+        // Also apply to the main editor wrapper for consistency
+        const mainEditorWrapper = document.querySelector('.editor.tiptap-editor-container') as HTMLElement;
+        if (mainEditorWrapper) {
+          mainEditorWrapper.classList.remove(
+            'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
+            'font-family-sans', 'font-family-serif', 'font-family-mono', 
+            'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
+            'line-width-60', 'line-width-80', 'line-width-120', 
+            'line-width-160', 'line-width-full', 'line-width-default'
+          );
+          
+          mainEditorWrapper.classList.add(
+            `font-size-${fontSize}`,
+            `font-family-${fontFamily}`,
+            `line-width-${lineWidth}`
+          );
         }
-      });
-
-      // Also apply to the main editor wrapper for consistency
-      const mainEditorWrapper = document.querySelector('.editor.tiptap-editor-container') as HTMLElement;
-      if (mainEditorWrapper) {
-        mainEditorWrapper.classList.remove(
-          'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
-          'font-family-sans', 'font-family-serif', 'font-family-mono', 
-          'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
-          'line-width-60', 'line-width-80', 'line-width-120', 
-          'line-width-160', 'line-width-full', 'line-width-default'
-        );
-        
-        mainEditorWrapper.classList.add(
-          `font-size-${fontSize}`,
-          `font-family-${fontFamily}`,
-          `line-width-${lineWidth}`
-        );
+      } catch (error) {
+        // Silently handle errors
+      } finally {
+        isApplyingRef.current = false;
       }
     };
 
-    // Apply settings with a small delay to ensure editor is ready
-    setTimeout(applyStoredSettings, 200);
+    // Debounced apply function
+    const debouncedApply = () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
+      timeoutRef.current = setTimeout(() => {
+        if (editor && !editor.isDestroyed) {
+          applyStoredSettings();
+        }
+      }, 100);
+    };
+
+    // Apply settings once when editor is ready
+    debouncedApply();
 
     // Listen for localStorage changes (when settings are updated)
     const handleStorageChange = (e: StorageEvent) => {
@@ -100,85 +117,27 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
         e.key.startsWith('zeyn-line') || 
         e.key === 'typewriter-settings'
       )) {
-        console.log('🔧 TipTap Settings: Storage changed, reapplying settings');
-        setTimeout(applyStoredSettings, 50); // Small delay to ensure storage is updated
+        debouncedApply();
       }
     };
 
     // Listen for manual settings changes (within the same tab)
     const handleCustomEvent = (e: CustomEvent) => {
       if (e.detail?.type === 'settings-change') {
-        console.log('🔧 TipTap Settings: Manual settings change detected');
-        setTimeout(applyStoredSettings, 50);
+        debouncedApply();
       }
     };
 
     window.addEventListener('storage', handleStorageChange);
     window.addEventListener('tiptap-settings-change', handleCustomEvent as EventListener);
 
-    // Also observe DOM changes to catch editor replacements
-    const observer = new MutationObserver(() => {
-      setTimeout(applyStoredSettings, 100);
-    });
-
-    const observeTarget = document.querySelector('.tiptap-editor-container');
-    if (observeTarget) {
-      observer.observe(observeTarget, { 
-        childList: true, 
-        subtree: true, 
-        attributes: true,
-        attributeFilter: ['class']
-      });
-    }
-
     return () => {
+      if (timeoutRef.current) {
+        clearTimeout(timeoutRef.current);
+      }
       window.removeEventListener('storage', handleStorageChange);
       window.removeEventListener('tiptap-settings-change', handleCustomEvent as EventListener);
-      observer.disconnect();
     };
-  }, [editor]);
-
-  // Also sync focus mode settings when focus mode changes
-  useEffect(() => {
-    if (!editor) return;
-
-    const applyFocusMode = () => {
-      // Check if editor view is ready before accessing extensions
-      if (!editor.view || !editor.view.dom || !editor.extensionManager) {
-        console.warn('🎯 TipTap Settings: Editor not ready for focus mode, retrying...');
-        setTimeout(applyFocusMode, 100);
-        return;
-      }
-
-      const focusSettings = localStorage.getItem('tiptap-focus-mode-settings');
-      if (focusSettings) {
-        try {
-          const settings = JSON.parse(focusSettings);
-          const focusExtension = editor.extensionManager.extensions.find(
-            ext => ext.name === 'focus'
-          );
-          
-          if (focusExtension && settings.mode !== 'off') {
-            console.log('🎯 TipTap Settings: Applying focus mode', settings);
-            // Update focus extension if needed
-          }
-        } catch (error) {
-          console.error('TipTap Settings: Error parsing focus settings:', error);
-        }
-      }
-    };
-
-    // Apply focus mode with a small delay to ensure editor is ready
-    setTimeout(applyFocusMode, 200);
-
-    const handleFocusChange = (e: StorageEvent) => {
-      if (e.key === 'tiptap-focus-mode-settings') {
-        applyFocusMode();
-      }
-    };
-
-    window.addEventListener('storage', handleFocusChange);
-    return () => window.removeEventListener('storage', handleFocusChange);
   }, [editor]);
 
   return null; // This component doesn't render anything
@@ -191,6 +150,3 @@ export const triggerTiptapSettingsUpdate = () => {
   });
   window.dispatchEvent(event);
 };
-
-// Prevent fast refresh warning by ensuring this is not treated as a component module  
-const _integrationComponentName = 'TiptapSettingsIntegration';

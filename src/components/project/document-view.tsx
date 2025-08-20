@@ -68,7 +68,6 @@ export function DocumentView() {
   React.useEffect(() => {
     if (!document) return;
 
-    console.log('📊 Initializing textStats for document:', document.id);
 
     const loadStoredTextStats = (documentId: string) => {
       try {
@@ -76,7 +75,6 @@ export function DocumentView() {
         const saved = localStorage.getItem(storageKey);
         if (saved) {
           const documentData = JSON.parse(saved);
-          console.log('📊 Loaded stored document data:', documentData);
           return {
             wordCount: documentData.wordCount || 0,
             charactersWithSpaces: documentData.charactersWithSpaces || 0,
@@ -84,7 +82,6 @@ export function DocumentView() {
           };
         }
       } catch (error) {
-        console.error('Failed to load stored text stats:', error);
       }
 
       // Fallback to document model data
@@ -96,7 +93,6 @@ export function DocumentView() {
     };
 
     const storedStats = loadStoredTextStats(document.id);
-    console.log('📊 Setting initial textStats:', storedStats);
     setTextStats(storedStats);
   }, [document?.id, document?.wordCount]);
 
@@ -116,12 +112,11 @@ export function DocumentView() {
     return <div>Document not found</div>;
   }
 
-  const handleContentChange = (content: any, stats: {
+  const handleContentChange = React.useCallback((content: any, stats: {
     wordCount: number;
     charactersWithSpaces: number;
     charactersWithoutSpaces: number;
   }) => {
-    console.log('📊 Document view received stats:', stats);
 
     // Update local state for immediate UI display
     setTextStats(stats);
@@ -148,14 +143,13 @@ export function DocumentView() {
       // charactersWithSpaces: stats.charactersWithSpaces,
       // charactersWithoutSpaces: stats.charactersWithoutSpaces
     });
-  };
+  }, [document.id, document.wordCount, projectId, trackDocumentChange, updateDocument]);
 
   // Get chapter info if document belongs to a chapter
   const chapter = document.chapterId ? getChapter(document.chapterId) : null;
 
   // Create comprehensive stats subtitle
   const formatStats = () => {
-    console.log('📊 Current textStats in formatStats:', textStats);
     const parts = [];
 
     // Words
@@ -304,20 +298,15 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
   };
 
   const focusEditorAfterTitle = () => {
-    console.log('🎯 Attempting to focus editor after title submission');
     if (focusEditor) {
       // Longer delay to ensure all state updates and DOM changes are complete
       setTimeout(() => {
-        console.log('🎯 Calling focusEditor function');
         try {
           focusEditor();
-          console.log('🎯 Successfully called focusEditor');
         } catch (error) {
-          console.error('🎯 Failed to focus editor:', error);
         }
       }, 200); // Increased delay for more reliability
     } else {
-      console.warn('🎯 focusEditor function not available');
     }
   };
 

@@ -46,11 +46,9 @@ function ProjectLayoutInner() {
   React.useEffect(() => {
     if (draftId) {
       // If viewing a draft document, expand the drafts section
-      console.log('📂 Auto-expanding drafts section for draftId:', draftId);
       setIsDraftsExpanded(true);
     } else if (chapterId) {
       // If viewing a chapter document, expand that chapter
-      console.log('📂 Auto-expanding chapter for chapterId:', chapterId);
       setExpandedChapters(prev => new Set(prev).add(chapterId));
     }
   }, [draftId, chapterId]);
@@ -128,33 +126,22 @@ function ProjectLayoutInner() {
 
   const createNewDraft = () => {
     if (!id) {
-      console.error('No project ID found');
       return;
     }
     
     try {
-      console.log('Creating new draft document for project:', id);
-      console.log('Current draft documents before creation:', getDraftDocuments(id));
-      
       const newDocument = createDocumentWithUpdates({
         title: '',
         projectId: id,
         // No chapterId means it's a draft document
       });
       
-      console.log('Created document:', newDocument);
-      console.log('Current draft documents after creation:', getDraftDocuments(id));
-      console.log('localStorage documents:', JSON.parse(localStorage.getItem('zeyn-documents') || '[]'));
-      
       const targetUrl = `/projects/${id}/drafts/${newDocument.id}?new=true`;
-      console.log('Navigating to:', targetUrl);
       
       // Navigate to the new document page with flag to auto-focus title
       navigate(targetUrl);
-      
-      console.log('Navigation completed');
     } catch (error) {
-      console.error('Error creating document:', error);
+      // Error handling without console.error
     }
   };
 
@@ -179,19 +166,16 @@ function ProjectLayoutInner() {
     if (!id) return;
     
     try {
-      console.log('Creating new document for chapter:', chapterId);
       const newDocument = createDocumentWithUpdates({
         title: '',
         projectId: id,
         chapterId: chapterId,
       });
       
-      console.log('Created document:', newDocument);
-      
       // Navigate to the new document with flag to auto-focus title
       navigate(`/projects/${id}/chapters/${chapterId}/documents/${newDocument.id}?new=true`);
     } catch (error) {
-      console.error('Error creating document in chapter:', error);
+      // Error handling without console.error
     }
   };
 

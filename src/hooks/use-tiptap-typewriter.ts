@@ -16,10 +16,8 @@ export function useTiptapTypewriter() {
         if (stored) {
           const settings: TypewriterSettings = JSON.parse(stored);
           setMode(settings.mode);
-          console.log('🎯 TipTap Typewriter: Loaded settings', settings);
         }
       } catch (error) {
-        console.error('TipTap Typewriter: Error loading settings:', error);
         setMode('off');
       }
     };
@@ -34,9 +32,7 @@ export function useTiptapTypewriter() {
         try {
           const settings: TypewriterSettings = JSON.parse(e.newValue);
           setMode(settings.mode);
-          console.log('🎯 TipTap Typewriter: Settings updated from storage', settings);
         } catch (error) {
-          console.error('TipTap Typewriter: Error parsing storage update:', error);
         }
       }
     };
@@ -54,10 +50,8 @@ export function useTiptapTypewriter() {
         if (stored) {
           const settings: TypewriterSettings = JSON.parse(stored);
           setMode(settings.mode);
-          console.log('🎯 TipTap Typewriter: Settings updated manually', settings);
         }
       } catch (error) {
-        console.error('TipTap Typewriter: Error reading updated settings:', error);
       }
     };
 

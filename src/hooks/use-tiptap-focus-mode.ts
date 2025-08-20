@@ -21,38 +21,38 @@ export function useTiptapFocusMode() {
     defaultSettings
   );
 
-  const [isActive, setIsActive] = useState(false);
-
   const toggleFocusMode = useCallback(() => {
-    const newMode = settings.mode === 'off' ? 'paragraph' : 'off';
-    setSettings({
-      ...settings,
-      mode: newMode,
+    setSettings((prevSettings) => {
+      const newMode = prevSettings.mode === 'off' ? 'paragraph' : 'off';
+      return {
+        ...prevSettings,
+        mode: newMode,
+      };
     });
-    setIsActive(newMode !== 'off');
-    console.log(`🎯 TipTap Focus: Toggled focus mode to ${newMode}`);
-  }, [settings, setSettings]);
+  }, [setSettings]);
 
   const setFocusMode = useCallback((mode: TiptapFocusMode) => {
-    setSettings({
-      ...settings,
-      mode,
+    setSettings((prevSettings) => {
+      return {
+        ...prevSettings,
+        mode,
+      };
     });
-    setIsActive(mode !== 'off');
-    console.log(`🎯 TipTap Focus: Set focus mode to ${mode}`);
-  }, [settings, setSettings]);
+  }, [setSettings]);
 
   const setDimOpacity = useCallback((opacity: number) => {
     const clampedOpacity = Math.max(0, Math.min(1, opacity));
-    setSettings({
-      ...settings,
-      dimOpacity: clampedOpacity,
+    setSettings((prevSettings) => {
+      return {
+        ...prevSettings,
+        dimOpacity: clampedOpacity,
+      };
     });
-    console.log(`🎯 TipTap Focus: Set dim opacity to ${clampedOpacity}`);
-  }, [settings, setSettings]);
+  }, [setSettings]);
 
   // Integration with existing typewriter hook
   const focusMode = settings.mode !== 'off';
+  const isActive = focusMode; // Derived from settings, no separate state needed
   
   return {
     settings,
