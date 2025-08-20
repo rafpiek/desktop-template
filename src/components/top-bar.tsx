@@ -19,10 +19,7 @@ export function TopBar({ title, showNavigation = true }: TopBarProps) {
   };
 
   return (
-    <header 
-      data-tauri-drag-region
-      className="flex justify-between items-center mb-12"
-    >
+    <header className="flex justify-between items-center mb-12">
       <div className="flex items-center gap-8">
         {/* Brand */}
         <Link to="/" className="flex items-center gap-2 group">
