@@ -1,0 +1,338 @@
+/* Tesla/Linear-inspired animations and micro-interactions for Zeyn */
+
+/* Smooth page entrance animations */
+@keyframes fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    opacity: 0;
+    transform: translateY(40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes gradient-shift {
+  0%, 100% {
+    background-position: 0% 50%;
+  }
+  50% {
+    background-position: 100% 50%;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(var(--primary-rgb), 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 10px rgba(var(--primary-rgb), 0);
+  }
+}
+
+/* Animation utility classes */
+.animate-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-float {
+  animation: float 6s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+}
+
+.animate-gradient {
+  animation: gradient-shift 8s ease infinite;
+  background-size: 200% 200%;
+}
+
+.animate-pulse-glow {
+  animation: pulse-glow 2s infinite;
+}
+
+/* Hero section enhancements */
+.hero-gradient-text {
+  background: linear-gradient(
+    135deg,
+    hsl(var(--foreground)) 0%,
+    hsl(var(--foreground) / 0.8) 50%,
+    hsl(var(--foreground) / 0.6) 100%
+  );
+  background-size: 200% 200%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  animation: gradient-shift 8s ease infinite;
+}
+
+/* Project card hover effects */
+.project-card-glow {
+  position: relative;
+  overflow: hidden;
+}
+
+.project-card-glow::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(var(--primary-rgb), 0.1),
+    transparent
+  );
+  transition: left 0.5s ease;
+}
+
+.project-card-glow:hover::before {
+  left: 100%;
+}
+
+/* Smart action button effects */
+.smart-action-primary {
+  background: linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary) / 0.8) 100%);
+  position: relative;
+  overflow: hidden;
+}
+
+.smart-action-primary::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.2),
+    transparent
+  );
+  transition: left 0.6s ease;
+}
+
+.smart-action-primary:hover::before {
+  left: 100%;
+}
+
+/* Floating stats widget */
+.floating-stats {
+  backdrop-filter: blur(20px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 
+    0 8px 32px rgba(0, 0, 0, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+}
+
+.dark .floating-stats {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Progress bar enhancements */
+.progress-bar-animated {
+  position: relative;
+  overflow: hidden;
+}
+
+.progress-bar-animated::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgba(255, 255, 255, 0.3),
+    transparent
+  );
+  transform: translateX(-100%);
+  animation: shimmer 2s infinite;
+}
+
+/* Typewriter effect for headlines */
+.typewriter {
+  overflow: hidden;
+  border-right: 2px solid hsl(var(--primary));
+  white-space: nowrap;
+  animation: typing 3.5s steps(40, end), blink-caret 0.75s step-end infinite;
+}
+
+@keyframes typing {
+  from {
+    width: 0;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+@keyframes blink-caret {
+  from, to {
+    border-color: transparent;
+  }
+  50% {
+    border-color: hsl(var(--primary));
+  }
+}
+
+/* Smooth transitions for all interactive elements */
+.smooth-transition {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Glass morphism effects */
+.glass {
+  backdrop-filter: blur(16px);
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.dark .glass {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Magnetic hover effect for buttons */
+.magnetic-hover {
+  transition: transform 0.2s ease;
+}
+
+.magnetic-hover:hover {
+  transform: translateY(-2px);
+}
+
+/* Elegant focus states */
+.elegant-focus:focus-visible {
+  outline: none;
+  box-shadow: 
+    0 0 0 2px hsl(var(--background)),
+    0 0 0 4px hsl(var(--primary) / 0.5);
+}
+
+/* Responsive animations */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Custom scrollbar for project areas */
+.project-area::-webkit-scrollbar {
+  width: 6px;
+}
+
+.project-area::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.project-area::-webkit-scrollbar-thumb {
+  background: hsl(var(--muted-foreground) / 0.3);
+  border-radius: 3px;
+  transition: background 0.2s ease;
+}
+
+.project-area::-webkit-scrollbar-thumb:hover {
+  background: hsl(var(--muted-foreground) / 0.5);
+}
+
+/* Loading state animations */
+.loading-pulse {
+  animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: .5;
+  }
+}
+
+/* Elegant shadows */
+.elegant-shadow {
+  box-shadow: 
+    0 1px 3px rgba(0, 0, 0, 0.1),
+    0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.elegant-shadow-lg {
+  box-shadow: 
+    0 10px 15px -3px rgba(0, 0, 0, 0.1),
+    0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.elegant-shadow-xl {
+  box-shadow: 
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+}
+
+/* Enhanced dark mode visibility */
+.dark .card-enhanced {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10px);
+}
+
+.dark .card-enhanced:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+/* Better contrast for card content in dark mode */
+.dark [data-theme="dark"] .card-content {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.dark .text-enhanced {
+  color: rgba(255, 255, 255, 0.95);
+}
+
+.dark .text-muted-enhanced {
+  color: rgba(255, 255, 255, 0.7);
+}

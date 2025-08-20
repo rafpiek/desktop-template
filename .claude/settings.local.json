@@ -21,7 +21,8 @@
       "Bash(mkdir:*)",
       "Bash(node:*)",
       "Bash(bun install:*)",
-      "Bash(mv:*)"
+      "Bash(mv:*)",
+      "Bash(find:*)"
     ],
     "deny": []
   }

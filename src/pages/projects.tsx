@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Plus, BookOpen, Target, TrendingUp, Archive } from 'lucide-react';
+import { Plus, BookOpen, Target, TrendingUp, Archive, PenTool, Sparkles, ArrowRight, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AppLayout } from '@/components/app-layout';
@@ -7,6 +7,7 @@ import { ProjectCard } from '@/components/projects/project-card';
 import { ProjectFormDialog } from '@/components/projects/project-form-dialog';
 import { ProjectFilters } from '@/components/projects/project-filters';
 import { useProjects } from '@/hooks/use-projects';
+import { cn } from '@/lib/utils';
 import type {
   Project,
   CreateProjectInput,
@@ -34,6 +35,13 @@ export default function ProjectsPage() {
   const [sort, setSort] = useState<ProjectSort>({ by: 'updatedAt', order: 'desc' });
 
   const filteredProjects = getFilteredProjects(filters, sort);
+  
+  // Find the most recently updated project
+  const mostRecentProject = projects.length > 0 
+    ? projects.reduce((latest, current) => 
+        new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest
+      )
+    : null;
 
   const handleCreateProject = (data: CreateProjectInput) => {
     createProject(data);
@@ -54,114 +62,199 @@ export default function ProjectsPage() {
     }
   };
 
-  const statCards = [
-    {
-      title: 'Total Projects',
-      value: stats.totalProjects.toString(),
-      icon: BookOpen,
-      description: 'Active projects'
+  // Find the most recently updated project for quick access
+  const recentProject = projects
+    .filter(p => !p.isArchived)
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
+
+  // Smart suggestions based on user's work
+  const smartActions = [
+    recentProject && {
+      type: 'continue',
+      title: `Continue "${recentProject.name}"`,
+      subtitle: `${recentProject.wordCount.toLocaleString()} words written`,
+      href: `/projects/${recentProject.id}`,
+      priority: true
     },
     {
-      title: 'Total Words',
-      value: stats.totalWordCount.toLocaleString(),
-      icon: Target,
-      description: 'Words written'
+      type: 'new',
+      title: 'Start New Project',
+      subtitle: 'Begin your next great story',
+      action: () => setIsCreateDialogOpen(true),
+      priority: false
     },
-    {
-      title: 'In Progress',
-      value: stats.inProgressProjects.toString(),
-      icon: TrendingUp,
-      description: 'Currently writing'
-    },
-    {
-      title: 'Completed',
-      value: stats.completedProjects.toString(),
-      icon: Archive,
-      description: 'Finished drafts'
-    },
-  ];
+    stats.inProgressProjects > 0 && {
+      type: 'review',
+      title: 'Review Drafts',
+      subtitle: `${stats.inProgressProjects} projects in progress`,
+      action: () => setFilters({ status: 'in_progress' }),
+      priority: false
+    }
+  ].filter(Boolean);
 
   return (
     <AppLayout maxWidth="wide">
-      <div className="flex items-center justify-between mb-8">
-        <div>
-          <h1 className="text-3xl font-bold">Projects</h1>
-          <p className="text-muted-foreground mt-1">
-            Manage your writing projects and track your progress
+      {/* Hero Section */}
+      <div className="relative mb-16">
+        <div className="max-w-4xl mx-auto text-center space-y-6">
+          <div className="inline-flex items-center px-4 py-2 rounded-full bg-muted/50 text-sm text-muted-foreground mb-8">
+            <Sparkles className="h-4 w-4 mr-2" />
+            {stats.totalProjects > 0 
+              ? `${stats.totalWordCount.toLocaleString()} words across ${stats.totalProjects} projects`
+              : 'Welcome to Zeyn'
+            }
+          </div>
+          
+          <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-br from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent leading-tight">
+            {stats.totalProjects > 0 ? 'Your Stories' : 'Where stories begin'}
+          </h1>
+          
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+            {stats.totalProjects > 0 
+              ? 'Continue crafting the narratives that matter to you'
+              : 'Transform ideas into compelling narratives with an editor designed for writers'
+            }
           </p>
         </div>
-        <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-          <Plus className="h-4 w-4" />
-          New Project
-        </Button>
+
+        {/* Floating Stats Widget */}
+        <div className="absolute top-0 right-0 hidden lg:block">
+          <div className="bg-card/80 backdrop-blur-sm border rounded-2xl p-6 shadow-lg">
+            <div className="flex items-center gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{stats.totalProjects}</div>
+                <div className="text-xs text-muted-foreground">Projects</div>
+              </div>
+              <div className="w-px h-8 bg-border"></div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{stats.inProgressProjects}</div>
+                <div className="text-xs text-muted-foreground">Active</div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
-        {statCards.map((stat) => {
-          const Icon = stat.icon;
-          return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">
-                  {stat.title}
-                </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
-              </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
-                  {stat.description}
-                </p>
-              </CardContent>
-            </Card>
-          );
-        })}
-      </div>
+      {/* Smart Quick Actions */}
+      {smartActions.length > 0 && (
+        <div className="mb-12">
+          <div className="flex flex-col sm:flex-row gap-4">
+            {smartActions.map((action, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg hover:shadow-primary/5",
+                  action.priority 
+                    ? "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 flex-1" 
+                    : "bg-card hover:bg-muted/30 flex-1 sm:flex-none sm:w-64"
+                )}
+              >
+                {action.href ? (
+                  <a href={action.href} className="block p-6">
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-lg">{action.title}</h3>
+                      <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all duration-200" />
+                    </div>
+                    <p className="text-muted-foreground text-sm">{action.subtitle}</p>
+                  </a>
+                ) : (
+                  <button 
+                    onClick={action.action}
+                    className="w-full text-left p-6"
+                  >
+                    <div className="flex items-center justify-between mb-2">
+                      <h3 className="font-semibold text-lg">{action.title}</h3>
+                      <ArrowRight className="h-5 w-5 text-muted-foreground group-hover:text-foreground group-hover:translate-x-1 transition-all duration-200" />
+                    </div>
+                    <p className="text-muted-foreground text-sm">{action.subtitle}</p>
+                  </button>
+                )}
+                
+                {action.priority && (
+                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
+                )}
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
 
-      {/* Filters and Search */}
-      <div className="mb-6">
-        <ProjectFilters
-          filters={filters}
-          sort={sort}
-          onFiltersChange={setFilters}
-          onSortChange={setSort}
-        />
-      </div>
+      {/* Filters and Search - Only show if there are projects */}
+      {filteredProjects.length > 0 && (
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-6">
+            <h2 className="text-2xl font-semibold">Your Projects</h2>
+            <Button onClick={() => setIsCreateDialogOpen(true)} size="sm" className="gap-2">
+              <Plus className="h-4 w-4" />
+              New Project
+            </Button>
+          </div>
+          <ProjectFilters
+            filters={filters}
+            sort={sort}
+            onFiltersChange={setFilters}
+            onSortChange={setSort}
+          />
+        </div>
+      )}
 
       {/* Projects Grid */}
       <div className="space-y-6">
         {filteredProjects.length === 0 ? (
-          <div className="text-center py-12">
-            <BookOpen className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-            <h3 className="text-lg font-medium mb-2">
-              {projects.length === 0 ? 'No projects yet' : 'No projects match your filters'}
-            </h3>
-            <p className="text-muted-foreground mb-4">
-              {projects.length === 0 
-                ? 'Create your first writing project to get started.'
-                : 'Try adjusting your filters or search query.'
-              }
-            </p>
-            {projects.length === 0 && (
-              <Button onClick={() => setIsCreateDialogOpen(true)} className="gap-2">
-                <Plus className="h-4 w-4" />
-                Create Your First Project
-              </Button>
+          <div className="text-center py-20">
+            {projects.length === 0 ? (
+              // First time user experience
+              <div className="max-w-lg mx-auto space-y-8">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-primary/20 blur-3xl"></div>
+                  <PenTool className="h-24 w-24 text-muted-foreground mx-auto relative" />
+                </div>
+                <div className="space-y-4">
+                  <h3 className="text-3xl font-bold">
+                    Ready to write something amazing?
+                  </h3>
+                  <p className="text-muted-foreground text-lg leading-relaxed">
+                    Every great story starts with a single word. Let's write yours.
+                  </p>
+                </div>
+                <Button 
+                  onClick={() => setIsCreateDialogOpen(true)} 
+                  size="lg"
+                  className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
+                >
+                  <Plus className="h-5 w-5" />
+                  Create Your First Project
+                </Button>
+              </div>
+            ) : (
+              // Filtered results empty state
+              <div className="space-y-4">
+                <BookOpen className="h-16 w-16 text-muted-foreground mx-auto" />
+                <h3 className="text-xl font-semibold">No projects match your filters</h3>
+                <p className="text-muted-foreground">
+                  Try adjusting your filters or search query.
+                </p>
+              </div>
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredProjects.map((project) => (
-              <ProjectCard
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+            {filteredProjects.map((project, index) => (
+              <div 
                 key={project.id}
-                project={project}
-                onEdit={handleEditProject}
-                onDelete={handleDeleteProject}
-                onDuplicate={duplicateProject}
-                onToggleFavorite={toggleFavorite}
-                onToggleArchive={toggleArchive}
-              />
+                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ProjectCard
+                  project={project}
+                  onEdit={handleEditProject}
+                  onDelete={handleDeleteProject}
+                  onDuplicate={duplicateProject}
+                  onToggleFavorite={toggleFavorite}
+                  onToggleArchive={toggleArchive}
+                  isLastUsed={mostRecentProject?.id === project.id && !project.isArchived}
+                />
+              </div>
             ))}
           </div>
         )}
