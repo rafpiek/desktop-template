@@ -104,19 +104,19 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: hsl(var(--foreground) / 0.6);
+  background: #1a1a1a;
   border-radius: 4px;
   border: 1px solid hsl(var(--background));
   transition: all 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--foreground) / 0.8);
+  background: #2a2a2a;
   border-color: hsl(var(--border));
 }
 
 ::-webkit-scrollbar-thumb:active {
-  background: hsl(var(--foreground) / 0.9);
+  background: #000000;
 }
 
 ::-webkit-scrollbar-corner {
@@ -126,7 +126,7 @@
 /* Firefox scrollbars */
 * {
   scrollbar-width: thin;
-  scrollbar-color: hsl(var(--foreground) / 0.6) transparent;
+  scrollbar-color: #1a1a1a transparent;
 }
 
 /* Enhanced scrollbars for editor areas */
@@ -137,14 +137,14 @@
 
 .editor::-webkit-scrollbar-thumb,
 .tiptap-editor::-webkit-scrollbar-thumb {
-  background: hsl(var(--foreground) / 0.7);
+  background: #1a1a1a;
   border-radius: 6px;
   border: 2px solid hsl(var(--background));
 }
 
 .editor::-webkit-scrollbar-thumb:hover,
 .tiptap-editor::-webkit-scrollbar-thumb:hover {
-  background: hsl(var(--foreground) / 0.9);
+  background: #000000;
   border-color: hsl(var(--muted) / 0.5);
 }
 
