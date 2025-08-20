@@ -302,15 +302,33 @@
 }
 
 /* Typewriter mode integration */
-.typewriter-active .tiptap-prose .tw-active {
-  background-color: hsl(var(--sky-100) / 0.55);
-  color: hsl(var(--sky-900));
-  box-shadow: 0 0 0 1px hsl(var(--sky-300) / 0.35) inset;
+.typewriter-active .tw-active {
+  background-color: rgb(224 242 254 / 0.55);
+  color: rgb(12 74 110);
+  box-shadow: 0 0 0 1px rgb(125 211 252 / 0.35) inset;
   transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+  padding-left: 1rem;
+  padding-right: 1rem;
+  margin-left: -1rem;
+  margin-right: -1rem;
+  border-radius: 0.25rem;
 }
 
-.dark .typewriter-active .tiptap-prose .tw-active {
-  background-color: hsl(var(--sky-900) / 0.35);
-  color: hsl(var(--sky-50));
-  box-shadow: 0 0 0 1px hsl(var(--sky-700) / 0.35) inset;
+.dark .typewriter-active .tw-active {
+  background-color: rgb(12 74 110 / 0.35);
+  color: rgb(240 249 255);
+  box-shadow: 0 0 0 1px rgb(3 105 161 / 0.35) inset;
+}
+
+/* Smooth scrolling for typewriter mode */
+.typewriter-active .editor-scroll {
+  scroll-behavior: smooth;
+  transition: padding 300ms ease;
+}
+
+/* Ensure the ProseMirror container maintains proper spacing */
+.typewriter-active .ProseMirror {
+  /* Maintain the original padding for content */
+  padding-top: 1rem !important;
+  padding-bottom: 1rem !important;
 }
