@@ -332,3 +332,25 @@
   padding-top: 1rem !important;
   padding-bottom: 1rem !important;
 }
+
+
+/* Linear-inspired typewriter focus */
+.typewriter-active .tiptap-focus {
+  background-color: rgb(250 251 252) !important; /* Subtle light gray */
+  padding-left: 1rem !important;
+  padding-right: 1rem !important;
+  margin-left: -1rem !important;
+  margin-right: -1rem !important;
+  border-radius: 0.375rem !important;
+  border-color: transparent !important;
+  position: relative;
+  transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+  padding-top: 0.5rem !important;
+  padding-bottom: 0.5rem !important;
+}
+
+/* Dark mode typewriter focus */
+.dark .typewriter-active .tiptap-focus {
+  background-color: rgb(30 32 36) !important; /* Subtle dark gray */
+
+}

@@ -30,8 +30,8 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
         key: typewriterPluginKey,
 
         state: {
-          init(_, state) {
-            return new TypewriterView(state.view || null, extension.options.mode);
+          init() {
+            return new TypewriterView(null, extension.options.mode);
           },
           apply(tr, pluginState, oldState, newState) {
             // Check if mode has changed
@@ -42,7 +42,6 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
 
             // Check if selection changed
             if (pluginState && currentMode !== 'off' && !oldState.selection.eq(newState.selection)) {
-              console.log('🎯 TipTap Typewriter: Selection changed via transaction');
               // Schedule update for next frame
               setTimeout(() => {
                 if (pluginState && pluginState.view) {
