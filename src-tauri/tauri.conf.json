@@ -20,7 +20,6 @@
         "resizable": true,
         "fullscreen": false,
         "decorations": false,
-        "titleBarStyle": "Overlay",
         "label": "main",
         "zoomHotkeysEnabled": true
       }

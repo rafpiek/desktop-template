@@ -1,4 +1,4 @@
-import { ReactNode, useState, useEffect } from "react"
+import { ReactNode } from "react"
 import { TopBar } from "@/components/top-bar"
 import { TauriTitlebar } from "@/components/tauri-titlebar"
 import { cn } from "@/lib/utils"
@@ -16,12 +16,6 @@ export function AppLayout({
   showNavigation = true,
   maxWidth = "default"
 }: AppLayoutProps) {
-  const [isTauri, setIsTauri] = useState(false);
-
-  useEffect(() => {
-    setIsTauri(window.__TAURI__ !== undefined);
-  }, []);
-
   const containerClasses = {
     default: "container mx-auto px-4 py-8",
     wide: "container mx-auto px-4 py-8 max-w-7xl",
@@ -39,8 +33,8 @@ export function AppLayout({
         <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-primary/3 via-transparent to-transparent rounded-full blur-3xl"></div>
       </div>
       
-      {/* Main content area with conditional title bar spacing */}
-      <div className={cn(containerClasses[maxWidth], "relative z-10", isTauri && "pt-8")}>
+      {/* Main content area with title bar spacing */}
+      <div className={cn(containerClasses[maxWidth], "relative z-10 pt-8")}>
         <TopBar title={title} showNavigation={showNavigation} />
         <main className="animate-in fade-in duration-700">{children}</main>
       </div>

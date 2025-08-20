@@ -288,6 +288,117 @@ export function calculateStreak(progressData: GoalProgress[], targetWords: numbe
   return streak;
 }
 
+// Independent streak calculation that works without active goals
+export interface WritingStreakData {
+  currentStreak: number;
+  bestStreak: number;
+  streakStatus: 'active' | 'broken' | 'none';
+  nextMilestone: number | null;
+  daysUntilMilestone: number | null;
+  todayWordCount: number;
+  isStreakActive: boolean;
+}
+
+// Calculate writing streak based on document activity (independent of goals)
+export function calculateWritingStreak(
+  documents: { id: string; updatedAt: string; wordCount: number }[],
+  minimumWordsPerDay: number = 100
+): WritingStreakData {
+  if (!documents || documents.length === 0) {
+    return {
+      currentStreak: 0,
+      bestStreak: 0,
+      streakStatus: 'none',
+      nextMilestone: ACHIEVEMENT_MILESTONES.streak[0], // First milestone (3 days)
+      daysUntilMilestone: 3,
+      todayWordCount: 0,
+      isStreakActive: false,
+    };
+  }
+
+  // Group documents by their update date to calculate daily word counts
+  const dailyWordCounts = new Map<string, number>();
+  const today = new Date().toISOString().split('T')[0];
+  let todayWordCount = 0;
+
+  documents.forEach(doc => {
+    const dateKey = new Date(doc.updatedAt).toISOString().split('T')[0];
+    const currentCount = dailyWordCounts.get(dateKey) || 0;
+    dailyWordCounts.set(dateKey, currentCount + doc.wordCount);
+    
+    if (dateKey === today) {
+      todayWordCount += doc.wordCount;
+    }
+  });
+
+  // Convert to sorted array of [date, wordCount] pairs
+  const sortedDays = Array.from(dailyWordCounts.entries())
+    .sort((a, b) => new Date(b[0]).getTime() - new Date(a[0]).getTime());
+
+  // Calculate current streak
+  let currentStreak = 0;
+  let bestStreak = 0;
+  let tempStreak = 0;
+  const currentDate = new Date();
+  currentDate.setHours(0, 0, 0, 0);
+
+  // First, calculate the best streak by going through all days
+  for (const [, wordCount] of sortedDays) {
+    if (wordCount >= minimumWordsPerDay) {
+      tempStreak++;
+      bestStreak = Math.max(bestStreak, tempStreak);
+    } else {
+      tempStreak = 0;
+    }
+  }
+
+  // Now calculate current streak from today backwards
+  for (const [dateStr, wordCount] of sortedDays) {
+    const dayDate = new Date(dateStr);
+    dayDate.setHours(0, 0, 0, 0);
+    
+    const dayDiff = Math.floor((currentDate.getTime() - dayDate.getTime()) / (1000 * 60 * 60 * 24));
+    
+    // Check if this day continues our streak
+    if (dayDiff === currentStreak && wordCount >= minimumWordsPerDay) {
+      currentStreak++;
+      continue;
+    }
+    
+    // If we've found a gap, stop
+    if (dayDiff > currentStreak) {
+      break;
+    }
+  }
+
+  // Determine streak status
+  const hasWrittenToday = todayWordCount >= minimumWordsPerDay;
+  let streakStatus: 'active' | 'broken' | 'none';
+  
+  if (currentStreak === 0) {
+    streakStatus = 'none';
+  } else if (hasWrittenToday || currentStreak > 0) {
+    streakStatus = 'active';
+  } else {
+    streakStatus = 'broken';
+  }
+
+  // Find next milestone
+  const currentStreakValue = Math.max(currentStreak, 0);
+  const nextMilestone = ACHIEVEMENT_MILESTONES.streak.find(milestone => milestone > currentStreakValue);
+  const daysUntilMilestone = nextMilestone ? nextMilestone - currentStreakValue : null;
+
+  return {
+    currentStreak,
+    bestStreak,
+    streakStatus,
+    nextMilestone,
+    daysUntilMilestone,
+    todayWordCount,
+    isStreakActive: currentStreak > 0 && hasWrittenToday,
+  };
+}
+
 export function calculateGoalPercentage(achieved: number, target: number): number {
   if (target <= 0) return 0;
   return Math.min(Math.round((achieved / target) * 100), 100);

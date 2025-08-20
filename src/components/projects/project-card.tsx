@@ -61,9 +61,9 @@ export function ProjectCard({
 
   return (
     <Card className={cn(
-      "group relative transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 hover:-translate-y-1 border border-border/50 bg-gradient-to-br from-card to-card/50 hover:border-primary/30 h-full",
-      project.isFavorite && "ring-2 ring-yellow-400/30 shadow-lg shadow-yellow-400/10 border-yellow-400/30",
-      isLastUsed && "ring-2 ring-emerald-400/40 shadow-lg shadow-emerald-400/15 border-emerald-400/40 bg-gradient-to-br from-emerald-950/20 to-card/50",
+      "group relative transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/40 h-full ring-1 ring-border/10",
+      project.isFavorite && "ring-2 ring-yellow-400/40 shadow-lg shadow-yellow-400/20 border-yellow-400/40",
+      isLastUsed && "ring-2 ring-emerald-400/50 shadow-lg shadow-emerald-400/25 border-emerald-400/50 bg-gradient-to-br from-emerald-950/20 to-card/50",
       project.isArchived && "opacity-60 hover:opacity-80",
       "before:absolute before:inset-0 before:bg-gradient-to-br before:from-transparent before:via-transparent before:to-primary/5 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100"
     )}>      

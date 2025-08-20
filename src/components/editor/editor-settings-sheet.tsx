@@ -15,6 +15,7 @@ import { triggerTiptapTypewriterUpdate } from '@/hooks/use-tiptap-typewriter';
 import { SettingsSlider } from '@/components/ui/settings-slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
+import { cn } from '@/lib/utils';
 
 
 type LineWidth = '60' | '80' | '120' | '160' | 'full' | 'default';
@@ -69,40 +70,40 @@ const fontSizeOptions = [
 
 const fontFamilyOptions = [
   {
-    value: 'sans' as FontFamily,
-    label: 'Sans',
-    description: 'Clean and modern',
-    preview: <span className="font-sans text-sm">Aa Bb</span>
+    value: 'system' as FontFamily,
+    label: 'System',
+    description: 'OS default',
+    preview: <span className="text-base" style={{ fontFamily: "system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" }}>Aa</span>
   },
   {
-    value: 'serif' as FontFamily,
-    label: 'Serif',
-    description: 'Classic and elegant',
-    preview: <span className="font-serif text-sm">Aa Bb</span>
+    value: 'roboto' as FontFamily,
+    label: 'Roboto',
+    description: 'Google Sans',
+    preview: <span className="text-base" style={{ fontFamily: "'Roboto', system-ui, -apple-system, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif" }}>Aa</span>
   },
   {
-    value: 'mono' as FontFamily,
-    label: 'Mono',
-    description: 'Code-like appearance',
-    preview: <span className="font-mono text-sm">Aa Bb</span>
+    value: 'times' as FontFamily,
+    label: 'Times New Roman',
+    description: 'Classic serif',
+    preview: <span className="text-base" style={{ fontFamily: "'Times New Roman', Times, serif" }}>Aa</span>
   },
   {
     value: 'ia-mono' as FontFamily,
-    label: 'iA Mono',
-    description: 'Typewriter style',
-    preview: <span className="font-mono text-sm">Aa Bb</span>
+    label: 'iA Writer Mono',
+    description: 'Clean monospaced',
+    preview: <span className="text-base tracking-tight" style={{ fontFamily: "'iA Writer Mono', 'IBM Plex Mono', Consolas, 'Courier New', monospace" }}>Aa</span>
+  },
+  {
+    value: 'courier-prime' as FontFamily,
+    label: 'Courier Prime',
+    description: 'Typewriter classic',
+    preview: <span className="text-base" style={{ fontFamily: "'Courier Prime', 'Courier New', monospace" }}>Aa</span>
   },
   {
     value: 'ia-duo' as FontFamily,
-    label: 'iA Duo',
+    label: 'iA Writer Duo',
     description: 'Variable width typewriter',
-    preview: <span className="font-mono text-sm">Aa Bb</span>
-  },
-  {
-    value: 'typewriter' as FontFamily,
-    label: 'Writer',
-    description: 'Classic typewriter font',
-    preview: <span className="font-mono text-sm">Aa Bb</span>
+    preview: <span className="text-base tracking-tight" style={{ fontFamily: "'iA Writer Duo', 'JetBrains Mono', 'Fira Code', monospace" }}>Aa</span>
   },
 ];
 
@@ -160,8 +161,20 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
   };
 
   const getCurrentFontFamily = (): FontFamily => {
-    const saved = localStorage.getItem('zeyn-font-family');
-    return (saved as FontFamily) || 'sans';
+    const saved = localStorage.getItem('zeyn-font-family') as string | null;
+    // Migrate old keys to new ones
+    const migrationMap: Record<string, FontFamily> = {
+      'sans': 'system',
+      'serif': 'times',
+      'mono': 'ia-mono',
+      'ia-mono': 'ia-mono',
+      'ia-duo': 'ia-duo',
+      'typewriter': 'courier-prime',
+      'ibm-plex-mono': 'ia-mono',
+      'special-elite': 'courier-prime',
+    };
+    if (!saved) return 'system';
+    return (migrationMap[saved] ?? (saved as FontFamily)) as FontFamily;
   };
 
   const getCurrentLineWidth = (): LineWidth => {
@@ -202,8 +215,13 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
     // Apply to DOM directly
     const editors = document.querySelectorAll('.editor');
     editors.forEach(editor => {
-      // Remove old font-family classes
-      editor.classList.remove('font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter');
+      // Remove old and new font-family classes
+      editor.classList.remove(
+        // old
+        'font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
+        // new
+        'font-family-system', 'font-family-roboto', 'font-family-times', 'font-family-ia-mono', 'font-family-courier-prime', 'font-family-ia-duo', 'font-family-ibm-plex-mono', 'font-family-special-elite'
+      );
       // Add new class
       editor.classList.add(`font-family-${family}`);
     });
@@ -237,8 +255,11 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
         editor.classList.remove('font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen');
         editor.classList.add(`font-size-${storedSize}`);
 
-        // Apply font family
-        editor.classList.remove('font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter');
+        // Apply font family (remove old + new)
+        editor.classList.remove(
+          'font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
+          'font-family-system', 'font-family-roboto', 'font-family-times', 'font-family-ia-mono', 'font-family-courier-prime', 'font-family-ia-duo', 'font-family-ibm-plex-mono', 'font-family-special-elite'
+        );
         editor.classList.add(`font-family-${storedFamily}`);
 
         // Apply line width
@@ -288,12 +309,46 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
 
           {/* Line Width Section */}
           <div className="pt-4 border-t">
-            <SettingsSlider
-              title="Line Width"
-              options={lineWidthOptions}
-              value={lineWidth}
-              onChange={setLineWidth}
-            />
+            <h4 className="text-sm font-medium mb-4">Line Width</h4>
+            <div className="space-y-2">
+              {lineWidthOptions.map((option) => (
+                <button
+                  key={option.value}
+                  onClick={() => setLineWidth(option.value)}
+                  className={cn(
+                    "w-full text-left p-3 rounded-lg border transition-all",
+                    lineWidth === option.value
+                      ? "border-primary bg-primary/5"
+                      : "border-border hover:border-muted-foreground/50"
+                  )}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className={cn(
+                      "text-sm font-medium",
+                      lineWidth === option.value && "text-primary"
+                    )}>
+                      {option.label}
+                    </span>
+                    <span className="text-xs text-muted-foreground">
+                      {option.description}
+                    </span>
+                  </div>
+                  <div className="relative h-4 bg-muted rounded overflow-hidden">
+                    <div
+                      className={cn(
+                        "absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-foreground/20 transition-all",
+                        lineWidth === option.value && "bg-primary"
+                      )}
+                      style={{
+                        width: option.value === 'default' || option.value === 'full'
+                          ? '100%'
+                          : `${Math.min(100, (parseInt(option.value) / 160) * 100)}%`
+                      }}
+                    />
+                  </div>
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* Typewriter Mode Section */}

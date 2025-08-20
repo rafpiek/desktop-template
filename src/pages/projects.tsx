@@ -119,7 +119,7 @@ export default function ProjectsPage() {
 
         {/* Floating Stats Widget */}
         <div className="absolute top-0 right-0 hidden lg:block">
-          <div className="bg-card/80 backdrop-blur-sm border rounded-2xl p-6 shadow-lg">
+          <div className="bg-card/80 backdrop-blur-sm border-2 border-border/20 rounded-2xl p-6 shadow-lg ring-1 ring-border/10">
             <div className="flex items-center gap-4">
               <div className="text-center">
                 <div className="text-2xl font-bold">{stats.totalProjects}</div>
@@ -143,10 +143,10 @@ export default function ProjectsPage() {
               <div
                 key={index}
                 className={cn(
-                  "group relative overflow-hidden rounded-2xl border transition-all duration-300 hover:shadow-lg hover:shadow-primary/5",
+                  "group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 ring-1 ring-border/10",
                   action.priority 
-                    ? "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/20 flex-1" 
-                    : "bg-card hover:bg-muted/30 flex-1 sm:flex-none sm:w-64"
+                    ? "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/30 flex-1" 
+                    : "bg-card hover:bg-muted/30 flex-1 sm:flex-none sm:w-64 border-border/20"
                 )}
               >
                 {action.href ? (

@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 
-export type FontFamily = 'sans' | 'serif' | 'mono' | 'ia-mono' | 'ia-duo' | 'typewriter';
+export type FontFamily = 'system' | 'roboto' | 'times' | 'ia-mono' | 'courier-prime' | 'ia-duo';
 
 interface FontFamilyContextType {
   fontFamily: FontFamily;

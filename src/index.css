@@ -2,7 +2,8 @@
 @import './styles/zen-mode.css';
 @import './styles/tiptap-editor.css';
 @import './styles/home-animations.css';
-@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Courier+Prime:wght@400;700&family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Courier+Prime:wght@400;700&family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&family=Roboto:wght@400;500;700&display=swap');
+/* Note: iA Writer fonts are not on Google Fonts; using fallbacks in CSS stacks. */
 
 @tailwind base;
 @tailwind components;
@@ -163,24 +164,49 @@
   font-family: 'SF Mono', Monaco, 'Cascadia Code', 'Roboto Mono', Consolas, 'Courier New', monospace;
 }
 
+/* New font family presets */
+.font-family-system {
+  font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+}
+
+.font-family-roboto {
+  font-family: 'Roboto', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+}
+
+.font-family-times {
+  font-family: 'Times New Roman', Times, serif;
+}
+
+/* iA variants using fallbacks */
 .font-family-ia-mono {
-  font-family: 'IBM Plex Mono', 'SF Mono', Monaco, Consolas, 'Courier New', monospace;
-  letter-spacing: -0.02em;
+  font-family: 'iA Writer Mono', 'IBM Plex Mono', Consolas, 'Courier New', monospace;
+  letter-spacing: -0.01em;
 }
 
 .font-family-ia-duo {
-  font-family: 'JetBrains Mono', 'Fira Code', 'SF Mono', Monaco, Consolas, monospace;
-  letter-spacing: -0.01em;
-  font-feature-settings: 'liga' 1, 'calt' 1;
+  font-family: 'iA Writer Duo', 'JetBrains Mono', 'Fira Code', monospace;
 }
 
-.font-family-typewriter {
-  font-family: 'Courier Prime', 'Courier', 'Courier New', monospace;
+.font-family-courier-prime {
+  font-family: 'Courier Prime', 'Courier New', monospace;
 }
+
+/* cleanup: keep backwards compat for previously added classes */
+.font-family-ibm-plex-mono {
+  font-family: 'IBM Plex Mono', Consolas, 'Courier New', monospace;
+}
+
+/* removed: .font-family-special-elite no longer used */
 
 :where([class*='font-family-mono']) p,
 :where([class*='font-family-mono']) li,
 :where([class*='font-family-mono']) blockquote {
+  line-height: 1.6;
+}
+
+:where(.font-family-ibm-plex-mono, .font-family-courier-prime, .font-family-ia-mono, .font-family-ia-duo) p,
+:where(.font-family-ibm-plex-mono, .font-family-courier-prime, .font-family-ia-mono, .font-family-ia-duo) li,
+:where(.font-family-ibm-plex-mono, .font-family-courier-prime, .font-family-ia-mono, .font-family-ia-duo) blockquote {
   line-height: 1.6;
 }
 

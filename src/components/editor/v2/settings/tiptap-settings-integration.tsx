@@ -22,7 +22,7 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
     const applyStoredSettings = () => {
       // Prevent recursive calls
       if (isApplyingRef.current) return;
-      
+
       // Check if editor view is ready before accessing it
       if (!isEditorViewReady(editor)) {
         return; // Don't retry recursively
@@ -32,9 +32,20 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
 
       try {
         const fontSize = (localStorage.getItem('zeyn-font-size') as FontSize) || 'md';
-        const fontFamily = (localStorage.getItem('zeyn-font-family') as FontFamily) || 'sans';
+        const rawFontFamily = localStorage.getItem('zeyn-font-family') as string | null;
+        const migrationMap: Record<string, FontFamily> = {
+          'sans': 'system',
+          'serif': 'times',
+          'mono': 'ia-mono',
+          'ia-mono': 'ia-mono',
+          'ia-duo': 'ia-duo',
+          'typewriter': 'courier-prime',
+          'ibm-plex-mono': 'ia-mono',
+          'special-elite': 'courier-prime',
+        };
+        const fontFamily = (rawFontFamily ? (migrationMap[rawFontFamily] ?? rawFontFamily) : 'system') as FontFamily;
         const lineWidth = localStorage.getItem('zeyn-line-width') || 'default';
-        const typewriterMode = (localStorage.getItem('typewriter-settings') ? 
+        const typewriterMode = (localStorage.getItem('typewriter-settings') ?
           JSON.parse(localStorage.getItem('typewriter-settings')!)?.mode : 'off') as TypewriterMode;
 
         const editorElement = editor.view.dom as HTMLElement;
@@ -49,11 +60,12 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
           element.classList.remove(
             // Font sizes
             'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
-            // Font families  
-            'font-family-sans', 'font-family-serif', 'font-family-mono', 
+            // Font families
+            'font-family-sans', 'font-family-serif', 'font-family-mono',
             'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
+            'font-family-system', 'font-family-roboto', 'font-family-times', 'font-family-courier-prime', 'font-family-ibm-plex-mono', 'font-family-special-elite',
             // Line widths
-            'line-width-60', 'line-width-80', 'line-width-120', 
+            'line-width-60', 'line-width-80', 'line-width-120',
             'line-width-160', 'line-width-full', 'line-width-default',
             // Typewriter
             'typewriter-active', 'typewriter-center'
@@ -77,12 +89,13 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
         if (mainEditorWrapper) {
           mainEditorWrapper.classList.remove(
             'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
-            'font-family-sans', 'font-family-serif', 'font-family-mono', 
+            'font-family-sans', 'font-family-serif', 'font-family-mono',
             'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
-            'line-width-60', 'line-width-80', 'line-width-120', 
+            'font-family-system', 'font-family-roboto', 'font-family-times', 'font-family-courier-prime', 'font-family-ibm-plex-mono', 'font-family-special-elite',
+            'line-width-60', 'line-width-80', 'line-width-120',
             'line-width-160', 'line-width-full', 'line-width-default'
           );
-          
+
           mainEditorWrapper.classList.add(
             `font-size-${fontSize}`,
             `font-family-${fontFamily}`,
@@ -114,8 +127,8 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
     // Listen for localStorage changes (when settings are updated)
     const handleStorageChange = (e: StorageEvent) => {
       if (e.key && (
-        e.key.startsWith('zeyn-font') || 
-        e.key.startsWith('zeyn-line') || 
+        e.key.startsWith('zeyn-font') ||
+        e.key.startsWith('zeyn-line') ||
         e.key === 'typewriter-settings'
       )) {
         debouncedApply();
