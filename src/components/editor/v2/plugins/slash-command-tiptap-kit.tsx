@@ -2,7 +2,7 @@
 
 import { Extension } from '@tiptap/core';
 import { ReactRenderer } from '@tiptap/react';
-import { suggestion, type SuggestionOptions } from '@tiptap/suggestion';
+import { Suggestion, type SuggestionOptions } from '@tiptap/suggestion';
 import tippy, { type Instance as TippyInstance } from 'tippy.js';
 
 import { SlashCommandMenu, type SlashCommandMenuRef } from '../slash-commands/slash-command-menu';
@@ -31,7 +31,7 @@ const SlashCommand = Extension.create({
 
   addProseMirrorPlugins() {
     return [
-      suggestion({
+      Suggestion({
         editor: this.editor,
         ...this.options.suggestion,
         

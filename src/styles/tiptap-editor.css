@@ -1,0 +1,289 @@
+/* TipTap Editor Styles - Separate from Plate.js styles */
+
+/* Base TipTap editor styling */
+.tiptap-editor-wrapper {
+  width: 100%;
+  height: 100%;
+}
+
+.tiptap-content {
+  width: 100%;
+  height: 100%;
+}
+
+/* TipTap Prose styling - matches existing editor appearance */
+.tiptap-prose {
+  max-width: none;
+  color: inherit;
+  line-height: var(--lh-body, 1.6);
+}
+
+.tiptap-prose p {
+  margin: var(--spacing-paragraph, 0.75rem) 0;
+  line-height: var(--lh-body, 1.6);
+  font-size: var(--fs-body, 1rem);
+}
+
+/* TipTap Headings - using existing CSS variables */
+.tiptap-prose h1,
+.tiptap-heading[data-level="1"] {
+  font-size: var(--fs-h1, 2rem) !important;
+  line-height: var(--lh-heading, 1.3);
+  margin-top: var(--spacing-heading, 1rem);
+  margin-bottom: var(--spacing-heading, 1rem);
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.025em;
+}
+
+.tiptap-prose h2,
+.tiptap-heading[data-level="2"] {
+  font-size: var(--fs-h2, 1.75rem) !important;
+  line-height: var(--lh-heading, 1.3);
+  margin-top: var(--spacing-heading, 1rem);
+  margin-bottom: var(--spacing-heading, 1rem);
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.025em;
+}
+
+.tiptap-prose h3,
+.tiptap-heading[data-level="3"] {
+  font-size: var(--fs-h3, 1.5rem) !important;
+  line-height: var(--lh-heading, 1.3);
+  margin-top: var(--spacing-heading, 1rem);
+  margin-bottom: var(--spacing-heading, 1rem);
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.025em;
+}
+
+.tiptap-prose h4,
+.tiptap-heading[data-level="4"] {
+  font-size: var(--fs-h4, 1.25rem) !important;
+  line-height: var(--lh-heading, 1.3);
+  margin-top: var(--spacing-heading, 1rem);
+  margin-bottom: var(--spacing-heading, 1rem);
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.025em;
+}
+
+.tiptap-prose h5,
+.tiptap-heading[data-level="5"] {
+  font-size: var(--fs-h5, 1.125rem) !important;
+  line-height: var(--lh-heading, 1.3);
+  margin-top: var(--spacing-heading, 1rem);
+  margin-bottom: var(--spacing-heading, 1rem);
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.025em;
+}
+
+.tiptap-prose h6,
+.tiptap-heading[data-level="6"] {
+  font-size: var(--fs-h6, 1rem) !important;
+  line-height: var(--lh-heading, 1.3);
+  margin-top: var(--spacing-heading, 1rem);
+  margin-bottom: var(--spacing-heading, 1rem);
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.025em;
+}
+
+/* Text formatting */
+.tiptap-prose strong,
+.tiptap-bold {
+  font-weight: 700;
+}
+
+.tiptap-prose em,
+.tiptap-italic {
+  font-style: italic;
+}
+
+.tiptap-prose code,
+.tiptap-code {
+  background-color: hsl(var(--muted));
+  padding: 0.125rem 0.25rem;
+  border-radius: 0.25rem;
+  font-size: 0.875rem;
+  font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace;
+}
+
+/* Lists */
+.tiptap-prose ul,
+.tiptap-bullet-list {
+  list-style-type: disc;
+  padding-left: 1.5rem;
+  margin: var(--spacing-paragraph, 0.75rem) 0;
+}
+
+.tiptap-prose ol,
+.tiptap-ordered-list {
+  list-style-type: decimal;
+  padding-left: 1.5rem;
+  margin: var(--spacing-paragraph, 0.75rem) 0;
+}
+
+.tiptap-prose li,
+.tiptap-list-item {
+  margin: 0.25rem 0;
+  line-height: var(--lh-body, 1.6);
+}
+
+/* Blockquotes */
+.tiptap-prose blockquote,
+.tiptap-blockquote {
+  border-left: 4px solid hsl(var(--muted-foreground));
+  padding-left: 1rem;
+  margin: var(--spacing-block, 1rem) 0;
+  font-style: italic;
+  color: hsl(var(--muted-foreground));
+}
+
+/* Horizontal rules */
+.tiptap-prose hr,
+.tiptap-hr {
+  border: none;
+  border-top: 1px solid hsl(var(--muted-foreground));
+  margin: 1.5rem 0;
+}
+
+/* Focus styles for editing */
+.tiptap-prose *:focus {
+  outline: none;
+}
+
+/* Placeholder styling */
+.tiptap-prose .is-empty::before,
+.ProseMirror.is-empty::before {
+  content: attr(data-placeholder);
+  float: left;
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  height: 0;
+}
+
+.ProseMirror[data-placeholder]:empty::before {
+  content: attr(data-placeholder);
+  color: hsl(var(--muted-foreground));
+  pointer-events: none;
+  position: absolute;
+  opacity: 0.6;
+}
+
+/* Font size classes compatibility - TipTap versions */
+.font-size-xs .tiptap-prose h1 { font-size: calc(var(--fs-h1, 2rem) * 0.8) !important; }
+.font-size-xs .tiptap-prose h2 { font-size: calc(var(--fs-h2, 1.75rem) * 0.8) !important; }
+.font-size-xs .tiptap-prose h3 { font-size: calc(var(--fs-h3, 1.5rem) * 0.8) !important; }
+.font-size-xs .tiptap-prose h4 { font-size: calc(var(--fs-h4, 1.25rem) * 0.8) !important; }
+.font-size-xs .tiptap-prose h5 { font-size: calc(var(--fs-h5, 1.125rem) * 0.8) !important; }
+.font-size-xs .tiptap-prose h6 { font-size: calc(var(--fs-h6, 1rem) * 0.8) !important; }
+.font-size-xs .tiptap-prose p { font-size: calc(var(--fs-body, 1rem) * 0.8) !important; }
+
+.font-size-sm .tiptap-prose h1 { font-size: calc(var(--fs-h1, 2rem) * 0.9) !important; }
+.font-size-sm .tiptap-prose h2 { font-size: calc(var(--fs-h2, 1.75rem) * 0.9) !important; }
+.font-size-sm .tiptap-prose h3 { font-size: calc(var(--fs-h3, 1.5rem) * 0.9) !important; }
+.font-size-sm .tiptap-prose h4 { font-size: calc(var(--fs-h4, 1.25rem) * 0.9) !important; }
+.font-size-sm .tiptap-prose h5 { font-size: calc(var(--fs-h5, 1.125rem) * 0.9) !important; }
+.font-size-sm .tiptap-prose h6 { font-size: calc(var(--fs-h6, 1rem) * 0.9) !important; }
+.font-size-sm .tiptap-prose p { font-size: calc(var(--fs-body, 1rem) * 0.9) !important; }
+
+.font-size-md .tiptap-prose h1 { font-size: var(--fs-h1, 2rem) !important; }
+.font-size-md .tiptap-prose h2 { font-size: var(--fs-h2, 1.75rem) !important; }
+.font-size-md .tiptap-prose h3 { font-size: var(--fs-h3, 1.5rem) !important; }
+.font-size-md .tiptap-prose h4 { font-size: var(--fs-h4, 1.25rem) !important; }
+.font-size-md .tiptap-prose h5 { font-size: var(--fs-h5, 1.125rem) !important; }
+.font-size-md .tiptap-prose h6 { font-size: var(--fs-h6, 1rem) !important; }
+.font-size-md .tiptap-prose p { font-size: var(--fs-body, 1rem) !important; }
+
+.font-size-lg .tiptap-prose h1 { font-size: calc(var(--fs-h1, 2rem) * 1.1) !important; }
+.font-size-lg .tiptap-prose h2 { font-size: calc(var(--fs-h2, 1.75rem) * 1.1) !important; }
+.font-size-lg .tiptap-prose h3 { font-size: calc(var(--fs-h3, 1.5rem) * 1.1) !important; }
+.font-size-lg .tiptap-prose h4 { font-size: calc(var(--fs-h4, 1.25rem) * 1.1) !important; }
+.font-size-lg .tiptap-prose h5 { font-size: calc(var(--fs-h5, 1.125rem) * 1.1) !important; }
+.font-size-lg .tiptap-prose h6 { font-size: calc(var(--fs-h6, 1rem) * 1.1) !important; }
+.font-size-lg .tiptap-prose p { font-size: calc(var(--fs-body, 1rem) * 1.1) !important; }
+
+.font-size-zen .tiptap-prose h1 { font-size: calc(var(--fs-h1, 2rem) * 1.2) !important; }
+.font-size-zen .tiptap-prose h2 { font-size: calc(var(--fs-h2, 1.75rem) * 1.2) !important; }
+.font-size-zen .tiptap-prose h3 { font-size: calc(var(--fs-h3, 1.5rem) * 1.2) !important; }
+.font-size-zen .tiptap-prose h4 { font-size: calc(var(--fs-h4, 1.25rem) * 1.2) !important; }
+.font-size-zen .tiptap-prose h5 { font-size: calc(var(--fs-h5, 1.125rem) * 1.2) !important; }
+.font-size-zen .tiptap-prose h6 { font-size: calc(var(--fs-h6, 1rem) * 1.2) !important; }
+.font-size-zen .tiptap-prose p { font-size: calc(var(--fs-body, 1rem) * 1.2) !important; }
+
+/* Font family classes compatibility */
+.font-family-sans .tiptap-prose { font-family: ui-sans-serif, system-ui, sans-serif; }
+.font-family-serif .tiptap-prose { font-family: ui-serif, Georgia, Cambria, "Times New Roman", Times, serif; }
+.font-family-mono .tiptap-prose { font-family: ui-monospace, SFMono-Regular, "SF Mono", Consolas, monospace; }
+.font-family-ia-mono .tiptap-prose { font-family: "iA Writer Mono", "SF Mono", Menlo, monospace; }
+.font-family-ia-duo .tiptap-prose { font-family: "iA Writer Duo", Georgia, serif; }
+.font-family-typewriter .tiptap-prose { font-family: "Courier New", Courier, monospace; }
+
+/* Line width classes compatibility */
+.line-width-60 .tiptap-prose { max-width: 60ch; margin: 0 auto; }
+.line-width-80 .tiptap-prose { max-width: 80ch; margin: 0 auto; }
+.line-width-120 .tiptap-prose { max-width: 120ch; margin: 0 auto; }
+.line-width-160 .tiptap-prose { max-width: 160ch; margin: 0 auto; }
+.line-width-full .tiptap-prose { max-width: none; }
+.line-width-default .tiptap-prose { max-width: 65ch; margin: 0 auto; }
+
+/* Dark mode text color fix */
+.dark .tiptap-prose,
+.dark .tiptap-prose * {
+  color: hsl(var(--foreground));
+}
+
+/* Ensure editor content is properly styled */
+.ProseMirror {
+  outline: none;
+  white-space: pre-wrap;
+  word-wrap: break-word;
+}
+
+/* TipTap-specific element styling */
+.ProseMirror h1,
+.ProseMirror h2,
+.ProseMirror h3,
+.ProseMirror h4,
+.ProseMirror h5,
+.ProseMirror h6 {
+  font-weight: 700;
+  color: inherit;
+  letter-spacing: -0.025em;
+}
+
+.ProseMirror p {
+  margin: 0.75rem 0;
+  line-height: 1.6;
+}
+
+.ProseMirror p:first-child {
+  margin-top: 0;
+}
+
+.ProseMirror p:last-child {
+  margin-bottom: 0;
+}
+
+/* Focus mode integration */
+.focus-mode-active .tiptap-prose *:not(.tiptap-focus) {
+  opacity: 0.3;
+  transition: opacity 0.2s ease;
+}
+
+/* Typewriter mode integration */
+.typewriter-active .tiptap-prose .tw-active {
+  background-color: hsl(var(--sky-100) / 0.55);
+  color: hsl(var(--sky-900));
+  box-shadow: 0 0 0 1px hsl(var(--sky-300) / 0.35) inset;
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+.dark .typewriter-active .tiptap-prose .tw-active {
+  background-color: hsl(var(--sky-900) / 0.35);
+  color: hsl(var(--sky-50));
+  box-shadow: 0 0 0 1px hsl(var(--sky-700) / 0.35) inset;
+}

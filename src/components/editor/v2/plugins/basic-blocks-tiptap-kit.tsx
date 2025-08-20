@@ -12,17 +12,27 @@ export const BasicBlocksTiptapKit: Extension[] = [
     HTMLAttributes: {
       class: 'tiptap-heading',
     },
+    renderHTML({ node, HTMLAttributes }) {
+      const level = node.attrs.level;
+      const classes = [HTMLAttributes.class || '', `tiptap-heading-${level}`].join(' ').trim();
+      
+      return [
+        `h${level}`,
+        { ...HTMLAttributes, class: classes, 'data-level': level },
+        0,
+      ];
+    },
   }),
   
   Blockquote.configure({
     HTMLAttributes: {
-      class: 'tiptap-blockquote border-l-4 border-muted-foreground pl-4 italic text-muted-foreground',
+      class: 'tiptap-blockquote',
     },
   }),
   
   HorizontalRule.configure({
     HTMLAttributes: {
-      class: 'tiptap-hr my-6 border-muted-foreground',
+      class: 'tiptap-hr',
     },
   }),
 ];

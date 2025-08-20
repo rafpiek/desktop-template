@@ -11,6 +11,7 @@ import { CharacterCountTiptapKit } from './character-count-tiptap-kit';
 import { SlashCommandTiptapKit } from './slash-command-tiptap-kit';
 import { DragDropTiptapKit } from './drag-drop-tiptap-kit';
 import { TypewriterTiptapKit } from './typewriter-tiptap-kit';
+import { PlaceholderTiptapKit } from './placeholder-tiptap-kit';
 
 // Main plugin kit for novel writers - combines all needed extensions
 export const NovelWriterKit: Extension[] = [
@@ -37,32 +38,32 @@ export const NovelWriterKit: Extension[] = [
     // Configure text formatting
     bold: {
       HTMLAttributes: {
-        class: 'tiptap-bold font-bold',
+        class: 'tiptap-bold',
       },
     },
     
     italic: {
       HTMLAttributes: {
-        class: 'tiptap-italic italic',
+        class: 'tiptap-italic',
       },
     },
     
     code: {
       HTMLAttributes: {
-        class: 'tiptap-code bg-muted px-1 py-0.5 rounded text-sm font-mono',
+        class: 'tiptap-code',
       },
     },
     
     // Configure lists
     bulletList: {
       HTMLAttributes: {
-        class: 'tiptap-bullet-list list-disc pl-6',
+        class: 'tiptap-bullet-list',
       },
     },
     
     orderedList: {
       HTMLAttributes: {
-        class: 'tiptap-ordered-list list-decimal pl-6',
+        class: 'tiptap-ordered-list',
       },
     },
     
@@ -88,4 +89,5 @@ export const NovelWriterKit: Extension[] = [
   ...SlashCommandTiptapKit,
   ...DragDropTiptapKit,
   ...TypewriterTiptapKit,
+  ...PlaceholderTiptapKit,
 ];

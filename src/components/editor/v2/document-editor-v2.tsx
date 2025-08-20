@@ -6,7 +6,6 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 
 import { ZenModeContainer } from '@/components/editor/zen-mode-container';
 import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
-import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { Button } from '@/components/ui/button';
 import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
@@ -182,7 +181,6 @@ export function DocumentEditorV2({
             <div className="text-muted-foreground">No content available</div>
           </div>
         )}
-        <SettingsDialog />
         <TiptapSettingsIntegration editor={editor} />
       </div>
     </ZenModeContainer>

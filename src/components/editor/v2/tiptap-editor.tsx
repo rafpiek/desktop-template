@@ -45,6 +45,7 @@ export function TiptapEditor({
         ),
         'data-document-id': documentId,
         'spellcheck': 'true',
+        'data-placeholder': 'Start writing...',
       },
       handleDOMEvents: {
         focus: () => {
