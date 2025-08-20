@@ -31,6 +31,7 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
 
         state: {
           init() {
+            console.log('🎯 TipTap Typewriter: init called', extension.options.mode);
             return new TypewriterView(null, extension.options.mode);
           },
           apply(tr, pluginState, oldState, newState) {
@@ -58,6 +59,37 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
           const pluginState = typewriterPluginKey.getState(editorView.state);
           if (pluginState) {
             pluginState.setView(editorView);
+
+            // Listen for typewriter settings changes
+            const handleTypewriterChange = () => {
+              try {
+                const stored = localStorage.getItem('typewriter-settings');
+                if (stored) {
+                  const settings = JSON.parse(stored);
+                  const newMode = settings.mode || 'off';
+
+                  // Update extension options
+                  extension.options.mode = newMode;
+
+                  // Update plugin state
+                  if (pluginState) {
+                    pluginState.updateMode(newMode);
+                  }
+
+                  console.log('🎯 TipTap Typewriter: Updated mode from custom event to:', newMode);
+                }
+              } catch (error) {
+                console.error('🎯 TipTap Typewriter: Error handling settings change:', error);
+              }
+            };
+
+            // Add event listener
+            window.addEventListener('tiptap-typewriter-change', handleTypewriterChange);
+
+            // Store cleanup function on the plugin state
+            pluginState.cleanup = () => {
+              window.removeEventListener('tiptap-typewriter-change', handleTypewriterChange);
+            };
           }
           return pluginState;
         },
@@ -172,6 +204,7 @@ export const TypewriterExtension = Extension.create<TypewriterOptions>({
 class TypewriterView {
   public view: EditorView | null;
   public mode: TypewriterMode;
+  public cleanup?: () => void;
   private rafToken: number | null = null;
   private suppressSelectionUntil = 0;
 
@@ -367,6 +400,11 @@ class TypewriterView {
       cancelAnimationFrame(this.rafToken);
     }
 
+    // Clean up event listeners
+    if (this.cleanup) {
+      this.cleanup();
+    }
+
     // Clean up active highlighting
     const active = document.querySelector('.typewriter-active .tw-active');
     if (active) active.classList.remove('tw-active');
@@ -492,12 +530,29 @@ function findScrollContainer(element: HTMLElement | null): HTMLElement | null {
   return null; // Don't scroll the document
 }
 
-// Kit that exports the typewriter extension
-export const TypewriterTiptapKit = [
-  TypewriterExtension.configure({
-    mode: 'center', // Default mode matches the default in use-typewriter.ts
-  }),
-];
+// Function that creates the typewriter kit with current settings
+export const createTypewriterTiptapKit = () => {
+  // Read current mode from localStorage at initialization time
+  let currentMode: TypewriterMode = 'off';
+  try {
+    const stored = localStorage.getItem('typewriter-settings');
+    if (stored) {
+      const settings = JSON.parse(stored);
+      currentMode = settings.mode || 'off';
+    }
+  } catch (error) {
+    currentMode = 'off';
+  }
+
+  return [
+    TypewriterExtension.configure({
+      mode: currentMode,
+    }),
+  ];
+};
+
+// For backward compatibility, export the kit with default settings
+export const TypewriterTiptapKit = createTypewriterTiptapKit();
 
 // Prevent fast refresh warning by ensuring this is not treated as a component module
 const _typewriterExtensionName = TypewriterExtension.name;

@@ -40,17 +40,17 @@ export function DocumentEditorV2({
   const [editor, setEditor] = React.useState<Editor | null>(null);
   const [isZenMode, setIsZenMode] = React.useState(false);
   const [zenModePortalContainer, setZenModePortalContainer] = React.useState<HTMLElement | null>(null);
-  
+
   const isTauriApp = useIsTauri();
-  
+
   // Use our custom hooks
   const { focusMode } = useTiptapFocusMode();
   const { mode: typewriterMode } = useTiptapTypewriter();
-  const { 
-    content, 
-    setContent, 
-    textStats, 
-    isLoading 
+  const {
+    content,
+    setContent,
+    textStats,
+    isLoading
   } = useTiptapStorage(documentId);
 
   // Notify parent component of content changes
@@ -122,6 +122,7 @@ export function DocumentEditorV2({
       onPortalContainerReady={setZenModePortalContainer}
     >
       <div className="absolute top-4 right-4 z-10 flex gap-2">
+        <span className="text-sm text-muted-foreground">Typewriter: {typewriterMode}</span>
         <Button
           onClick={toggleZenMode}
           variant="ghost"

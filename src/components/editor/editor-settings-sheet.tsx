@@ -11,6 +11,7 @@ import { Settings } from 'lucide-react';
 import { type FontSize } from '@/hooks/use-font-size';
 import { type FontFamily } from '@/hooks/use-font-family';
 import { useTypewriter, type TypewriterMode } from '@/hooks/use-typewriter';
+import { triggerTiptapTypewriterUpdate } from '@/hooks/use-tiptap-typewriter';
 import { SettingsSlider } from '@/components/ui/settings-slider';
 import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
@@ -174,6 +175,8 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
 
   const setTypewriterMode = (mode: TypewriterMode) => {
     setTypewriterSettings({ ...typewriterSettings, mode });
+    // Trigger the custom event to notify TipTap editor
+    triggerTiptapTypewriterUpdate();
   };
 
   const setFontSize = (size: FontSize) => {
