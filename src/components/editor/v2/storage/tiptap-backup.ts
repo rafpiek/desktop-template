@@ -27,7 +27,7 @@ export interface TiptapBackup {
 
 // Create backup for a specific document
 export const createTiptapBackup = (
-  documentId: string, 
+  documentId: string,
   format: BackupFormat = 'both',
   title?: string
 ): TiptapBackup | null => {
@@ -35,7 +35,7 @@ export const createTiptapBackup = (
 
   try {
     const documentData = loadTiptapDocumentData(documentId);
-    
+
     const backup: TiptapBackup = {
       documentId,
       title: title || `Document ${documentId}`,
@@ -74,7 +74,7 @@ export const saveTiptapBackup = (backup: TiptapBackup): boolean => {
   try {
     const backupKey = `tiptap-backup-${backup.documentId}-${Date.now()}`;
     localStorage.setItem(backupKey, JSON.stringify(backup));
-    
+
     return true;
   } catch (error) {
     console.error('TipTap Backup: Error saving backup:', error);
@@ -84,7 +84,7 @@ export const saveTiptapBackup = (backup: TiptapBackup): boolean => {
 
 // Export backup as downloadable file
 export const exportTiptapBackup = (
-  backup: TiptapBackup, 
+  backup: TiptapBackup,
   filename?: string
 ): void => {
   if (typeof window === 'undefined') return;
@@ -120,16 +120,16 @@ export const exportTiptapBackup = (
     // Create blob and download
     const blob = new Blob([content], { type: mimeType });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.download = finalFilename;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     URL.revokeObjectURL(url);
-    
+
   } catch (error) {
     console.error('TipTap Backup: Error exporting backup:', error);
   }
@@ -169,7 +169,7 @@ export const getAllTiptapBackups = (): TiptapBackup[] => {
 
     // Sort by creation date (newest first)
     backups.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    
+
     return backups;
   } catch (error) {
     console.error('TipTap Backup: Error loading backups:', error);
@@ -197,7 +197,7 @@ export const cleanupOldTiptapBackups = (retentionDays: number = 30): number => {
         if (backupData) {
           const backup = JSON.parse(backupData) as TiptapBackup;
           const createdDate = new Date(backup.createdAt);
-          
+
           if (createdDate < cutoffDate) {
             keysToDelete.push(key);
           }
@@ -225,7 +225,7 @@ export const restoreTiptapFromBackup = (backup: TiptapBackup): boolean => {
   try {
     const storageKey = getTiptapStorageKey(backup.documentId);
     localStorage.setItem(storageKey, JSON.stringify(backup.data.json));
-    
+
     return true;
   } catch (error) {
     console.error('TipTap Backup: Error restoring from backup:', error);
@@ -237,7 +237,7 @@ export const restoreTiptapFromBackup = (backup: TiptapBackup): boolean => {
 export const autoBackupTiptapDocument = (documentId: string, title?: string): void => {
   const lastAutoBackupKey = `tiptap-last-auto-backup-${documentId}`;
   const lastBackup = localStorage.getItem(lastAutoBackupKey);
-  
+
   const now = Date.now();
   const autoBackupInterval = 1000 * 60 * 30; // 30 minutes
 

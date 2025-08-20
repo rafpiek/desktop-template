@@ -392,7 +392,7 @@ function DocumentHeader({ document, subtitle, updateDocument, focusEditor, isNew
           <ChevronRight
             className={`h-4 w-4 transition-transform ${isMetadataExpanded ? 'rotate-90' : ''}`}
           />
-          Document Details
+          Document Details {document.id}
         </button>
 
         {isMetadataExpanded && (
