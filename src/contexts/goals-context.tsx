@@ -1,7 +1,7 @@
 import React, { createContext, useContext, ReactNode, useEffect, useCallback } from 'react';
 import { useGoals } from '@/hooks/use-goals';
 import { useProjects } from '@/hooks/use-projects';
-import { useDocuments } from '@/hooks/use-documents';
+import { useProject } from '@/contexts/project-context';
 import type {
   WritingGoal,
   GoalProgress,
@@ -44,6 +44,9 @@ interface GoalsContextValue {
   // Auto-tracking
   trackDocumentChange: (documentId: string, projectId: string, wordCount: number, charCount: number) => void;
   syncProgressFromDocuments: () => void;
+  
+  // Utilities
+  initializeDefaultGoals: () => void;
 }
 
 const GoalsContext = createContext<GoalsContextValue | undefined>(undefined);
@@ -53,6 +56,9 @@ interface GoalsProviderProps {
 }
 
 export function GoalsProvider({ children }: GoalsProviderProps) {
+  const { projects } = useProjects();
+  const { documents } = useProject();
+  
   const {
     goals,
     progress,
@@ -71,10 +77,7 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     getCalendarData,
     updateSettings,
     initializeDefaultGoals,
-  } = useGoals();
-
-  const { projects } = useProjects();
-  const { documents } = useDocuments();
+  } = useGoals(documents);
 
   // Calculate stats
   const stats = calculateAllStats();
@@ -131,45 +134,11 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     });
   }, [getActiveGoals, progress, upsertProgress]);
 
-  // Sync progress from all documents (for initial load and background sync)
+  // Sync is now automatic since we calculate directly from documents
   const syncProgressFromDocuments = useCallback(() => {
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Group documents by their last update date
-    const documentsByDate: Record<string, typeof documents> = {};
-    
-    documents.forEach(doc => {
-      const date = new Date(doc.updatedAt).toISOString().split('T')[0];
-      if (!documentsByDate[date]) {
-        documentsByDate[date] = [];
-      }
-      documentsByDate[date].push(doc);
-    });
-    
-    // For each date, calculate total words written
-    Object.entries(documentsByDate).forEach(([date, docs]) => {
-      const totalWords = docs.reduce((sum, doc) => sum + doc.wordCount, 0);
-      const totalChars = totalWords * 5; // Rough estimate of characters
-      const projectIds = [...new Set(docs.map(d => d.projectId))];
-      const documentIds = docs.map(d => d.id);
-      
-      // Find the appropriate goal for this date
-      const activeGoals = getActiveGoals();
-      
-      activeGoals.forEach(goal => {
-        if (shouldTrackForGoal(goal, date)) {
-          upsertProgress({
-            goalId: goal.id,
-            date,
-            wordsWritten: totalWords,
-            charsWritten: totalChars,
-            projectIds,
-            documentIds,
-          });
-        }
-      });
-    });
-  }, [documents, getActiveGoals, upsertProgress]);
+    // No-op - stats are now calculated directly from documents
+    console.log('Goals synced from documents:', documents?.length || 0, 'documents');
+  }, [documents]);
 
   // Helper function to determine if a change should be tracked for a goal
   const shouldTrackForGoal = (goal: WritingGoal, date: string): boolean => {
@@ -228,6 +197,9 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     // Auto-tracking
     trackDocumentChange,
     syncProgressFromDocuments,
+    
+    // Utilities
+    initializeDefaultGoals,
   };
 
   return (

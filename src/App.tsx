@@ -4,7 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { AppLayout } from "@/components/app-layout"
 import ProjectsPage from "./pages/projects"
 import SettingsPage from "./pages/settings"
-import GoalsPage from "./pages/goals"
+import StatsPage from "./pages/stats"
 import { ProjectLayout } from "./components/project/project-layout"
 import { ProjectOverviewWrapper } from "./components/project/project-overview-wrapper"
 import { DocumentView } from "./components/project/document-view"
@@ -12,18 +12,37 @@ import { ChapterOverview } from "./components/project/chapter-overview"
 import { ChaptersOverview } from "./components/project/chapters-overview"
 import { DraftsOverview } from "./components/project/drafts-overview"
 import { ContinueOnSection } from "./components/continue-on-section"
-import { BookOpen, Settings, Target, Sparkles, ArrowRight, PenTool, TrendingUp, Award } from "lucide-react"
-import { cn } from "@/lib/utils"
+import { BookOpen, Settings, Target, ArrowRight, TrendingUp, Flame } from "lucide-react"
 import { useLastAccessed } from "./contexts/last-accessed-context"
+import { useWritingStats } from "./hooks/use-writing-stats"
 
 function HomePage() {
   const { lastAccessed } = useLastAccessed();
   const hasRecentWork = lastAccessed.project || lastAccessed.chapter || lastAccessed.document;
+  const writingStats = useWritingStats();
   
   // Check localStorage for user data
   const projects = JSON.parse(localStorage.getItem('zeyn-projects') || '[]');
   const hasProjects = projects.length > 0;
-  const totalWords = projects.reduce((sum: number, p: any) => sum + (p.wordCount || 0), 0);
+  const totalWords = writingStats.totalWords;
+  
+  // Streak data and motivational messages
+  const { streak } = writingStats;
+  const getStreakMessage = () => {
+    if (streak.streakStatus === 'none') {
+      return "Ready to start your writing streak?";
+    }
+    if (streak.streakStatus === 'broken') {
+      return "Time to rebuild your streak!";
+    }
+    if (streak.currentStreak === 0) {
+      return "Start your writing journey today!";
+    }
+    if (streak.daysUntilMilestone && streak.daysUntilMilestone <= 3) {
+      return `Almost there! ${streak.daysUntilMilestone} more days to ${streak.nextMilestone}!`;
+    }
+    return `${streak.currentStreak} day${streak.currentStreak !== 1 ? 's' : ''} strong! Keep going!`;
+  };
 
   return (
     <AppLayout showNavigation={true}>
@@ -39,7 +58,7 @@ function HomePage() {
         <div className="grid md:grid-cols-3 gap-6">
           {/* Projects */}
           <Link to="/projects" className="group">
-            <Card className="h-full border border-border/50 bg-gradient-to-br from-card to-card/50 hover:border-blue-500/30 hover:shadow-lg hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+            <Card className="h-full border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-border/10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               
               <CardHeader className="pb-4 relative z-10">
@@ -70,12 +89,12 @@ function HomePage() {
             </Card>
           </Link>
 
-          {/* Goals */}
-          <Link to="/goals" className="group">
-            <Card className="h-full border border-border/50 bg-gradient-to-br from-card to-card/50 hover:border-emerald-500/30 hover:shadow-lg hover:shadow-emerald-500/10 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+          {/* Stats with Streak */}
+          <Link to="/stats" className="group">
+            <Card className="h-full border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-border/10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               
-              <CardHeader className="pb-4 relative z-10">
+              <CardHeader className="pb-3 relative z-10">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center">
                     <Target className="h-5 w-5 text-emerald-500" />
@@ -87,16 +106,36 @@ function HomePage() {
                   )}
                 </div>
                 <CardTitle className="text-xl font-bold group-hover:text-emerald-600 transition-colors duration-300">
-                  Goals
+                  Stats
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
-                  Track your daily writing progress
+                  {getStreakMessage()}
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="relative z-10 pt-0">
+              <CardContent className="relative z-10 pt-0 space-y-3">
+                {/* Streak Display */}
+                {streak.currentStreak > 0 && (
+                  <div className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/20">
+                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500/30 to-orange-600/30 flex items-center justify-center">
+                      <Flame className="h-3 w-3 text-orange-500" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="text-sm font-semibold text-orange-600">
+                        {streak.currentStreak} Day Streak
+                      </div>
+                      {streak.nextMilestone && (
+                        <div className="text-xs text-muted-foreground">
+                          {streak.daysUntilMilestone} days to {streak.nextMilestone}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Action */}
                 <div className="flex items-center text-sm text-muted-foreground group-hover:text-emerald-600 transition-colors duration-300">
-                  <span>Set targets</span>
+                  <span>{streak.currentStreak > 0 ? 'View progress' : 'Start tracking'}</span>
                   <TrendingUp className="h-4 w-4 ml-auto group-hover:scale-110 transition-transform duration-300" />
                 </div>
               </CardContent>
@@ -105,7 +144,7 @@ function HomePage() {
 
           {/* Settings */}
           <Link to="/settings" className="group">
-            <Card className="h-full border border-border/50 bg-gradient-to-br from-card to-card/50 hover:border-purple-500/30 hover:shadow-lg hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden">
+            <Card className="h-full border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-purple-500/40 hover:shadow-lg hover:shadow-purple-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-border/10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               
               <CardHeader className="pb-4 relative z-10">
@@ -153,7 +192,7 @@ function App() {
     <Routes>
       <Route path="/" element={<HomePage />} />
       <Route path="/projects" element={<ProjectsPage />} />
-      <Route path="/goals" element={<GoalsPage />} />
+      <Route path="/stats" element={<StatsPage />} />
       <Route path="/settings/*" element={<SettingsPage />} />
       <Route path="/projects/:id" element={<ProjectLayout />}>
         <Route index element={<ProjectOverviewWrapper />} />

@@ -26,7 +26,7 @@ const GOALS_STORAGE_KEY = 'zeyn-goals';
 const GOAL_PROGRESS_STORAGE_KEY = 'zeyn-goal-progress';
 const GOAL_SETTINGS_STORAGE_KEY = 'zeyn-goal-settings';
 
-export function useGoals() {
+export function useGoals(documents: any[] = []) {
   const [goals, setGoals] = useLocalStorage<WritingGoal[]>(GOALS_STORAGE_KEY, []);
   const [progress, setProgress] = useLocalStorage<GoalProgress[]>(GOAL_PROGRESS_STORAGE_KEY, []);
   const [settings, setSettings] = useLocalStorage<GoalSettings>(GOAL_SETTINGS_STORAGE_KEY, DEFAULT_GOAL_SETTINGS);
@@ -131,16 +131,35 @@ export function useGoals() {
     });
   }, [progress]);
 
-  // Get progress for today
+  // Get progress for today - calculate from documents directly
   const getTodayProgress = useCallback(() => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0];
+    const todayDocuments = documents.filter(doc => {
+      const docDate = new Date(doc.updatedAt).toISOString().split('T')[0];
+      return docDate === today;
+    });
+    
+    const totalWords = todayDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
+    
+    // Return in the expected format for the UI
+    if (totalWords > 0) {
+      return [{
+        id: 'today',
+        goalId: 'daily',
+        date: today,
+        wordsWritten: totalWords,
+        charsWritten: totalWords * 5,
+        projectIds: [...new Set(todayDocuments.map(d => d.projectId))],
+        documentIds: todayDocuments.map(d => d.id),
+        createdAt: today,
+        updatedAt: today,
+      }];
+    }
+    
+    return [];
+  }, [documents]);
 
-    return progress.filter(p => p.date.startsWith(todayStr));
-  }, [progress]);
-
-  // Calculate stats for a specific period
+  // Calculate stats for a specific period using documents directly
   const calculatePeriodStats = useCallback((period: GoalPeriod): GoalPeriodStats => {
     const goal = getGoalByType(period);
     if (!goal) {
@@ -158,34 +177,90 @@ export function useGoals() {
     }
 
     const { start, end } = getDateRangeForPeriod(period);
-    const periodProgress = getProgressForGoal(goal.id, start, end);
+    
+    // Calculate directly from documents (like analytics does)
+    const today = new Date().toISOString().split('T')[0];
+    let achieved = 0;
+    
+    if (period === 'daily') {
+      // For daily, get words from documents modified today
+      const todayDocuments = documents.filter(doc => {
+        const docDate = new Date(doc.updatedAt).toISOString().split('T')[0];
+        return docDate === today;
+      });
+      achieved = todayDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
+    } else if (period === 'weekly') {
+      // For weekly, get words from documents modified in the past 7 days
+      const weekAgo = new Date();
+      weekAgo.setDate(weekAgo.getDate() - 7);
+      const weeklyDocuments = documents.filter(doc => {
+        const docDate = new Date(doc.updatedAt);
+        return docDate >= weekAgo;
+      });
+      achieved = weeklyDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
+    } else if (period === 'monthly') {
+      // For monthly, get words from documents modified in the past 30 days
+      const monthAgo = new Date();
+      monthAgo.setDate(monthAgo.getDate() - 30);
+      const monthlyDocuments = documents.filter(doc => {
+        const docDate = new Date(doc.updatedAt);
+        return docDate >= monthAgo;
+      });
+      achieved = monthlyDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
+    } else if (period === 'yearly') {
+      // For yearly, get words from documents modified in the past 365 days
+      const yearAgo = new Date();
+      yearAgo.setDate(yearAgo.getDate() - 365);
+      const yearlyDocuments = documents.filter(doc => {
+        const docDate = new Date(doc.updatedAt);
+        return docDate >= yearAgo;
+      });
+      achieved = yearlyDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
+    }
 
-    const achieved = periodProgress.reduce((sum, p) => sum + p.wordsWritten, 0);
     const percentage = calculateGoalPercentage(achieved, goal.targetWords);
-    const streak = calculateStreak(periodProgress, goal.targetWords);
+    
+    // Calculate streak from recent daily writing (simplified)
+    let streak = 0;
+    const currentDate = new Date();
+    for (let i = 0; i < 30; i++) {
+      const checkDate = new Date(currentDate);
+      checkDate.setDate(currentDate.getDate() - i);
+      const dateStr = checkDate.toISOString().split('T')[0];
+      
+      const dayDocuments = documents.filter(doc => {
+        const docDate = new Date(doc.updatedAt).toISOString().split('T')[0];
+        return docDate === dateStr;
+      });
+      
+      const dayWords = dayDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
+      
+      if (dayWords >= 100) { // Minimum words for streak
+        streak++;
+      } else if (i > 0) { // Don't break on today if no words yet
+        break;
+      }
+    }
 
-    // Calculate best streak (simplified for now)
-    const bestStreak = Math.max(streak, 0);
-
-    // Calculate average words per day in period
-    const daysInPeriod = Math.ceil((end.getTime() - start.getTime()) / (1000 * 60 * 60 * 24));
+    const daysInPeriod = period === 'daily' ? 1 : 
+                        period === 'weekly' ? 7 : 
+                        period === 'monthly' ? 30 : 365;
+    
     const averageWords = daysInPeriod > 0 ? Math.round(achieved / daysInPeriod) : 0;
-
-    // Count successful days
-    const successfulDays = periodProgress.filter(p => p.wordsWritten >= goal.targetWords).length;
+    const successfulDays = period === 'daily' ? (achieved >= goal.targetWords ? 1 : 0) : Math.ceil(streak);
 
     return {
       target: goal.targetWords,
       achieved,
       percentage,
       streak,
-      bestStreak,
+      bestStreak: streak, // Simplified
       averageWords,
       totalDays: daysInPeriod,
       successfulDays,
       isActive: goal.isActive,
     };
-  }, [getGoalByType, getProgressForGoal]);
+  }, [getGoalByType, documents]);
 
   // Calculate all stats
   const calculateAllStats = useCallback((): GoalStats => {
@@ -256,11 +331,17 @@ export function useGoals() {
         createGoal({
           type: period,
           targetWords: defaultTargets[period],
-          isActive: false, // Start as inactive
+          isActive: true, // Start as active so they track progress
+        });
+      } else if (!existingGoal.isActive) {
+        // Activate existing inactive goals
+        updateGoal({
+          id: existingGoal.id,
+          isActive: true,
         });
       }
     });
-  }, [getGoalByType, createGoal]);
+  }, [getGoalByType, createGoal, updateGoal]);
 
   // Return all functions and data
   return useMemo(() => ({
