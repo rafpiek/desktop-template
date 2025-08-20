@@ -7,6 +7,7 @@ import {
   calculateTiptapTextStats,
   getEmptyTiptapDocument
 } from '@/components/editor/v2/storage/tiptap-storage';
+import { Constants } from '@/infra/constants';
 
 export function useTiptapStorage(documentId: string) {
   const [content, setContent] = useState<TiptapValue | null>(null);
@@ -15,19 +16,31 @@ export function useTiptapStorage(documentId: string) {
     charactersWithSpaces: 0,
     charactersWithoutSpaces: 0,
   });
-  
+
   const [isLoading, setIsLoading] = useState(true);
   const currentDocumentIdRef = useRef<string | null>(null);
   const lastSavedContentRef = useRef<TiptapValue | null>(null);
+  const debouncedContentDocumentIdRef = useRef<string | null>(null);
 
-  // Debounce content changes for auto-save (1 second delay)
-  const debouncedContent = useDebounce(content, 1000);
+  // Debounce content changes for auto-save (500ms delay)
+  const debouncedContent = useDebounce(content, Constants.AUTO_SAVE_DELAY);
 
   // Load document data
   const loadDocumentData = useCallback((docId: string): TiptapDocumentData => {
-    
+
     try {
       const data = loadTiptapDocumentData(docId);
+      const extractParagraphText = (content: any): string => {
+        if (!content?.content?.content) return '';
+        return content.content.content
+          .filter((node: any) => node.type === 'paragraph')
+          .map((para: any) =>
+            para.content?.map((textNode: any) => textNode.text || '').join('') || ''
+          )
+          .join(' ');
+      };
+      const paragraphText = extractParagraphText(data);
+      console.log('Paragraph text:', paragraphText, docId);
       return data;
     } catch (error) {
       return getEmptyTiptapDocument();
@@ -40,12 +53,11 @@ export function useTiptapStorage(documentId: string) {
       return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 };
     }
 
-    
     try {
       const stats = saveTiptapContent(docId, content);
       setTextStats(stats);
       lastSavedContentRef.current = content;
-      
+
       return stats;
     } catch (error) {
       return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 }; // Return empty stats if save fails
@@ -64,18 +76,21 @@ export function useTiptapStorage(documentId: string) {
   // Update content and trigger stats calculation
   const updateContent = useCallback((newContent: TiptapValue) => {
     setContent(newContent);
-    
+
+    // Track which document this content belongs to
+    debouncedContentDocumentIdRef.current = documentId;
+
     // Calculate stats immediately for UI responsiveness
     const stats = calculateTiptapTextStats(newContent);
     setTextStats(stats);
-  }, []);
+  }, [documentId]);
 
   // Load content when document ID changes
   useEffect(() => {
-    
+
     if (currentDocumentIdRef.current !== documentId) {
       setIsLoading(true);
-      
+
       // Save current document before switching (if we have one)
       if (currentDocumentIdRef.current && lastSavedContentRef.current) {
         saveDocumentData(lastSavedContentRef.current, currentDocumentIdRef.current);
@@ -83,7 +98,7 @@ export function useTiptapStorage(documentId: string) {
 
       // Load new document
       const documentData = loadDocumentData(documentId);
-      
+
       // Update state
       currentDocumentIdRef.current = documentId;
       lastSavedContentRef.current = documentData.content;
@@ -93,21 +108,25 @@ export function useTiptapStorage(documentId: string) {
         charactersWithSpaces: documentData.charactersWithSpaces,
         charactersWithoutSpaces: documentData.charactersWithoutSpaces,
       });
-      
+
       setIsLoading(false);
-      
+
     }
   }, [documentId]);
 
   // Auto-save when content changes (debounced)
   useEffect(() => {
-    if (debouncedContent && documentId && !isLoading) {
+    if (debouncedContent && !isLoading && debouncedContentDocumentIdRef.current) {
+      // CRITICAL: Only save content to the document it actually belongs to
+      const contentDocumentId = debouncedContentDocumentIdRef.current;
+
       // Only save if content has actually changed
       if (JSON.stringify(debouncedContent) !== JSON.stringify(lastSavedContentRef.current)) {
-        saveDocumentData(debouncedContent, documentId);
+        console.log('Auto-saving debounced content to document:', contentDocumentId);
+        saveDocumentData(debouncedContent, contentDocumentId);
       }
     }
-  }, [debouncedContent, documentId, isLoading]);
+  }, [debouncedContent, isLoading]);
 
   // Save on unmount or when document changes
   useEffect(() => {

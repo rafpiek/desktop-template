@@ -58,12 +58,12 @@ export function DocumentEditorV2({
     if (content && onContentChange) {
       onContentChange(content, textStats);
     }
-  }, [content, textStats, documentId]);
+  }, [content, textStats]);
 
   // Handle content changes from editor
   const handleContentUpdate = React.useCallback((newContent: TiptapValue) => {
     setContent(newContent);
-  }, [documentId]);
+  }, [setContent, documentId]);
 
   // Handle editor ready callback
   const handleEditorReady = React.useCallback((editorInstance: Editor) => {
