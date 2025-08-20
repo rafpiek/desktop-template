@@ -1,7 +1,7 @@
 'use client';
 
 import type { TiptapValue, TiptapDocumentData } from '../tiptap-types';
-import { loadTiptapDocumentData, getTiptapStorageKey } from './tiptap-storage';
+import { loadDocumentData, getDocumentStorageKey } from './document-storage';
 import { tiptapToMarkdown } from '@/lib/utils/tiptap-content-utils';
 
 // Backup formats
@@ -34,7 +34,7 @@ export const createTiptapBackup = (
   if (typeof window === 'undefined') return null;
 
   try {
-    const documentData = loadTiptapDocumentData(documentId);
+    const documentData = loadDocumentData(documentId);
 
     const backup: TiptapBackup = {
       documentId,
@@ -223,7 +223,7 @@ export const restoreTiptapFromBackup = (backup: TiptapBackup): boolean => {
   if (typeof window === 'undefined' || !backup.data.json) return false;
 
   try {
-    const storageKey = getTiptapStorageKey(backup.documentId);
+    const storageKey = getDocumentStorageKey(backup.documentId);
     localStorage.setItem(storageKey, JSON.stringify(backup.data.json));
 
     return true;

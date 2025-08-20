@@ -31,6 +31,7 @@
   margin: var(--spacing-paragraph, 0.75rem) 0;
   line-height: var(--lh-body, 1.6);
   font-size: var(--fs-body, 1rem);
+  font-weight: 500 !important;
 }
 
 /* TipTap Headings - using existing CSS variables */
@@ -334,7 +335,7 @@
 }
 
 
-/* Linear-inspired typewriter focus */ 
+/* Linear-inspired typewriter focus */
 .typewriter-active .tiptap-focus {
   background-color: rgb(250 251 252) !important; /* Subtle light gray */
   padding-left: 1rem !important;

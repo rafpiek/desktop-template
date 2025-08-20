@@ -128,7 +128,6 @@ export function DocumentEditorV2({
       onPortalContainerReady={setZenModePortalContainer}
     >
       <div className="absolute top-4 right-4 z-10 flex gap-2">
-        <span className="text-sm text-muted-foreground">Typewriter: {typewriterMode}</span>
         <Button
           onClick={toggleZenMode}
           variant="ghost"

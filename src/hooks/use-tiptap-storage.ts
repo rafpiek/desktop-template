@@ -2,11 +2,11 @@ import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDebounce } from './use-debounce';
 import type { TiptapValue, TiptapDocumentData, TiptapTextStats } from '@/components/editor/v2/tiptap-types';
 import {
-  loadTiptapDocumentData,
-  saveTiptapContent,
-  calculateTiptapTextStats,
-  getEmptyTiptapDocument
-} from '@/components/editor/v2/storage/tiptap-storage';
+  loadDocumentData,
+  saveDocumentContent,
+  calculateTextStats,
+  getEmptyDocumentData
+} from '@/components/editor/v2/storage/document-storage';
 import { Constants } from '@/infra/constants';
 
 export function useTiptapStorage(documentId: string) {
@@ -26,10 +26,10 @@ export function useTiptapStorage(documentId: string) {
   const debouncedContent = useDebounce(content, Constants.AUTO_SAVE_DELAY);
 
   // Load document data
-  const loadDocumentData = useCallback((docId: string): TiptapDocumentData => {
+  const loadDocumentDataInternal = useCallback((docId: string): TiptapDocumentData => {
 
     try {
-      const data = loadTiptapDocumentData(docId);
+      const data = loadDocumentData(docId);
       const extractParagraphText = (content: any): string => {
         if (!content?.content?.content) return '';
         return content.content.content
@@ -43,7 +43,7 @@ export function useTiptapStorage(documentId: string) {
       console.log('Paragraph text:', paragraphText, docId);
       return data;
     } catch (error) {
-      return getEmptyTiptapDocument();
+      return getEmptyDocumentData();
     }
   }, []);
 
@@ -54,7 +54,7 @@ export function useTiptapStorage(documentId: string) {
     }
 
     try {
-      const stats = saveTiptapContent(docId, content);
+      const stats = saveDocumentContent(docId, content);
       setTextStats(stats);
       lastSavedContentRef.current = content;
 
@@ -81,7 +81,7 @@ export function useTiptapStorage(documentId: string) {
     debouncedContentDocumentIdRef.current = documentId;
 
     // Calculate stats immediately for UI responsiveness
-    const stats = calculateTiptapTextStats(newContent);
+    const stats = calculateTextStats(newContent);
     setTextStats(stats);
   }, [documentId]);
 
@@ -97,7 +97,7 @@ export function useTiptapStorage(documentId: string) {
       }
 
       // Load new document
-      const documentData = loadDocumentData(documentId);
+      const documentData = loadDocumentDataInternal(documentId);
 
       // Update state
       currentDocumentIdRef.current = documentId;
@@ -132,7 +132,7 @@ export function useTiptapStorage(documentId: string) {
   useEffect(() => {
     return () => {
       if (currentDocumentIdRef.current && lastSavedContentRef.current) {
-        saveTiptapContent(currentDocumentIdRef.current, lastSavedContentRef.current);
+        saveDocumentContent(currentDocumentIdRef.current, lastSavedContentRef.current);
       }
     };
   }, []);
@@ -143,7 +143,7 @@ export function useTiptapStorage(documentId: string) {
     textStats,
     isLoading,
     saveNow,
-    loadDocumentData,
+    loadDocumentData: loadDocumentDataInternal,
     saveDocumentData,
   };
 }

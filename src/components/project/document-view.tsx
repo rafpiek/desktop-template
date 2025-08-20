@@ -8,6 +8,7 @@ import { X, Plus, ChevronRight } from 'lucide-react';
 import { DocumentEditorV2 } from '@/components/editor/v2/document-editor-v2';
 import { DocumentDropdownMenu } from '@/components/project/document-dropdown-menu';
 import { SimpleErrorBoundary } from '@/components/error/simple-error-boundary';
+import { FloatingStatsWidget } from '@/components/project/floating-stats-widget';
 import { useProject } from '@/contexts/project-context';
 import { useGoalsContext } from '@/contexts/goals-context';
 import { useLastAccessed } from '@/contexts/last-accessed-context';
@@ -34,9 +35,28 @@ export function DocumentView() {
     charactersWithSpaces: number;
     charactersWithoutSpaces: number;
   }>({ wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 });
+  const [isStatsVisible, setIsStatsVisible] = useState<boolean>(() => {
+    // Load preference from localStorage, default to true
+    try {
+      const saved = localStorage.getItem('document-stats-visible');
+      return saved ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
 
   // Check if this is a new document
   const isNewDocument = searchParams.get('new') === 'true';
+
+  // Handle stats widget visibility toggle
+  const handleStatsToggle = (visible: boolean) => {
+    setIsStatsVisible(visible);
+    try {
+      localStorage.setItem('document-stats-visible', JSON.stringify(visible));
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
 
   // Determine which document we're viewing
   const document = draftId
@@ -59,38 +79,6 @@ export function DocumentView() {
       );
     }
   }, [document, draftId, documentId, projectId, _chapterId, setLastDocument]);
-
-  // Initialize text stats when document changes - load from localStorage first
-  React.useEffect(() => {
-    if (!document) return;
-
-
-    const loadStoredTextStats = (documentId: string) => {
-      try {
-        const storageKey = `document-data-${documentId}`;
-        const saved = localStorage.getItem(storageKey);
-        if (saved) {
-          const documentData = JSON.parse(saved);
-          return {
-            wordCount: documentData.wordCount || 0,
-            charactersWithSpaces: documentData.charactersWithSpaces || 0,
-            charactersWithoutSpaces: documentData.charactersWithoutSpaces || 0
-          };
-        }
-      } catch (error) {
-      }
-
-      // Fallback to document model data
-      return {
-        wordCount: document?.wordCount || 0,
-        charactersWithSpaces: 0,
-        charactersWithoutSpaces: 0
-      };
-    };
-
-    const storedStats = loadStoredTextStats(document.id);
-    setTextStats(storedStats);
-  }, [document?.id, document?.wordCount]);
 
   // Function to clear the new document flag
   const clearNewDocumentFlag = () => {
@@ -144,25 +132,9 @@ export function DocumentView() {
   // Get chapter info if document belongs to a chapter
   const chapter = document.chapterId ? getChapter(document.chapterId) : null;
 
-  // Create comprehensive stats subtitle
-  const formatStats = () => {
-    const parts = [];
-
-    // Words
-    parts.push(`${textStats.wordCount.toLocaleString()} words`);
-
-    // Always show characters if we have any content (even if 0 to debug)
-    if (textStats.wordCount > 0) {
-      parts.push(`${textStats.charactersWithSpaces.toLocaleString()} chars`);
-      parts.push(`${textStats.charactersWithoutSpaces.toLocaleString()} chars (no spaces)`);
-    }
-
-    return parts.join(' • ');
-  };
-
   const subtitle = chapter
-    ? `Document from ${chapter.title} • ${formatStats()}`
-    : `Draft document • ${formatStats()}`;
+    ? `Document from ${chapter.title}`
+    : `Draft document`;
 
   const handleDocumentDelete = (documentId: string) => {
     // Navigate away from the deleted document
@@ -210,6 +182,13 @@ export function DocumentView() {
           </SimpleErrorBoundary>
         </TooltipProvider>
       </div>
+
+      {/* Floating Stats Widget */}
+      <FloatingStatsWidget
+        textStats={textStats}
+        isVisible={isStatsVisible}
+        onToggle={handleStatsToggle}
+      />
     </div>
   );
 }

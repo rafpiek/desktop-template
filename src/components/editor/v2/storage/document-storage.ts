@@ -1,17 +1,18 @@
 'use client';
 
 import type { TiptapValue, TiptapDocumentData, TiptapTextStats } from '../tiptap-types';
+import type { Document, DocumentStatus, ProjectTag } from '@/lib/types/project';
 
-// Following existing pattern: document-data-${id} → tiptap-document-data-${id}
-export const getTiptapStorageKey = (documentId: string): string => 
-  `tiptap-document-data-${documentId}`;
+// Storage key patterns - using original clean pattern
+export const getDocumentStorageKey = (documentId: string): string => 
+  `document-data-${documentId}`;
 
 // Get backup storage key for JSON export
-export const getTiptapBackupKey = (documentId: string): string => 
-  `tiptap-backup-${documentId}`;
+export const getDocumentBackupKey = (documentId: string): string => 
+  `document-backup-${documentId}`;
 
 // Default empty document structure
-export const getEmptyTiptapDocument = (): TiptapDocumentData => ({
+export const getEmptyDocumentData = (): TiptapDocumentData => ({
   content: {
     type: 'doc',
     content: [
@@ -28,8 +29,8 @@ export const getEmptyTiptapDocument = (): TiptapDocumentData => ({
   version: '1.0',
 });
 
-// Calculate text statistics from TipTap JSON content
-export const calculateTiptapTextStats = (content: TiptapValue): TiptapTextStats => {
+// Calculate text statistics from editor content
+export const calculateTextStats = (content: TiptapValue): TiptapTextStats => {
   if (!content || !content.content) {
     return { wordCount: 0, charactersWithSpaces: 0, charactersWithoutSpaces: 0 };
   }
@@ -65,10 +66,10 @@ export const calculateTiptapTextStats = (content: TiptapValue): TiptapTextStats 
 };
 
 // Load document data from localStorage
-export const loadTiptapDocumentData = (documentId: string): TiptapDocumentData => {
-  if (typeof window === 'undefined') return getEmptyTiptapDocument();
+export const loadDocumentData = (documentId: string): TiptapDocumentData => {
+  if (typeof window === 'undefined') return getEmptyDocumentData();
 
-  const storageKey = getTiptapStorageKey(documentId);
+  const storageKey = getDocumentStorageKey(documentId);
 
   try {
     const saved = localStorage.getItem(storageKey);
@@ -77,12 +78,12 @@ export const loadTiptapDocumentData = (documentId: string): TiptapDocumentData =
 
       // Validate content structure
       if (!documentData.content || !documentData.content.content) {
-        return getEmptyTiptapDocument();
+        return getEmptyDocumentData();
       }
 
       // Handle backward compatibility - if character counts are missing, calculate them
       if (documentData.charactersWithSpaces === undefined || documentData.charactersWithoutSpaces === undefined) {
-        const stats = calculateTiptapTextStats(documentData.content);
+        const stats = calculateTextStats(documentData.content);
 
         // Update stored data with new fields
         const updatedData: TiptapDocumentData = {
@@ -94,7 +95,7 @@ export const loadTiptapDocumentData = (documentId: string): TiptapDocumentData =
           version: documentData.version || '1.0',
         };
         
-        saveTiptapDocumentData(documentId, updatedData);
+        saveDocumentData(documentId, updatedData);
         return updatedData;
       }
 
@@ -111,14 +112,14 @@ export const loadTiptapDocumentData = (documentId: string): TiptapDocumentData =
   } catch (error) {
   }
 
-  return getEmptyTiptapDocument();
+  return getEmptyDocumentData();
 };
 
 // Save document data to localStorage
-export const saveTiptapDocumentData = (documentId: string, documentData: TiptapDocumentData): void => {
+export const saveDocumentData = (documentId: string, documentData: TiptapDocumentData): void => {
   if (typeof window === 'undefined') return;
 
-  const storageKey = getTiptapStorageKey(documentId);
+  const storageKey = getDocumentStorageKey(documentId);
 
 
   try {
@@ -127,7 +128,7 @@ export const saveTiptapDocumentData = (documentId: string, documentData: TiptapD
     
     // Try to free up space by removing old backups
     try {
-      const backupKey = getTiptapBackupKey(documentId);
+      const backupKey = getDocumentBackupKey(documentId);
       localStorage.removeItem(backupKey);
       
       // Retry saving
@@ -138,8 +139,8 @@ export const saveTiptapDocumentData = (documentId: string, documentData: TiptapD
 };
 
 // Save content with automatic stats calculation
-export const saveTiptapContent = (documentId: string, content: TiptapValue): TiptapTextStats => {
-  const stats = calculateTiptapTextStats(content);
+export const saveDocumentContent = (documentId: string, content: TiptapValue): TiptapTextStats => {
+  const stats = calculateTextStats(content);
   const documentData: TiptapDocumentData = {
     content,
     ...stats,
@@ -147,14 +148,14 @@ export const saveTiptapContent = (documentId: string, content: TiptapValue): Tip
     version: '1.0',
   };
 
-  saveTiptapDocumentData(documentId, documentData);
+  saveDocumentData(documentId, documentData);
   return stats;
 };
 
 // Create backup of document (for export functionality)
-export const createTiptapBackup = (documentId: string): void => {
-  const documentData = loadTiptapDocumentData(documentId);
-  const backupKey = getTiptapBackupKey(documentId);
+export const createDocumentBackup = (documentId: string): void => {
+  const documentData = loadDocumentData(documentId);
+  const backupKey = getDocumentBackupKey(documentId);
   
   const backup = {
     ...documentData,
@@ -167,12 +168,12 @@ export const createTiptapBackup = (documentId: string): void => {
   }
 };
 
-// Get all TipTap document IDs (for migration/cleanup)
-export const getAllTiptapDocumentIds = (): string[] => {
+// Get all document IDs (for migration/cleanup)
+export const getAllDocumentIds = (): string[] => {
   if (typeof window === 'undefined') return [];
 
   const documentIds: string[] = [];
-  const prefix = 'tiptap-document-data-';
+  const prefix = 'document-data-';
 
   for (let i = 0; i < localStorage.length; i++) {
     const key = localStorage.key(i);
@@ -185,24 +186,24 @@ export const getAllTiptapDocumentIds = (): string[] => {
   return documentIds;
 };
 
-// Cleanup old TipTap data (for maintenance)
-export const cleanupOldTiptapData = (retentionDays: number = 30): number => {
+// Cleanup old document data (for maintenance)
+export const cleanupOldDocumentData = (retentionDays: number = 30): number => {
   if (typeof window === 'undefined') return 0;
 
   const cutoffDate = new Date();
   cutoffDate.setDate(cutoffDate.getDate() - retentionDays);
 
   let cleanedCount = 0;
-  const documentIds = getAllTiptapDocumentIds();
+  const documentIds = getAllDocumentIds();
 
   for (const documentId of documentIds) {
     try {
-      const data = loadTiptapDocumentData(documentId);
+      const data = loadDocumentData(documentId);
       const lastModified = new Date(data.lastModified);
 
       if (lastModified < cutoffDate) {
-        const storageKey = getTiptapStorageKey(documentId);
-        const backupKey = getTiptapBackupKey(documentId);
+        const storageKey = getDocumentStorageKey(documentId);
+        const backupKey = getDocumentBackupKey(documentId);
         
         localStorage.removeItem(storageKey);
         localStorage.removeItem(backupKey);
