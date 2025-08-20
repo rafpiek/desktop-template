@@ -1,16 +1,23 @@
 import * as React from 'react';
 
-import { Plate, usePlateEditor } from 'platejs/react';
+import {
+  Plate,
+  usePlateEditor,
+} from 'platejs/react';
 import { type Value } from 'platejs';
+import { Editor as SlateEditor, Range, Transforms } from 'slate';
+import { ReactEditor } from 'slate-react';
 import { Maximize2, Minimize2 } from 'lucide-react';
 
 import { DocumentEditorKit } from '@/components/editor/document-editor-kit';
+import { type MyValue } from '@/components/editor/plate-types';
 import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
 import { SettingsDialog } from '@/components/editor/settings-dialog';
 import { ZenModeContainer } from '@/components/editor/zen-mode-container';
 import { Editor, EditorContainer } from '@/components/ui/editor';
 import { Button } from '@/components/ui/button';
 import { useIsTauri } from '@/hooks/use-is-tauri';
+import { useTypewriter } from '@/hooks/use-typewriter';
 import { cn } from '@/lib/utils';
 
 // Utility function to calculate text statistics from editor content
@@ -85,12 +92,21 @@ export function DocumentEditor({
   onContentChange
 }: DocumentEditorProps) {
   const [isZenMode, setIsZenMode] = React.useState(false);
-  const [zenModePortalContainer, setZenModePortalContainer] = React.useState<HTMLElement | null>(null);
+  const [zenModePortalContainer, setZenModePortalContainer] =
+    React.useState<HTMLElement | null>(null);
   const isTauriApp = useIsTauri();
+  const [typewriterSettings] = useTypewriter();
   const currentDocumentIdRef = React.useRef<string | null>(null);
   const lastSavedContentRef = React.useRef<Value>(emptyValue);
 
-  console.log(`🔵 DocumentEditor render - documentId: ${documentId}, isZenMode: ${isZenMode}`);
+  const editor = usePlateEditor({
+    plugins: DocumentEditorKit,
+    value: emptyValue,
+  });
+
+  console.log(
+    `🔵 DocumentEditor render - documentId: ${documentId}, isZenMode: ${isZenMode}`
+  );
 
   // Debug zen mode state changes and portal container
   React.useEffect(() => {
@@ -233,13 +249,135 @@ export function DocumentEditor({
     }
   }, [onContentChange]);
 
-  // Create stable editor with empty initial value
-  const editor = usePlateEditor({
-    plugins: DocumentEditorKit,
-    value: emptyValue,
-  });
+  // Core typewriter centering logic as a stable callback
+  const centerActiveBlock = React.useCallback(() => {
+    if (typewriterSettings.mode === 'off' || !editor || !editor.selection) return;
+    if (!Range.isCollapsed(editor.selection)) return;
 
-  console.log(`🔶 Editor created, documentId: ${documentId}`);
+    const findScrollContainer = (element: HTMLElement | null): HTMLElement | null => {
+      let el: HTMLElement | null = element;
+      while (el) {
+        const style = window.getComputedStyle(el);
+        const canScroll = /(auto|scroll)/.test(style.overflowY) && el.scrollHeight > el.clientHeight;
+        if (canScroll) return el;
+        el = el.parentElement;
+      }
+      return null;
+    };
+
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const blockEntry = (SlateEditor as any).above(editor as any, {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        match: (n: any) => (SlateEditor as any).isBlock(editor as any, n),
+      });
+      if (!blockEntry) return;
+
+      const [block] = blockEntry;
+      const blockEl = ReactEditor.toDOMNode(editor as any, block) as HTMLElement;
+
+      // Highlight only this block
+      const prev = blockEl.parentElement?.querySelector('.tw-active');
+      if (prev && prev !== blockEl) prev.classList.remove('tw-active');
+      blockEl.classList.add('tw-active');
+
+      const scrollContainer =
+        findScrollContainer(blockEl) || (document.querySelector('.editor .editor-scroll') as HTMLElement | null);
+      if (!scrollContainer) return;
+
+      // Apply generous padding so even short docs center nicely
+      const pad = Math.round(window.innerHeight * 0.45);
+      scrollContainer.style.scrollPaddingTop = `${pad}px`;
+      scrollContainer.style.scrollPaddingBottom = `${pad}px`;
+      scrollContainer.style.paddingTop = `${pad}px`;
+      scrollContainer.style.paddingBottom = `${pad}px`;
+
+      const capturedSelection = editor.selection;
+      requestAnimationFrame(() => {
+        try {
+          if (!capturedSelection) return;
+          const domRange = ReactEditor.toDOMRange(editor as any, capturedSelection as any);
+          const caretRect = domRange.getBoundingClientRect();
+          const containerRect = scrollContainer.getBoundingClientRect();
+          const desiredTopWithin = containerRect.height / 2;
+          const currentTopWithin = caretRect.top - containerRect.top;
+          const delta = currentTopWithin - desiredTopWithin;
+          const rawTarget = scrollContainer.scrollTop + delta;
+          const maxScroll = scrollContainer.scrollHeight - scrollContainer.clientHeight;
+          const target = Math.max(0, Math.min(maxScroll, rawTarget));
+          if (Math.abs(target - scrollContainer.scrollTop) > 0.5) {
+            scrollContainer.scrollTo({ top: target, behavior: 'smooth' });
+          }
+        } catch {
+          try {
+            blockEl.scrollIntoView({ block: 'center', behavior: 'smooth' });
+          } catch {}
+        }
+      });
+    } catch {
+      // no-op
+    }
+  }, [editor, typewriterSettings.mode]);
+
+  // Typewriter Mode Effect (selection changes)
+  React.useEffect(() => {
+    const isRangeSelected = editor?.selection ? !Range.isCollapsed(editor.selection) : false;
+    const now = performance.now();
+    if (!isRangeSelected && now >= (suppressSelectionUntilRef.current || 0)) {
+      centerActiveBlock();
+    }
+  }, [centerActiveBlock, editor?.selection]);
+
+  // Keydown hook to trigger centering immediately after input like Enter
+  const rafTokenRef = React.useRef<number | null>(null);
+  const suppressSelectionUntilRef = React.useRef<number>(0);
+  const handleEditorKeyDown = React.useCallback((event: React.KeyboardEvent) => {
+    if (typewriterSettings.mode === 'off') return;
+    if (event.shiftKey) return; // don't center while extending selection
+    const keysToCenter = new Set([
+      'Enter',
+      'Backspace',
+      'Delete',
+      'ArrowUp',
+      'ArrowDown',
+      'ArrowLeft',
+      'ArrowRight',
+      'PageUp',
+      'PageDown',
+      'Home',
+      'End',
+      'Tab',
+    ]);
+    if (!keysToCenter.has(event.key)) return;
+
+    // Run after Slate updates selection/layout, avoid stacking
+    if (rafTokenRef.current) cancelAnimationFrame(rafTokenRef.current);
+    rafTokenRef.current = requestAnimationFrame(() => {
+      rafTokenRef.current = null;
+      // Suppress selection-change handler briefly so we don't double-center
+      suppressSelectionUntilRef.current = performance.now() + 120;
+      centerActiveBlock();
+    });
+  }, [centerActiveBlock, typewriterSettings.mode]);
+
+  // Cleanup/highlight removal when turning mode off or on unmount
+  React.useEffect(() => {
+    if (typewriterSettings.mode === 'off') {
+      const active = document.querySelector('.typewriter-active .tw-active');
+      if (active) active.classList.remove('tw-active');
+      const scrollContainer = document.querySelector('.editor .editor-scroll') as HTMLElement | null;
+      if (scrollContainer) {
+        scrollContainer.style.scrollPaddingTop = '';
+        scrollContainer.style.scrollPaddingBottom = '';
+        scrollContainer.style.paddingTop = '';
+        scrollContainer.style.paddingBottom = '';
+      }
+    }
+    return () => {
+      const active = document.querySelector('.typewriter-active .tw-active');
+      if (active) active.classList.remove('tw-active');
+    };
+  }, [typewriterSettings.mode]);
 
   // Debounced save function
   const debouncedSave = React.useMemo(() => {
@@ -261,7 +399,9 @@ export function DocumentEditor({
       // Save current content before switching (skip if this is initial load)
       if (editor && currentDocumentIdRef.current !== null) {
         const currentContent = editor.children as Value;
-        console.log(`💾 Saving current document ${currentDocumentIdRef.current} before switch`);
+        console.log(
+          `💾 Saving current document ${currentDocumentIdRef.current} before switch`
+        );
         saveDocumentData(currentContent, currentDocumentIdRef.current);
       }
 
@@ -276,7 +416,8 @@ export function DocumentEditor({
       // Update editor with loaded content
       if (editor) {
         try {
-          editor.tf.setValue(documentData.content);
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          (editor as any).tf.setValue(documentData.content);
           console.log(`✅ Successfully loaded content for ${documentId}`, {
             wordCount: documentData.wordCount,
             charactersWithSpaces: documentData.charactersWithSpaces,
@@ -352,7 +493,18 @@ export function DocumentEditor({
     if (editor && autoFocus) {
       const timeoutId = setTimeout(() => {
         try {
-          editor.tf.focus();
+          ReactEditor.focus(editor as any);
+          const { children } = editor;
+          if (
+            children.length === 1 &&
+            (children[0] as any).children.length === 1 &&
+            (children[0] as any).children[0].text === ''
+          ) {
+            Transforms.select(editor as any, {
+              anchor: { path: [0, 0], offset: 0 },
+              focus: { path: [0, 0], offset: 0 },
+            });
+          }
         } catch (error) {
           console.warn('Failed to auto-focus editor:', error);
         }
@@ -365,29 +517,32 @@ export function DocumentEditor({
   // Expose focus function to parent
   React.useEffect(() => {
     if (onEditorReady && editor) {
-      const focusEditor = () => {
+      const focus = () => {
         console.log('🎯 DocumentEditor: focusEditor called');
         try {
-          editor.tf.focus();
-          console.log('🎯 DocumentEditor: editor.tf.focus() called');
+          ReactEditor.focus(editor as any);
+          console.log('🎯 DocumentEditor: editor focused');
 
           setTimeout(() => {
             try {
               // Position cursor at the start of the first block for new documents
-              editor.tf.select({
+              Transforms.select(editor as any, {
                 anchor: { path: [0, 0], offset: 0 },
-                focus: { path: [0, 0], offset: 0 }
+                focus: { path: [0, 0], offset: 0 },
               });
               console.log('🎯 DocumentEditor: cursor positioned at start');
             } catch (selectionError) {
-              console.warn('🎯 DocumentEditor: Failed to set cursor position:', selectionError);
+              console.warn(
+                '🎯 DocumentEditor: Failed to set cursor position:',
+                selectionError
+              );
             }
           }, 50);
         } catch (error) {
           console.warn('🎯 DocumentEditor: Failed to focus editor:', error);
         }
       };
-      onEditorReady(focusEditor);
+      onEditorReady(focus);
     }
   }, [editor, onEditorReady]);
 
@@ -395,7 +550,7 @@ export function DocumentEditor({
     <ZenModeContainer
       isZenMode={isZenMode}
       onToggleZenMode={toggleZenMode}
-      className="relative"
+      className="relative h-full"
       onPortalContainerReady={setZenModePortalContainer}
     >
       <div className="absolute top-4 right-4 z-10 flex gap-2">
@@ -424,10 +579,13 @@ export function DocumentEditor({
         <EditorSettingsSheet container={isZenMode ? zenModePortalContainer : undefined} />
       </div>
 
-      <div className={cn(
-        "editor",
-        isZenMode ? "h-full overflow-y-auto" : "h-full"
-      )}>
+      <div
+        className={cn(
+          'editor',
+          isZenMode ? 'h-full overflow-y-auto' : 'h-full',
+          typewriterSettings.mode === 'center' && 'typewriter-active'
+        )}
+      >
         {/* Single Plate component with conditional layout */}
         <Plate
           key={`editor-${documentId}`}
@@ -437,14 +595,17 @@ export function DocumentEditor({
             debouncedSave(value);
           }}
         >
-          {/* Use same structure for both modes to preserve settings */}
-          <EditorContainer className="plate-editor h-full">
-            <Editor
-              variant="demo"
-              className="h-full overflow-y-auto"
-            />
-          </EditorContainer>
-          <SettingsDialog />
+          <div className="h-full flex flex-col">
+            {/* Use same structure for both modes to preserve settings */}
+            <EditorContainer className="plate-editor flex-1 border-2 border-red-700">
+              <Editor
+                variant="none"
+                className="editor-scroll h-full overflow-y-auto px-16 pt-4 pb-16 sm:px-[max(64px,calc(50%-350px))]"
+                onKeyDown={handleEditorKeyDown as unknown as React.KeyboardEventHandler<HTMLDivElement>}
+              />
+            </EditorContainer>
+            <SettingsDialog />
+          </div>
         </Plate>
       </div>
     </ZenModeContainer>

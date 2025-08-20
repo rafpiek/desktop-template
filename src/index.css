@@ -1,5 +1,6 @@
 @import './styles/editor-font-sizes.css';
 @import './styles/zen-mode.css';
+@import './styles/typewriter.css';
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Courier+Prime:wght@400;700&family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
 @tailwind base;

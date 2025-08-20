@@ -10,10 +10,28 @@ import { Button } from '@/components/ui/button';
 import { Settings } from 'lucide-react';
 import { type FontSize } from '@/hooks/use-font-size';
 import { type FontFamily } from '@/hooks/use-font-family';
+import { useTypewriter, type TypewriterMode } from '@/hooks/use-typewriter';
 import { SettingsSlider } from '@/components/ui/settings-slider';
+import { Switch } from '@/components/ui/switch';
+import { Label } from '@/components/ui/label';
 
 
 type LineWidth = '60' | '80' | '120' | '160' | 'full' | 'default';
+
+const typewriterOptions = [
+  {
+    value: 'off' as TypewriterMode,
+    label: 'Off',
+    description: 'Standard editor behavior',
+    preview: <div className="text-xs font-mono text-muted-foreground">Aa</div>
+  },
+  {
+    value: 'center' as TypewriterMode,
+    label: 'Center',
+    description: 'Keep the active line in the middle',
+    preview: <div className="text-xs font-mono text-muted-foreground">Aa</div>
+  },
+];
 
 const fontSizeOptions = [
   {
@@ -132,32 +150,38 @@ interface EditorSettingsSheetProps {
 
 export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}) {
   console.log('🔧 EditorSettingsSheet render - container:', container);
-  
+
+  const [typewriterSettings, setTypewriterSettings] = useTypewriter();
+
   // Get current values directly from DOM/localStorage
   const getCurrentFontSize = (): FontSize => {
     const saved = localStorage.getItem('zeyn-font-size');
     return (saved as FontSize) || 'md';
   };
-  
+
   const getCurrentFontFamily = (): FontFamily => {
     const saved = localStorage.getItem('zeyn-font-family');
     return (saved as FontFamily) || 'sans';
   };
-  
+
   const getCurrentLineWidth = (): LineWidth => {
     const saved = localStorage.getItem('zeyn-line-width');
     return (saved as LineWidth) || 'default';
   };
-  
+
   const [fontSize, setCurrentFontSize] = React.useState(getCurrentFontSize());
   const [fontFamily, setCurrentFontFamily] = React.useState(getCurrentFontFamily());
   const [lineWidth, setCurrentLineWidth] = React.useState(getCurrentLineWidth());
-  
+
+  const setTypewriterMode = (mode: TypewriterMode) => {
+    setTypewriterSettings({ ...typewriterSettings, mode });
+  };
+
   const setFontSize = (size: FontSize) => {
     // Update localStorage
     localStorage.setItem('zeyn-font-size', size);
     setCurrentFontSize(size);
-    
+
     // Apply to DOM directly
     const editors = document.querySelectorAll('.editor');
     editors.forEach(editor => {
@@ -167,12 +191,12 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
       editor.classList.add(`font-size-${size}`);
     });
   };
-  
+
   const setFontFamily = (family: FontFamily) => {
-    // Update localStorage  
+    // Update localStorage
     localStorage.setItem('zeyn-font-family', family);
     setCurrentFontFamily(family);
-    
+
     // Apply to DOM directly
     const editors = document.querySelectorAll('.editor');
     editors.forEach(editor => {
@@ -182,12 +206,12 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
       editor.classList.add(`font-family-${family}`);
     });
   };
-  
+
   const setLineWidth = (width: LineWidth) => {
     // Update localStorage
     localStorage.setItem('zeyn-line-width', width);
     setCurrentLineWidth(width);
-    
+
     // Apply to DOM directly
     const editors = document.querySelectorAll('.editor');
     editors.forEach(editor => {
@@ -197,40 +221,40 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
       editor.classList.add(`line-width-${width}`);
     });
   };
-  
+
   // Apply stored settings on mount and when editor appears
   React.useEffect(() => {
     const applyStoredSettings = () => {
       const storedSize = getCurrentFontSize();
       const storedFamily = getCurrentFontFamily();
       const storedWidth = getCurrentLineWidth();
-      
+
       const editors = document.querySelectorAll('.editor');
       editors.forEach(editor => {
         // Apply font size
         editor.classList.remove('font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen');
         editor.classList.add(`font-size-${storedSize}`);
-        
+
         // Apply font family
         editor.classList.remove('font-family-sans', 'font-family-serif', 'font-family-mono', 'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter');
         editor.classList.add(`font-family-${storedFamily}`);
-        
+
         // Apply line width
         editor.classList.remove('line-width-60', 'line-width-80', 'line-width-120', 'line-width-160', 'line-width-full', 'line-width-default');
         editor.classList.add(`line-width-${storedWidth}`);
       });
     };
-    
+
     // Apply immediately
     applyStoredSettings();
-    
+
     // Also apply when new editors are added (with a small delay)
     const observer = new MutationObserver(() => {
       setTimeout(applyStoredSettings, 100);
     });
-    
+
     observer.observe(document.body, { childList: true, subtree: true });
-    
+
     return () => observer.disconnect();
   }, []);
 
@@ -241,7 +265,7 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
           <Settings className="h-5 w-5" />
         </Button>
       </SheetTrigger>
-      <SheetContent 
+      <SheetContent
         className="w-[400px] sm:w-[540px] overflow-y-auto max-h-screen"
         container={container}
       >
@@ -276,6 +300,25 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
               value={lineWidth}
               onChange={setLineWidth}
             />
+          </div>
+
+          {/* Typewriter Mode Section */}
+          <div className="pt-4 border-t">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="text-sm font-medium">Typewriter Mode</h4>
+                <p className="text-sm text-muted-foreground">
+                  Keep the active line centered in the viewport.
+                </p>
+              </div>
+              <Switch
+                id="typewriter-mode"
+                checked={typewriterSettings.mode === 'center'}
+                onCheckedChange={(checked) => {
+                  setTypewriterMode(checked ? 'center' : 'off');
+                }}
+              />
+            </div>
           </div>
         </div>
       </SheetContent>

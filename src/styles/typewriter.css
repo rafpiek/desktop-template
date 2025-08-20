@@ -1,0 +1,25 @@
+/* Modern typewriter mode: highlight only the active block, keep it centered */
+
+/* Smooth visual transition for any element block */
+.typewriter-active [data-slate-node="element"] {
+  transition: background-color 150ms ease, color 150ms ease, box-shadow 150ms ease;
+}
+
+/* Class applied to the DOM node of the block that contains the caret */
+.typewriter-active .tw-active {
+  background-color: theme('colors.sky.100 / 0.55');
+  color: theme('colors.sky.900');
+  box-shadow: 0 0 0 1px theme('colors.sky.300 / 0.35') inset;
+}
+
+.dark .typewriter-active .tw-active {
+  background-color: theme('colors.sky.900 / 0.35');
+  color: theme('colors.sky.50');
+  box-shadow: 0 0 0 1px theme('colors.sky.700 / 0.35') inset;
+}
+
+/* The scrollable element inside the editor gets dynamic padding from JS to allow
+   centering even for short documents. We keep defaults minimal here. */
+.typewriter-active .editor-scroll {
+  scroll-behavior: smooth;
+}
