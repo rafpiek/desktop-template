@@ -1,6 +1,5 @@
 @import './styles/editor-font-sizes.css';
 @import './styles/zen-mode.css';
-/* @import './styles/typewriter.css'; */
 @import './styles/tiptap-editor.css';
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Courier+Prime:wght@400;700&family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&display=swap');
 
@@ -129,23 +128,20 @@
 }
 
 /* Enhanced scrollbars for editor areas */
-.plate-editor::-webkit-scrollbar,
 .editor::-webkit-scrollbar,
-[data-slate-editor]::-webkit-scrollbar {
+.tiptap-editor::-webkit-scrollbar {
   width: 10px;
 }
 
-.plate-editor::-webkit-scrollbar-thumb,
 .editor::-webkit-scrollbar-thumb,
-[data-slate-editor]::-webkit-scrollbar-thumb {
+.tiptap-editor::-webkit-scrollbar-thumb {
   background: hsl(var(--accent) / 0.4);
   border-radius: 6px;
   border: 2px solid hsl(var(--background));
 }
 
-.plate-editor::-webkit-scrollbar-thumb:hover,
 .editor::-webkit-scrollbar-thumb:hover,
-[data-slate-editor]::-webkit-scrollbar-thumb:hover {
+.tiptap-editor::-webkit-scrollbar-thumb:hover {
   background: hsl(var(--accent) / 0.6);
   border-color: hsl(var(--muted) / 0.5);
 }
@@ -193,54 +189,13 @@
   text-rendering: optimizeLegibility;
 }
 
-/* Make editor cursor white and extra wide */
-[data-slate-editor] {
+/* Make editor cursor white */
+.tiptap-editor .ProseMirror {
   caret-color: #ffffff !important; /* White cursor */
 }
 
-[data-slate-editor]:focus {
+.tiptap-editor .ProseMirror:focus {
   caret-color: #ffffff !important; /* White cursor */
-}
-
-/* Plate-specific cursor styling - white and thick */
-.plate-editor [data-slate-editor] {
-  caret-color: #ffffff !important; /* White cursor */
-}
-
-.plate-editor [data-slate-editor]:focus {
-  caret-color: #ffffff !important;
-}
-
-/* Also target specific Plate editor elements */
-.plate-content [data-slate-editor],
-.plate-content [data-slate-editor] * {
-  caret-color: #ffffff !important;
-}
-
-/* Ensure cursor is visible in paragraphs and other text elements */
-.plate-editor p[data-slate-node],
-.plate-editor div[data-slate-node],
-.plate-editor h1[data-slate-node],
-.plate-editor h2[data-slate-node],
-.plate-editor h3[data-slate-node] {
-  caret-color: #ffffff !important;
-}
-
-/* Make cursor much thicker using multiple techniques */
-.plate-editor [contenteditable="true"] {
-  caret-color: #ffffff !important;
-  /* Remove text-shadow as it causes text rendering issues */
-}
-
-.plate-editor [contenteditable="true"]:focus {
-  caret-color: #ffffff !important;
-}
-
-/* Target all possible editor text containers */
-.plate-editor [contenteditable],
-.plate-editor [data-slate-string],
-.plate-editor span[data-slate-leaf] {
-  caret-color: #ffffff !important;
 }
 
 
@@ -252,36 +207,36 @@
 
 /* Line Width Settings */
 /* Default width - no restriction, let the container decide */
-.line-width-default .plate-editor {
+.line-width-default .tiptap-editor .ProseMirror {
   max-width: none;
 }
 
 /* Narrow width - 60 characters */
-.line-width-60 .plate-editor {
+.line-width-60 .tiptap-editor .ProseMirror {
   max-width: 60ch;
   margin: 0 auto;
 }
 
 /* Compact width - 80 characters */
-.line-width-80 .plate-editor {
+.line-width-80 .tiptap-editor .ProseMirror {
   max-width: 80ch;
   margin: 0 auto;
 }
 
 /* Comfortable width - 120 characters */
-.line-width-120 .plate-editor {
+.line-width-120 .tiptap-editor .ProseMirror {
   max-width: 120ch;
   margin: 0 auto;
 }
 
 /* Wide width - 160 characters */
-.line-width-160 .plate-editor {
+.line-width-160 .tiptap-editor .ProseMirror {
   max-width: 160ch;
   margin: 0 auto;
 }
 
 /* Full width - use all available space */
-.line-width-full .plate-editor {
+.line-width-full .tiptap-editor .ProseMirror {
   max-width: 100%;
   width: 100%;
 }

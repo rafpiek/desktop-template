@@ -5,7 +5,6 @@ import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { TooltipProvider } from '@/components/ui/tooltip';
 import { X, Plus, ChevronRight } from 'lucide-react';
-import { DocumentEditor } from '@/components/editor/document-editor';
 import { DocumentEditorV2 } from '@/components/editor/v2/document-editor-v2';
 import { DocumentDropdownMenu } from '@/components/project/document-dropdown-menu';
 import { useProject } from '@/contexts/project-context';
@@ -13,10 +12,6 @@ import { useGoalsContext } from '@/contexts/goals-context';
 import { useLastAccessed } from '@/contexts/last-accessed-context';
 import type { DocumentStatus } from '@/lib/types/project';
 import { DOCUMENT_STATUS_LABELS } from '@/lib/types/project';
-
-// Feature flag to switch between Plate.js and TipTap editors
-// Set to true to use TipTap DocumentEditorV2, false to use original Plate.js DocumentEditor
-const USE_TIPTAP_EDITOR = true;
 
 export function DocumentView() {
   const { id: projectId, chapterId: _chapterId, documentId, draftId } = useParams<{
@@ -204,21 +199,12 @@ export function DocumentView() {
       {/* Scrollable Editor Area - Takes remaining height, no padding */}
       <div className="flex-1 min-h-0">
         <TooltipProvider>
-          {USE_TIPTAP_EDITOR ? (
-            <DocumentEditorV2
-              documentId={document.id}
-              onEditorReady={setFocusEditor}
-              autoFocus={!isNewDocument}
-              onContentChange={handleContentChange}
-            />
-          ) : (
-            <DocumentEditor
-              documentId={document.id}
-              onEditorReady={setFocusEditor}
-              autoFocus={!isNewDocument}
-              onContentChange={handleContentChange}
-            />
-          )}
+          <DocumentEditorV2
+            documentId={document.id}
+            onEditorReady={setFocusEditor}
+            autoFocus={!isNewDocument}
+            onContentChange={handleContentChange}
+          />
         </TooltipProvider>
       </div>
     </div>

@@ -19,7 +19,8 @@
       "WebFetch(domain:docs.anthropic.com)",
       "WebFetch(domain:stackoverflow.com)",
       "Bash(mkdir:*)",
-      "Bash(node:*)"
+      "Bash(node:*)",
+      "Bash(bun install:*)"
     ],
     "deny": []
   }

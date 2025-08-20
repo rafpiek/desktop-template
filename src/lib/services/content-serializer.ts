@@ -1,4 +1,4 @@
-import type { MyValue } from '@/components/editor/plate-types';
+import type { TiptapValue } from '@/components/editor/v2/tiptap-types';
 import type { Document, Chapter, Project, ProjectTag } from '@/lib/types/project';
 
 /**
@@ -49,16 +49,25 @@ export function generateDocumentFrontmatter(doc: Document): string {
 }
 
 /**
- * Convert Plate.js content to Markdown
+ * Convert TipTap content to Markdown
  */
-export function plateToMarkdown(content: MyValue): string {
-  if (!content || !Array.isArray(content)) {
+export function plateToMarkdown(content: TiptapValue): string {
+  // Handle TipTap format: { type: 'doc', content: [...] }
+  let contentArray: any[];
+  
+  if (content && typeof content === 'object' && 'type' in content && content.type === 'doc' && 'content' in content) {
+    // TipTap format
+    contentArray = Array.isArray(content.content) ? content.content : [];
+  } else if (Array.isArray(content)) {
+    // Legacy Plate.js format (for compatibility)
+    contentArray = content;
+  } else {
     return '';
   }
 
   const lines: string[] = [];
 
-  for (const node of content) {
+  for (const node of contentArray) {
     const markdown = nodeToMarkdown(node);
     if (markdown) {
       lines.push(markdown);
@@ -69,7 +78,7 @@ export function plateToMarkdown(content: MyValue): string {
 }
 
 /**
- * Convert a single Plate.js node to Markdown
+ * Convert a single TipTap/Plate.js node to Markdown
  */
 function nodeToMarkdown(node: any): string {
   if (!node) return '';

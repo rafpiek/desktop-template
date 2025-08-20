@@ -2,7 +2,6 @@ import { Routes, Route, Link } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { AppLayout } from "@/components/app-layout"
-import Editor from "./pages/Editor"
 import ProjectsPage from "./pages/projects"
 import SettingsPage from "./pages/settings"
 import GoalsPage from "./pages/goals"
@@ -104,7 +103,6 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/editor" element={<Editor />} />
       <Route path="/projects" element={<ProjectsPage />} />
       <Route path="/goals" element={<GoalsPage />} />
       <Route path="/settings/*" element={<SettingsPage />} />

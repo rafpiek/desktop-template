@@ -241,52 +241,46 @@
 }
 
 /* Apply font sizes to elements within editor containers */
-[class*='font-size-'] [data-slate-editor],
-[class*='font-size-'] .plate-editor,
+[class*='font-size-'] .tiptap-editor,
+[class*='font-size-'] .ProseMirror,
 [class*='font-size-'] .editor-content {
   /* Headings */
-  h1,
-  .slate-h1 {
+  h1 {
     font-size: var(--fs-h1) !important;
     line-height: var(--lh-heading);
     margin-top: var(--spacing-heading);
     margin-bottom: var(--spacing-heading);
   }
 
-  h2,
-  .slate-h2 {
+  h2 {
     font-size: var(--fs-h2) !important;
     line-height: var(--lh-heading);
     margin-top: var(--spacing-heading);
     margin-bottom: var(--spacing-heading);
   }
 
-  h3,
-  .slate-h3 {
+  h3 {
     font-size: var(--fs-h3) !important;
     line-height: var(--lh-heading);
     margin-top: var(--spacing-heading);
     margin-bottom: var(--spacing-heading);
   }
 
-  h4,
-  .slate-h4 {
+  h4 {
     font-size: var(--fs-h4) !important;
     line-height: var(--lh-heading);
     margin-top: var(--spacing-heading);
     margin-bottom: var(--spacing-heading);
   }
 
-  h5,
-  .slate-h5 {
+  h5 {
     font-size: var(--fs-h5) !important;
     line-height: var(--lh-heading);
     margin-top: var(--spacing-heading);
     margin-bottom: var(--spacing-heading);
   }
 
-  h6,
-  .slate-h6 {
+  h6 {
     font-size: var(--fs-h6) !important;
     line-height: var(--lh-heading);
     margin-top: var(--spacing-heading);
@@ -294,8 +288,7 @@
   }
 
   /* Body text */
-  p,
-  .slate-p {
+  p {
     font-size: var(--fs-body) !important;
     line-height: var(--lh-body);
     margin-bottom: var(--spacing-paragraph);
@@ -307,23 +300,20 @@
   }
 
   /* Lists */
-  ul, ol,
-  .slate-ul, .slate-ol {
+  ul, ol {
     font-size: var(--fs-list) !important;
     line-height: var(--lh-body);
     padding-left: var(--fs-list-indent);
     margin-bottom: var(--spacing-block);
   }
 
-  li,
-  .slate-li {
+  li {
     font-size: var(--fs-list) !important;
     margin-bottom: calc(var(--spacing-paragraph) * 0.5);
   }
 
   /* Blockquotes */
-  blockquote,
-  .slate-blockquote {
+  blockquote {
     font-size: var(--fs-blockquote) !important;
     line-height: var(--lh-body);
     margin-bottom: var(--spacing-block);
@@ -335,7 +325,7 @@
     font-size: var(--fs-code-inline) !important;
   }
 
-  pre, [data-slate-code-block], .code-block {
+  pre, .code-block {
     font-size: var(--fs-code-block) !important;
     line-height: var(--lh-code);
     margin-bottom: var(--spacing-block);
@@ -385,10 +375,6 @@
     font-size: var(--fs-tooltip);
   }
 
-  /* Mentions */
-  [data-slate-value] {
-    font-size: var(--fs-body) !important;
-  }
 
   /* Emoji */
   [data-emoji] {

@@ -34,9 +34,7 @@ export function SidebarProvider({ children, defaultCollapsed = false }: SidebarP
   }, [isCollapsed, setIsCollapsed]);
 
   const handleKeyDown = useCallback((event: KeyboardEvent) => {
-    console.log('Sidebar context - Key pressed:', event.key, 'metaKey:', event.metaKey, 'ctrlKey:', event.ctrlKey);
     if ((event.metaKey || event.ctrlKey) && event.key === '/') {
-      console.log('Sidebar context - Toggle triggered!');
       event.preventDefault();
       event.stopPropagation();
       toggle();

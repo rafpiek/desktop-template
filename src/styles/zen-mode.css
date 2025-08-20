@@ -80,7 +80,8 @@
 
 /* Ensure editor is clickable and focusable in zen mode */
 .zen-mode-container .editor,
-.zen-mode-container [data-slate-editor],
+.zen-mode-container .tiptap-editor,
+.zen-mode-container .ProseMirror,
 .zen-mode-container [contenteditable="true"] {
   pointer-events: auto !important;
   user-select: text !important;
@@ -98,7 +99,7 @@
 }
 
 /* Animate editor when entering zen mode */
-.zen-mode-container .plate-editor {
+.zen-mode-container .tiptap-editor {
   animation: zen-fade-in 0.5s ease-in-out;
 }
 
@@ -114,13 +115,13 @@
 }
 
 /* Better readability in zen mode */
-.zen-mode-container .plate-editor p,
-.zen-mode-container .plate-editor [data-slate-node] {
+.zen-mode-container .tiptap-editor p,
+.zen-mode-container .ProseMirror p {
   line-height: 1.8;
 }
 
 /* Optional: Add a subtle shadow for depth in zen mode */
-.zen-mode-container .plate-editor {
+.zen-mode-container .tiptap-editor {
   filter: drop-shadow(0 0 40px rgba(0, 0, 0, 0.1));
 }
 

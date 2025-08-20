@@ -1,4 +1,4 @@
-import type { MyValue } from '@/components/editor/plate-types';
+import type { TiptapValue } from '@/components/editor/v2/tiptap-types';
 import { v7 as uuidv7 } from 'uuid';
 
 // Project Status Types
@@ -41,7 +41,7 @@ export type DocumentStatus =
 export interface Document {
   id: string;
   title: string;
-  content: MyValue;   // Plate.js editor content
+  content: TiptapValue;   // TipTap editor content
   wordCount: number;  // Auto-calculated word count
   
   // Metadata
@@ -92,7 +92,7 @@ export interface Project {
   description?: string;
   
   // Content
-  content: MyValue;   // Plate.js editor content
+  content: TiptapValue;   // TipTap editor content
   wordCount: number;  // Auto-calculated word count
   
   // Metadata
@@ -123,7 +123,7 @@ export interface Project {
 // Document Creation Input
 export interface CreateDocumentInput {
   title: string;
-  content?: MyValue;
+  content?: TiptapValue;
   status?: DocumentStatus;
   tags?: ProjectTag[];
   projectId: string;
@@ -135,7 +135,7 @@ export interface CreateDocumentInput {
 export interface UpdateDocumentInput {
   id: string;
   title?: string;
-  content?: MyValue;
+  content?: TiptapValue;
   status?: DocumentStatus;
   tags?: ProjectTag[];
   chapterId?: string;
@@ -178,7 +178,7 @@ export interface UpdateProjectInput {
   id: string;
   name?: string;
   description?: string;
-  content?: MyValue;
+  content?: TiptapValue;
   status?: ProjectStatus;
   label?: ProjectLabel;
   tags?: ProjectTag[];
@@ -294,7 +294,7 @@ export function createEmptyProject(input: CreateProjectInput): Project {
     id: uuidv7(),
     name: input.name,
     description: input.description,
-    content: [{ type: 'p', children: [{ text: '' }] }], // Empty paragraph
+    content: { type: 'doc', content: [{ type: 'paragraph', content: [] }] }, // Empty TipTap document
     wordCount: 0,
     status: input.status || 'draft',
     label: input.label,
@@ -317,7 +317,7 @@ export function createEmptyDocument(input: CreateDocumentInput): Document {
   return {
     id: uuidv7(),
     title: input.title || '',
-    content: input.content || [{ type: 'p', children: [{ text: '' }] }], // Empty paragraph
+    content: input.content || { type: 'doc', content: [{ type: 'paragraph', content: [] }] }, // Empty TipTap document
     wordCount: 0,
     status: input.status || 'draft',
     tags: input.tags || [],
@@ -347,7 +347,7 @@ export function createEmptyChapter(input: CreateChapterInput): Chapter {
   };
 }
 
-export function calculateWordCount(content: MyValue | unknown): number {
+export function calculateWordCount(content: TiptapValue | unknown): number {
   // Handle TipTap content format: { type: 'doc', content: [...] }
   let contentArray: unknown[];
   
