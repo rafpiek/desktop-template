@@ -5,6 +5,7 @@ import type { Editor } from '@tiptap/react';
 import { type FontSize } from '@/hooks/use-font-size';
 import { type FontFamily } from '@/hooks/use-font-family';
 import { type TypewriterMode } from '@/hooks/use-typewriter';
+import { isEditorViewReady } from '@/lib/utils/tiptap-editor-utils';
 
 interface TiptapSettingsIntegrationProps {
   editor: Editor | null;
@@ -23,7 +24,7 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
       if (isApplyingRef.current) return;
       
       // Check if editor view is ready before accessing it
-      if (!editor.view || !editor.view.dom || editor.isDestroyed) {
+      if (!isEditorViewReady(editor)) {
         return; // Don't retry recursively
       }
 

@@ -16,6 +16,8 @@ import { useTiptapStorage } from '@/hooks/use-tiptap-storage';
 import { useTiptapFocusMode } from '@/hooks/use-tiptap-focus-mode';
 import { useTiptapTypewriter } from '@/hooks/use-tiptap-typewriter';
 import { TiptapSettingsIntegration } from './settings/tiptap-settings-integration';
+import { safeFocus } from '@/lib/utils/tiptap-editor-utils';
+import { safeTauriFocus } from '@/lib/utils/tauri-focus-manager';
 
 // Exact same interface as original DocumentEditor to ensure drop-in compatibility
 interface DocumentEditorV2Props {
@@ -66,19 +68,23 @@ export function DocumentEditorV2({
   }, [setContent, documentId]);
 
   // Handle editor ready callback
-  const handleEditorReady = React.useCallback((editorInstance: Editor) => {
-    setEditor(editorInstance);
+  const handleEditorReady = React.useCallback((editorInstance: unknown) => {
+    const ed = editorInstance as Editor;
+    setEditor(ed);
 
     // Expose focus function to parent
     if (onEditorReady) {
       const focusEditor = () => {
-        if (editorInstance) {
-          editorInstance.commands.focus();
+        if (!ed || ed.isDestroyed) return;
+        if (isTauriApp) {
+          void safeTauriFocus(ed);
+        } else {
+          void safeFocus(ed, 10, 50);
         }
       };
       onEditorReady(focusEditor);
     }
-  }, [documentId, onEditorReady]);
+  }, [documentId, onEditorReady, isTauriApp]);
 
   // Zen mode toggle - mirroring original implementation
   const toggleZenMode = React.useCallback(async () => {

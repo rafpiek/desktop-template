@@ -7,6 +7,7 @@ import { TooltipProvider } from '@/components/ui/tooltip';
 import { X, Plus, ChevronRight } from 'lucide-react';
 import { DocumentEditorV2 } from '@/components/editor/v2/document-editor-v2';
 import { DocumentDropdownMenu } from '@/components/project/document-dropdown-menu';
+import { SimpleErrorBoundary } from '@/components/error/simple-error-boundary';
 import { useProject } from '@/contexts/project-context';
 import { useGoalsContext } from '@/contexts/goals-context';
 import { useLastAccessed } from '@/contexts/last-accessed-context';
@@ -199,12 +200,14 @@ export function DocumentView() {
       {/* Scrollable Editor Area - Takes remaining height, no padding */}
       <div className="flex-1 min-h-0">
         <TooltipProvider>
-          <DocumentEditorV2
-            documentId={document.id}
-            onEditorReady={setFocusEditor}
-            autoFocus={!isNewDocument}
-            onContentChange={handleContentChange}
-          />
+          <SimpleErrorBoundary>
+            <DocumentEditorV2
+              documentId={document.id}
+              onEditorReady={setFocusEditor}
+              autoFocus={!isNewDocument}
+              onContentChange={handleContentChange}
+            />
+          </SimpleErrorBoundary>
         </TooltipProvider>
       </div>
     </div>

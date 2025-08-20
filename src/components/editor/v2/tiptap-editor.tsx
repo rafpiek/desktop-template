@@ -7,6 +7,20 @@ import { cn } from '@/lib/utils';
 import { type TiptapValue } from './tiptap-types';
 import { NovelWriterKit } from './plugins/novel-writer-kit';
 import { type TypewriterMode } from '@/hooks/use-typewriter';
+import {
+  isEditorViewReady,
+  safeDispatch,
+  safeDispatchDOMEvent,
+  safeFocus,
+  safeExecuteCommand,
+  waitForEditorView,
+  executeWhenViewReady
+} from '@/lib/utils/tiptap-editor-utils';
+import {
+  isTauriEnvironment,
+  initializeTauriEditor,
+  safeTauriFocus
+} from '@/lib/utils/tauri-focus-manager';
 
 interface TiptapEditorProps {
   documentId: string;
@@ -46,12 +60,6 @@ export function TiptapEditor({
         'spellcheck': 'true',
         'data-placeholder': 'Start writing...',
       },
-      handleDOMEvents: {
-        focus: () => {
-        },
-        blur: () => {
-        }
-      }
     },
 
     onUpdate: ({ editor }) => {
@@ -60,47 +68,67 @@ export function TiptapEditor({
     },
 
     onCreate: ({ editor }) => {
-      onReady(editor);
-
-      // Auto-focus if requested, but ensure editor view is ready
-      if (autoFocus) {
-        let retryCount = 0;
-        const maxRetries = 10; // Prevent infinite loops
-
-        const focusWhenReady = () => {
-          try {
-            // Check if editor and view are available
-            if (editor && editor.view && editor.view.dom && editor.commands) {
-              editor.commands.focus();
-
-              // Also trigger typewriter mode if it's active
-              if (typewriterMode === 'center') {
-                // Wait a bit more then force typewriter to activate
-                setTimeout(() => {
-                  if (editor && !editor.isDestroyed && editor.view && editor.view.docView) {
-                    // Force a transaction to activate typewriter
-                    const tr = editor.state.tr;
-                    editor.view.dispatch(tr);
-
-                    // Also manually trigger selection change
-                    const event = new Event('selectionchange');
-                    editor.view.dom.dispatchEvent(event);
-
-                  }
-                }, 300);
-              }
-            } else if (retryCount < maxRetries) {
-              // Retry after a short delay if not ready, but limit retries
-              retryCount++;
-              setTimeout(focusWhenReady, 50);
+      const handleEditorCreate = async () => {
+        try {
+          // Initialize Tauri environment if needed
+          if (isTauriEnvironment()) {
+            console.log('🚀 Initializing Tauri editor environment...');
+            const initialized = await initializeTauriEditor(editor);
+            if (!initialized) {
+              console.warn('⚠️ Tauri editor initialization failed, proceeding anyway');
+            } else {
+              console.log('✅ Tauri editor environment ready');
             }
-          } catch (error) {
           }
-        };
 
-        // Start focus attempt after a small delay
-        setTimeout(focusWhenReady, 100);
-      }
+          // Notify parent that editor is ready
+          console.log('editor built', editor);
+          onReady(editor);
+
+          // Auto-focus if requested
+          if (autoFocus) {
+            const focusWhenReady = async () => {
+              try {
+                let focusSuccess = false;
+
+                if (isTauriEnvironment()) {
+                  // Use Tauri-specific focus method
+                  focusSuccess = await safeTauriFocus(editor);
+                } else {
+                  // Use regular safe focus for browser
+                  focusSuccess = await safeFocus(editor, 10, 50);
+                }
+
+                if (focusSuccess && typewriterMode === 'center') {
+                  // Activate typewriter mode after successful focus
+                  setTimeout(async () => {
+                    await executeWhenViewReady(editor, (editor) => {
+                      const tr = editor.state.tr;
+                      safeDispatch(editor, tr);
+
+                      const event = new Event('selectionchange');
+                      safeDispatchDOMEvent(editor, event);
+                    });
+                  }, 200);
+                }
+              } catch (error) {
+                console.warn('Focus initialization failed:', error);
+              }
+            };
+
+            // Delay focus based on environment
+            const focusDelay = isTauriEnvironment() ? 300 : 100;
+            setTimeout(focusWhenReady, focusDelay);
+          }
+        } catch (error) {
+          console.error('Editor creation failed:', error);
+          // Still notify parent even if setup fails
+          onReady(editor);
+        }
+      };
+
+      // Start the async initialization
+      handleEditorCreate();
     },
 
     onDestroy: () => {
@@ -122,7 +150,7 @@ export function TiptapEditor({
 
   // Update typewriter mode when prop changes
   React.useEffect(() => {
-    if (editor && editor.isEditable) {
+    if (editor && editor.isEditable && isEditorViewReady(editor)) {
       // Update the extension configuration
       editor.extensionManager.extensions.forEach(extension => {
         if (extension.name === 'typewriter') {
@@ -131,12 +159,12 @@ export function TiptapEditor({
 
           // Force a transaction to trigger the plugin's apply method
           const tr = editor.state.tr;
-          editor.view.dispatch(tr);
+          safeDispatch(editor, tr);
 
           // Also manually trigger the selection change handler for immediate effect
           setTimeout(() => {
             const event = new Event('selectionchange');
-            editor.view.dom.dispatchEvent(event);
+            safeDispatchDOMEvent(editor, event);
           }, 50);
         }
       });
@@ -157,13 +185,13 @@ export function TiptapEditor({
 
       // Only update if content is actually different
       if (JSON.stringify(currentContent) !== JSON.stringify(initialContent)) {
-        editor.commands.setContent(initialContent, false);
+        safeExecuteCommand(editor, (ed) => ed.commands.setContent(initialContent, false));
 
         // If typewriter mode is active, trigger it after content update
         if (typewriterMode === 'center') {
           setTimeout(() => {
             const tr = editor.state.tr;
-            editor.view.dispatch(tr);
+            safeDispatch(editor, tr);
           }, 100);
         }
       }
