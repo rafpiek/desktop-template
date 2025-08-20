@@ -20,6 +20,8 @@
         "resizable": true,
         "fullscreen": false,
         "decorations": true,
+        "titleBarStyle": "Transparent",
+        "backgroundColor": "#0a0a0a",
         "label": "main",
         "zoomHotkeysEnabled": true
       }
