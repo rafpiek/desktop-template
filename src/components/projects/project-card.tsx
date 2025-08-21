@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { MoreHorizontal, Star, Archive, Copy, Trash2, Clock, Target, Calendar, ArrowUpRight, BookOpen, TrendingUp } from 'lucide-react';
+import { MoreHorizontal, Star, Archive, Copy, Trash2, Clock, Calendar, BookOpen, TrendingUp } from 'lucide-react';
 import { Card, CardContent, CardHeader, CardTitle, CardAction } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -55,18 +55,25 @@ export function ProjectCard({
     setIsMenuOpen(false);
   };
 
+  const handleCardClick = () => {
+    navigate(`/projects/${project.id}`);
+  };
+
   const statusColor = PROJECT_STATUS_COLORS[project.status];
   const daysAgo = Math.floor((Date.now() - new Date(project.updatedAt).getTime()) / (1000 * 60 * 60 * 24));
   const isOverdue = project.deadline && new Date(project.deadline) < new Date();
 
   return (
-    <Card className={cn(
-      "group relative transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/40 h-full ring-1 ring-border/10",
-      project.isFavorite && "ring-2 ring-yellow-400/40 shadow-lg shadow-yellow-400/20 border-yellow-400/40",
-      isLastUsed && "ring-2 ring-emerald-400/50 shadow-lg shadow-emerald-400/25 border-emerald-400/50 bg-gradient-to-br from-emerald-950/20 to-card/50",
-      project.isArchived && "opacity-60 hover:opacity-80",
-      "before:absolute before:inset-0 before:bg-gradient-to-br before:from-transparent before:via-transparent before:to-primary/5 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100"
-    )}>      
+    <Card 
+      className={cn(
+        "group relative transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/40 h-full ring-1 ring-border/10 cursor-pointer",
+        project.isFavorite && "ring-2 ring-yellow-400/40 shadow-lg shadow-yellow-400/20 border-yellow-400/40",
+        isLastUsed && "ring-2 ring-emerald-400/50 shadow-lg shadow-emerald-400/25 border-emerald-400/50 bg-gradient-to-br from-emerald-950/20 to-card/50",
+        project.isArchived && "opacity-60 hover:opacity-80",
+        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-transparent before:via-transparent before:to-primary/5 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100"
+      )}
+      onClick={handleCardClick}
+    >  
       {/* Shimmer effect - matches home page cards */}
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 overflow-hidden rounded-lg"></div>
       
@@ -99,16 +106,10 @@ export function ProjectCard({
           
           {/* Action Buttons */}
           <CardAction>
-            <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
-              <Button 
-                variant="ghost" 
-                size="sm" 
-                className="h-6 w-6 p-0 hover:bg-primary/10"
-                onClick={() => navigate(`/projects/${project.id}`)}
-                title="Open Project"
-              >
-                <ArrowUpRight className="h-3 w-3" />
-              </Button>
+            <div 
+              className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200"
+              onClick={(e) => e.stopPropagation()}
+            >
               <DropdownMenu open={isMenuOpen} onOpenChange={setIsMenuOpen}>
                 <DropdownMenuTrigger asChild>
                   <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-primary/10">
