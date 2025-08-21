@@ -158,10 +158,10 @@ export interface UpdateProgressInput {
 export function createEmptyGoal(input: CreateGoalInput): WritingGoal {
   const now = new Date().toISOString();
   const startDate = input.startDate || now;
-  
+
   // Calculate end date based on goal type
   const endDate = calculateGoalEndDate(startDate, input.type);
-  
+
   return {
     id: uuidv7(),
     type: input.type,
@@ -177,7 +177,7 @@ export function createEmptyGoal(input: CreateGoalInput): WritingGoal {
 
 export function createEmptyProgress(input: CreateProgressInput): GoalProgress {
   const now = new Date().toISOString();
-  
+
   return {
     id: uuidv7(),
     goalId: input.goalId,
@@ -194,7 +194,7 @@ export function createEmptyProgress(input: CreateProgressInput): GoalProgress {
 export function calculateGoalEndDate(startDate: string, type: GoalPeriod): string {
   const start = new Date(startDate);
   const end = new Date(start);
-  
+
   switch (type) {
     case 'daily':
       end.setHours(23, 59, 59, 999);
@@ -214,14 +214,14 @@ export function calculateGoalEndDate(startDate: string, type: GoalPeriod): strin
       end.setHours(23, 59, 59, 999);
       break;
   }
-  
+
   return end.toISOString();
 }
 
 export function getDateRangeForPeriod(period: GoalPeriod, date: Date = new Date()): { start: Date; end: Date } {
   const start = new Date(date);
   const end = new Date(date);
-  
+
   switch (period) {
     case 'daily':
       start.setHours(0, 0, 0, 0);
@@ -250,42 +250,65 @@ export function getDateRangeForPeriod(period: GoalPeriod, date: Date = new Date(
       end.setHours(23, 59, 59, 999);
       break;
   }
-  
+
   return { start, end };
 }
 
-export function calculateStreak(progressData: GoalProgress[], targetWords: number): number {
-  if (!progressData || progressData.length === 0) return 0;
-  
-  // Sort progress data by date in descending order
-  const sortedProgress = [...progressData].sort((a, b) => 
-    new Date(b.date).getTime() - new Date(a.date).getTime()
-  );
-  
-  let streak = 0;
-  let currentDate = new Date();
-  currentDate.setHours(0, 0, 0, 0);
-  
-  for (const progress of sortedProgress) {
-    const progressDate = new Date(progress.date);
-    progressDate.setHours(0, 0, 0, 0);
-    
-    // Check if this is today or the previous day in the streak
-    const dayDiff = Math.floor((currentDate.getTime() - progressDate.getTime()) / (1000 * 60 * 60 * 24));
-    
-    if (dayDiff === 0 || (dayDiff === 1 && streak > 0)) {
-      if (progress.wordsWritten >= targetWords) {
-        streak++;
-        currentDate = progressDate;
+export function calculateStreak(progress: GoalProgress[], dailyTarget: number): { currentStreak: number; bestStreak: number } {
+  if (!progress || progress.length === 0) {
+    return { currentStreak: 0, bestStreak: 0 };
+  }
+
+  const successDays = new Set<string>();
+  progress.forEach(p => {
+    if (p.wordsWritten >= dailyTarget) {
+      successDays.add(new Date(p.date).toISOString().split('T')[0]);
+    }
+  });
+
+  if (successDays.size === 0) {
+    return { currentStreak: 0, bestStreak: 0 };
+  }
+
+  // --- Best Streak Calculation ---
+  let bestStreak = 0;
+  if (successDays.size > 0) {
+    const uniqueDates = Array.from(successDays).sort();
+    let tempStreak = 1;
+    bestStreak = 1;
+    for (let i = 1; i < uniqueDates.length; i++) {
+      const currentDate = new Date(uniqueDates[i]);
+      const prevDate = new Date(uniqueDates[i - 1]);
+      const diffDays = Math.round((currentDate.getTime() - prevDate.getTime()) / (1000 * 60 * 60 * 24));
+      if (diffDays === 1) {
+        tempStreak++;
       } else {
-        break;
+        tempStreak = 1;
       }
-    } else if (dayDiff > 1) {
-      break;
+      bestStreak = Math.max(bestStreak, tempStreak);
     }
   }
-  
-  return streak;
+
+  // --- Current Streak Calculation ---
+  let currentStreak = 0;
+  const today = new Date();
+  const yesterday = new Date();
+  yesterday.setDate(today.getDate() - 1);
+  const todayStr = today.toISOString().split('T')[0];
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  if (successDays.has(todayStr) || successDays.has(yesterdayStr)) {
+    let dateToCheck = new Date();
+    if (!successDays.has(todayStr)) {
+      dateToCheck.setDate(dateToCheck.getDate() - 1);
+    }
+    while (successDays.has(dateToCheck.toISOString().split('T')[0])) {
+      currentStreak++;
+      dateToCheck.setDate(dateToCheck.getDate() - 1);
+    }
+  }
+
+  return { currentStreak, bestStreak };
 }
 
 // Independent streak calculation that works without active goals
@@ -325,7 +348,7 @@ export function calculateWritingStreak(
     const dateKey = new Date(doc.updatedAt).toISOString().split('T')[0];
     const currentCount = dailyWordCounts.get(dateKey) || 0;
     dailyWordCounts.set(dateKey, currentCount + doc.wordCount);
-    
+
     if (dateKey === today) {
       todayWordCount += doc.wordCount;
     }
@@ -356,15 +379,15 @@ export function calculateWritingStreak(
   for (const [dateStr, wordCount] of sortedDays) {
     const dayDate = new Date(dateStr);
     dayDate.setHours(0, 0, 0, 0);
-    
+
     const dayDiff = Math.floor((currentDate.getTime() - dayDate.getTime()) / (1000 * 60 * 60 * 24));
-    
+
     // Check if this day continues our streak
     if (dayDiff === currentStreak && wordCount >= minimumWordsPerDay) {
       currentStreak++;
       continue;
     }
-    
+
     // If we've found a gap, stop
     if (dayDiff > currentStreak) {
       break;
@@ -374,7 +397,7 @@ export function calculateWritingStreak(
   // Determine streak status
   const hasWrittenToday = todayWordCount >= minimumWordsPerDay;
   let streakStatus: 'active' | 'broken' | 'none';
-  
+
   if (currentStreak === 0) {
     streakStatus = 'none';
   } else if (hasWrittenToday || currentStreak > 0) {
@@ -399,9 +422,12 @@ export function calculateWritingStreak(
   };
 }
 
+/**
+ * Calculates the percentage of a goal that has been achieved.
+ */
 export function calculateGoalPercentage(achieved: number, target: number): number {
   if (target <= 0) return 0;
-  return Math.min(Math.round((achieved / target) * 100), 100);
+  return Math.round((achieved / target) * 100);
 }
 
 export function formatGoalPeriod(period: GoalPeriod): string {
@@ -411,7 +437,7 @@ export function formatGoalPeriod(period: GoalPeriod): string {
     monthly: 'Monthly',
     yearly: 'Yearly',
   };
-  
+
   return periodLabels[period];
 }
 

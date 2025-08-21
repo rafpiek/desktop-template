@@ -1,11 +1,11 @@
 import React from 'react';
-import { 
-  AreaChart, 
-  Area, 
-  XAxis, 
-  YAxis, 
-  CartesianGrid, 
-  Tooltip, 
+import {
+  AreaChart,
+  Area,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
   ResponsiveContainer,
   BarChart,
   Bar,
@@ -43,11 +43,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
   return null;
 };
 
+// Helper to calculate a "nice" max value for the Y-axis
+const getNiceMaxValue = (data: ChartDataPoint[]) => {
+  const maxWords = Math.max(...data.map(d => d.words));
+  if (maxWords < 1000) return Math.ceil(maxWords / 100) * 100; // Round up to next 100
+  return Math.ceil(maxWords / 1000) * 1000; // Round up to next 1000
+};
+
 export function DailyTrendChart({ dailyData }: { dailyData: ChartDataPoint[] }) {
+  const yMax = getNiceMaxValue(dailyData);
   return (
     <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-      
+
       <CardHeader className="relative z-10 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center">
@@ -59,11 +67,11 @@ export function DailyTrendChart({ dailyData }: { dailyData: ChartDataPoint[] }) 
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="relative z-10 pt-0">
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={dailyData}>
+            <AreaChart data={dailyData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="emeraldGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
@@ -71,13 +79,14 @@ export function DailyTrendChart({ dailyData }: { dailyData: ChartDataPoint[] }) 
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="label" 
+              <XAxis
+                dataKey="label"
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}
               />
-              <YAxis 
+              <YAxis
+                domain={[0, yMax]}
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}
@@ -101,10 +110,11 @@ export function DailyTrendChart({ dailyData }: { dailyData: ChartDataPoint[] }) 
 }
 
 export function WeeklyProgressChart({ weeklyData }: { weeklyData: ChartDataPoint[] }) {
+  const yMax = getNiceMaxValue(weeklyData);
   return (
     <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-      
+
       <CardHeader className="relative z-10 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center">
@@ -116,11 +126,11 @@ export function WeeklyProgressChart({ weeklyData }: { weeklyData: ChartDataPoint
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="relative z-10 pt-0">
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={weeklyData}>
+            <BarChart data={weeklyData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="blueGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#3b82f6" stopOpacity={0.8}/>
@@ -128,13 +138,14 @@ export function WeeklyProgressChart({ weeklyData }: { weeklyData: ChartDataPoint
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="label" 
+              <XAxis
+                dataKey="label"
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}
               />
-              <YAxis 
+              <YAxis
+                domain={[0, yMax]}
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}
@@ -155,10 +166,11 @@ export function WeeklyProgressChart({ weeklyData }: { weeklyData: ChartDataPoint
 }
 
 export function TodayBarChart({ todayData }: { todayData: ChartDataPoint[] }) {
+  const yMax = getNiceMaxValue(todayData);
   return (
     <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-      
+
       <CardHeader className="relative z-10 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center">
@@ -170,11 +182,11 @@ export function TodayBarChart({ todayData }: { todayData: ChartDataPoint[] }) {
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="relative z-10 pt-0">
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart data={todayData}>
+            <BarChart data={todayData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="todayGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#10b981" stopOpacity={0.8}/>
@@ -182,13 +194,14 @@ export function TodayBarChart({ todayData }: { todayData: ChartDataPoint[] }) {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="label" 
+              <XAxis
+                dataKey="label"
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}
               />
-              <YAxis 
+              <YAxis
+                domain={[0, yMax]}
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}
@@ -209,10 +222,11 @@ export function TodayBarChart({ todayData }: { todayData: ChartDataPoint[] }) {
 }
 
 export function MonthlyOverviewChart({ monthlyData }: { monthlyData: ChartDataPoint[] }) {
+  const yMax = getNiceMaxValue(monthlyData);
   return (
     <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
       <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-      
+
       <CardHeader className="relative z-10 pb-4">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-purple-500/20 to-purple-600/20 flex items-center justify-center">
@@ -224,11 +238,11 @@ export function MonthlyOverviewChart({ monthlyData }: { monthlyData: ChartDataPo
           </div>
         </div>
       </CardHeader>
-      
+
       <CardContent className="relative z-10 pt-0">
         <div className="h-64 w-full">
           <ResponsiveContainer width="100%" height="100%">
-            <ComposedChart data={monthlyData}>
+            <ComposedChart data={monthlyData} margin={{ top: 10, right: 20, left: -20, bottom: 0 }}>
               <defs>
                 <linearGradient id="purpleGradient" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.6}/>
@@ -236,13 +250,14 @@ export function MonthlyOverviewChart({ monthlyData }: { monthlyData: ChartDataPo
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" className="opacity-30" />
-              <XAxis 
-                dataKey="label" 
+              <XAxis
+                dataKey="label"
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}
               />
-              <YAxis 
+              <YAxis
+                domain={[0, yMax]}
                 className="text-xs"
                 axisLine={false}
                 tickLine={false}

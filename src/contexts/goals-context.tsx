@@ -18,33 +18,33 @@ import type {
 interface GoalsContextValue {
   // Data
   goals: WritingGoal[];
-  progress: GoalProgress[];
+  historicalProgress: GoalProgress[]; // Renamed for clarity
   settings: GoalSettings;
   stats: GoalStats;
-  
+
   // Goal CRUD
   createGoal: (input: CreateGoalInput) => WritingGoal;
   updateGoal: (input: UpdateGoalInput) => void;
   deleteGoal: (id: string) => void;
   getActiveGoals: () => WritingGoal[];
   getGoalByType: (type: GoalPeriod) => WritingGoal | undefined;
-  
+
   // Progress CRUD
   upsertProgress: (input: CreateProgressInput) => void;
   updateProgress: (input: UpdateProgressInput) => void;
   getProgressForGoal: (goalId: string, startDate?: Date, endDate?: Date) => GoalProgress[];
   getTodayProgress: () => GoalProgress[];
-  
+
   // Statistics
   getCalendarData: (year: number, month: number) => CalendarDayData[];
-  
+
   // Settings
   updateSettings: (updates: Partial<GoalSettings>) => void;
-  
+
   // Auto-tracking
   trackDocumentChange: (documentId: string, projectId: string, wordCount: number, charCount: number) => void;
   syncProgressFromDocuments: () => void;
-  
+
   // Utilities
   initializeDefaultGoals: () => void;
 }
@@ -58,10 +58,10 @@ interface GoalsProviderProps {
 export function GoalsProvider({ children }: GoalsProviderProps) {
   const { projects } = useProjects();
   const { documents } = useProject();
-  
+
   const {
     goals,
-    progress,
+    progress: historicalProgress, // Rename here
     settings,
     createGoal,
     updateGoal,
@@ -79,6 +79,11 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     initializeDefaultGoals,
   } = useGoals(documents);
 
+  // Log the historical progress when it's loaded
+  useEffect(() => {
+    console.log('[GoalsContext] Historical progress loaded:', historicalProgress);
+  }, [historicalProgress]);
+
   // Calculate stats
   const stats = calculateAllStats();
 
@@ -90,37 +95,37 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     charCount: number
   ) => {
     const today = new Date().toISOString().split('T')[0];
-    
+
     // Get all active goals
     const activeGoals = getActiveGoals();
-    
+
     activeGoals.forEach(goal => {
       // Check if this change should contribute to this goal
       const shouldTrack = shouldTrackForGoal(goal, today);
-      
+
       if (shouldTrack) {
         // Get existing progress for today
-        const existingProgress = progress.find(
+        const existingProgress = historicalProgress.find(
           p => p.goalId === goal.id && p.date.startsWith(today)
         );
-        
+
         // Calculate new totals
         let newWordCount = wordCount;
         let newCharCount = charCount;
         let documentIds = [documentId];
         let projectIds = [projectId];
-        
+
         if (existingProgress) {
           // Merge with existing progress
           documentIds = [...new Set([...existingProgress.documentIds, documentId])];
           projectIds = [...new Set([...existingProgress.projectIds, projectId])];
-          
+
           // For simplicity, we'll recalculate from all documents
           // In a real app, you'd want to track deltas more carefully
           newWordCount = existingProgress.wordsWritten + wordCount;
           newCharCount = existingProgress.charsWritten + charCount;
         }
-        
+
         // Update progress
         upsertProgress({
           goalId: goal.id,
@@ -132,7 +137,7 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
         });
       }
     });
-  }, [getActiveGoals, progress, upsertProgress]);
+  }, [getActiveGoals, historicalProgress, upsertProgress]);
 
   // Sync is now automatic since we calculate directly from documents
   const syncProgressFromDocuments = useCallback(() => {
@@ -145,7 +150,7 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
     const goalStart = new Date(goal.startDate);
     const goalEnd = new Date(goal.endDate);
     const checkDate = new Date(date);
-    
+
     return checkDate >= goalStart && checkDate <= goalEnd && goal.isActive;
   };
 
@@ -171,33 +176,33 @@ export function GoalsProvider({ children }: GoalsProviderProps) {
   const contextValue: GoalsContextValue = {
     // Data
     goals,
-    progress,
+    historicalProgress, // Expose the renamed array
     settings,
     stats,
-    
+
     // Goal CRUD
     createGoal,
     updateGoal,
     deleteGoal,
     getActiveGoals,
     getGoalByType,
-    
+
     // Progress CRUD
     upsertProgress,
     updateProgress,
     getProgressForGoal,
     getTodayProgress,
-    
+
     // Statistics
     getCalendarData,
-    
+
     // Settings
     updateSettings,
-    
+
     // Auto-tracking
     trackDocumentChange,
     syncProgressFromDocuments,
-    
+
     // Utilities
     initializeDefaultGoals,
   };

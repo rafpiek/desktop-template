@@ -1,13 +1,13 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { 
-  Target, 
-  TrendingUp, 
-  Settings, 
+import {
+  Target,
+  TrendingUp,
+  Settings,
   Trophy,
   Flame,
   Zap,
@@ -19,28 +19,27 @@ import {
 import { useGoalsContext } from '@/contexts/goals-context';
 import { GoalSettingsDialog } from '@/components/goals/goal-settings-dialog';
 import { DailyTrendChart, WeeklyProgressChart, MonthlyOverviewChart, TodayBarChart } from '@/components/goals/writing-charts';
-import { useChartData } from '@/hooks/use-chart-data';
 import { useWritingStats } from '@/hooks/use-writing-stats';
 import { cn } from '@/lib/utils';
+import { getStartOfWeek, getStartOfMonth, groupActivitiesByPeriod } from '@/lib/utils/goals-utils'; // Assuming you have these utils
 
 type TimeFilter = 'all' | 'today' | 'week' | 'month' | 'year';
 
 export default function StatsPage() {
-  const { stats, getTodayProgress, syncProgressFromDocuments, initializeDefaultGoals } = useGoalsContext();
+  const { stats, getTodayProgress, syncProgressFromDocuments, initializeDefaultGoals, historicalProgress } = useGoalsContext();
   const [settingsOpen, setSettingsOpen] = useState(false);
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
   const [activeTab, setActiveTab] = useState<string>('analytics');
+
   const todayProgress = getTodayProgress();
-  const chartData = useChartData(timeFilter);
   const writingStats = useWritingStats();
-  
+
   // Initialize goals and sync on mount
   useEffect(() => {
     initializeDefaultGoals();
     syncProgressFromDocuments();
   }, [initializeDefaultGoals, syncProgressFromDocuments]);
-  
-  // Sync progress and initialize goals when goals tab is accessed
+
   const handleTabChange = (value: string) => {
     setActiveTab(value);
     if (value === 'goals') {
@@ -48,7 +47,81 @@ export default function StatsPage() {
       syncProgressFromDocuments();
     }
   };
-  
+
+  const chartData = useMemo(() => {
+    console.log('[StatsPage] Historical progress for charts:', historicalProgress);
+    if (!historicalProgress) return { dailyData: [], weeklyData: [], monthlyData: [] };
+
+    const sortedProgress = [...historicalProgress].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    console.log('[StatsPage] Sorted historical progress for charts:', sortedProgress);
+
+    // This is where we will process the historicalProgress into daily, weekly, and monthly data for the charts
+    const dailyData = sortedProgress.map(p => ({
+      date: p.date,
+      words: p.wordsWritten,
+      label: new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    })).slice(-365); // Limit to last year for performance
+
+    const weeklyData = groupActivitiesByPeriod(sortedProgress, 'week').map(week => ({
+      date: week.startDate,
+      words: week.totalWords,
+      label: new Date(week.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    })).slice(-52);
+
+    const monthlyData = groupActivitiesByPeriod(sortedProgress, 'month').map(month => ({
+      date: month.startDate,
+      words: month.totalWords,
+      label: new Date(month.startDate).toLocaleDateString('en-US', { month: 'short' })
+    })).slice(-12);
+
+    return { dailyData, weeklyData, monthlyData };
+  }, [historicalProgress]);
+
+  const filteredChartData = useMemo(() => {
+    const today = new Date();
+    const getDaysAgo = (days: number) => {
+      const d = new Date();
+      d.setDate(today.getDate() - days);
+      return d.toISOString().split('T')[0];
+    };
+
+    switch (timeFilter) {
+      case 'today':
+        return {
+          daily: chartData.dailyData.filter(d => d.date === getDaysAgo(0)),
+          weekly: [],
+          monthly: [],
+        };
+      case 'week':
+        const lastWeekStart = getDaysAgo(6);
+        return {
+          daily: chartData.dailyData.filter(d => d.date >= lastWeekStart),
+          weekly: [],
+          monthly: [],
+        };
+      case 'month':
+        const lastMonthStart = getDaysAgo(29);
+        return {
+          daily: chartData.dailyData.filter(d => d.date >= lastMonthStart),
+          weekly: chartData.weeklyData.slice(-4),
+          monthly: [],
+        };
+      case 'year':
+        return {
+          daily: chartData.dailyData,
+          weekly: chartData.weeklyData,
+          monthly: chartData.monthlyData,
+        };
+      case 'all':
+      default:
+        return {
+          daily: chartData.dailyData,
+          weekly: chartData.weeklyData,
+          monthly: chartData.monthlyData,
+        };
+    }
+  }, [chartData, timeFilter]);
+
   const todayWords = todayProgress.reduce((sum, p) => sum + p.wordsWritten, 0);
   const isGoalMet = todayWords >= stats.daily.target;
   const weeklyProgress = Math.round((stats.weekly.achieved / stats.weekly.target) * 100);
@@ -71,9 +144,9 @@ export default function StatsPage() {
             <h1 className="text-3xl font-bold">Writing Statistics</h1>
             <p className="text-muted-foreground mt-1">Track your progress and analyze your writing patterns</p>
           </div>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => setSettingsOpen(true)}
             className="gap-2 hover:bg-primary/10"
           >
@@ -85,14 +158,14 @@ export default function StatsPage() {
         {/* Tabbed Content */}
         <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
           <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-card to-card/50 border border-border/20">
-            <TabsTrigger 
+            <TabsTrigger
               value="analytics"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600/90 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-blue-500/50 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 data-[state=active]:font-semibold"
             >
               <BarChart3 className="h-4 w-4 mr-2" />
               Writing Analytics
             </TabsTrigger>
-            <TabsTrigger 
+            <TabsTrigger
               value="goals"
               className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500/90 data-[state=active]:to-emerald-600/90 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-emerald-500/50 data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/25 data-[state=active]:font-semibold"
             >
@@ -109,7 +182,7 @@ export default function StatsPage() {
               <div className="lg:col-span-2">
                 <Card className={cn(
                   "border-2 relative overflow-hidden h-full transition-all duration-500",
-                  isGoalMet 
+                  isGoalMet
                     ? "border-emerald-400/60 bg-gradient-to-br from-emerald-500/20 via-green-500/15 to-emerald-600/20 shadow-2xl shadow-emerald-500/25 ring-2 ring-emerald-400/30 animate-in fade-in duration-1000"
                     : "border-border/20 bg-gradient-to-br from-card to-card/50 ring-1 ring-border/10"
                 )}>
@@ -119,7 +192,7 @@ export default function StatsPage() {
                       ? "bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent animate-in slide-in-from-left duration-1500"
                       : "bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] hover:translate-x-[100%]"
                   )}></div>
-                  
+
                   {/* Celebration sparkles when goal achieved */}
                   {isGoalMet && (
                     <>
@@ -130,13 +203,13 @@ export default function StatsPage() {
                       <div className="absolute bottom-12 left-16 animate-in bounce-in duration-700 delay-250">💪</div>
                     </>
                   )}
-                  
+
                   <CardHeader className="relative z-10 pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <div className={cn(
                           "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500",
-                          isGoalMet 
+                          isGoalMet
                             ? "bg-gradient-to-br from-emerald-400/30 to-green-500/30 animate-in zoom-in duration-700 shadow-lg shadow-emerald-400/25"
                             : "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20"
                         )}>
@@ -166,12 +239,12 @@ export default function StatsPage() {
                       )}
                     </div>
                   </CardHeader>
-                  
+
                   <CardContent className="relative z-10 space-y-6">
                     <div className="text-center space-y-2">
                       <div className={cn(
                         "text-6xl font-bold transition-all duration-500",
-                        isGoalMet 
+                        isGoalMet
                           ? "bg-gradient-to-r from-emerald-300 via-green-300 to-emerald-400 bg-clip-text text-transparent animate-in zoom-in duration-800 drop-shadow-lg"
                           : "bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
                       )}>
@@ -184,7 +257,7 @@ export default function StatsPage() {
                         {isGoalMet ? `🎯 Target CRUSHED! (${stats.daily.target.toLocaleString()} words)` : `of ${stats.daily.target.toLocaleString()} words`}
                       </div>
                     </div>
-                    
+
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
                         <span className={cn(
@@ -199,8 +272,8 @@ export default function StatsPage() {
                         </span>
                       </div>
                       <div className="relative">
-                        <Progress 
-                          value={stats.daily.percentage} 
+                        <Progress
+                          value={stats.daily.percentage}
                           className={cn(
                             "h-3 transition-all duration-500",
                             isGoalMet ? "h-4 bg-emerald-900/30" : "bg-muted"
@@ -208,11 +281,11 @@ export default function StatsPage() {
                         />
                         <div className={cn(
                           "absolute inset-0 rounded-full transition-transform duration-1000",
-                          isGoalMet 
+                          isGoalMet
                             ? "bg-gradient-to-r from-emerald-400/30 via-emerald-300/40 to-emerald-400/30 animate-in slide-in-from-left duration-1000"
                             : "bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%]"
                         )}></div>
-                        
+
                         {/* Celebration glow effect */}
                         {isGoalMet && (
                           <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-green-400/20 rounded-full animate-in zoom-in duration-800"></div>
@@ -222,7 +295,7 @@ export default function StatsPage() {
                   </CardContent>
                 </Card>
               </div>
-              
+
               {/* Quick Stats */}
               <div className="space-y-4">
                 {/* Streak Card */}
@@ -240,7 +313,7 @@ export default function StatsPage() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Weekly Progress */}
                 <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
@@ -258,7 +331,7 @@ export default function StatsPage() {
                     </div>
                   </CardContent>
                 </Card>
-                
+
                 {/* Monthly Progress */}
                 <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
@@ -285,14 +358,14 @@ export default function StatsPage() {
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
                 <CardContent className="relative z-10 p-4">
                   <div className="text-2xl font-bold">
-                    {stats.daily.totalDays > 0 
+                    {stats.daily.totalDays > 0
                       ? Math.round((stats.daily.successfulDays / stats.daily.totalDays) * 100)
                       : 0}%
                   </div>
                   <div className="text-xs text-muted-foreground">Success rate</div>
                 </CardContent>
               </Card>
-              
+
               <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
                 <CardContent className="relative z-10 p-4">
@@ -300,7 +373,7 @@ export default function StatsPage() {
                   <div className="text-xs text-muted-foreground">Daily average</div>
                 </CardContent>
               </Card>
-              
+
               <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
                 <CardContent className="relative z-10 p-4">
@@ -308,7 +381,7 @@ export default function StatsPage() {
                   <div className="text-xs text-muted-foreground">Best streak</div>
                 </CardContent>
               </Card>
-              
+
               <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
                 <CardContent className="relative z-10 p-4">
@@ -332,7 +405,7 @@ export default function StatsPage() {
                   </div>
                 </div>
               </CardHeader>
-              
+
               <CardContent className="relative z-10 space-y-3">
                 <div className="grid md:grid-cols-3 gap-4">
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
@@ -342,7 +415,7 @@ export default function StatsPage() {
                       <div className="text-xs text-muted-foreground">2h ago</div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
                     <Flame className="h-5 w-5 text-orange-500" />
                     <div>
@@ -350,7 +423,7 @@ export default function StatsPage() {
                       <div className="text-xs text-muted-foreground">Active</div>
                     </div>
                   </div>
-                  
+
                   <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
                     <Zap className="h-5 w-5 text-blue-500" />
                     <div>
@@ -386,8 +459,8 @@ export default function StatsPage() {
                   onClick={() => setTimeFilter(filter.value)}
                   className={cn(
                     "transition-all duration-300",
-                    timeFilter === filter.value 
-                      ? "bg-gradient-to-r from-blue-500/90 to-blue-600/90 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25" 
+                    timeFilter === filter.value
+                      ? "bg-gradient-to-r from-blue-500/90 to-blue-600/90 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25"
                       : "border-border/40 hover:border-blue-500/30 hover:bg-blue-500/5"
                   )}
                 >
@@ -396,47 +469,16 @@ export default function StatsPage() {
               ))}
             </div>
 
-            {/* Charts based on selected filter */}
-            {timeFilter === 'today' && (
-              <TodayBarChart todayData={chartData.dailyData} />
-            )}
+            {/* Charts based on processed historical data */}
+            <div className="space-y-8">
+              {filteredChartData.daily.length > 1 && <DailyTrendChart dailyData={filteredChartData.daily} />}
+              {filteredChartData.daily.length === 1 && <TodayBarChart todayData={filteredChartData.daily} />}
 
-            {timeFilter === 'week' && (
-              <DailyTrendChart dailyData={chartData.dailyData} />
-            )}
-
-            {timeFilter === 'month' && (
-              <div className="space-y-6">
-                <DailyTrendChart dailyData={chartData.dailyData} />
-                {chartData.weeklyData.length > 0 && (
-                  <WeeklyProgressChart weeklyData={chartData.weeklyData} />
-                )}
+              <div className="grid lg:grid-cols-2 gap-8">
+                {filteredChartData.weekly.length > 0 && <WeeklyProgressChart weeklyData={filteredChartData.weekly} />}
+                {filteredChartData.monthly.length > 0 && <MonthlyOverviewChart monthlyData={filteredChartData.monthly} />}
               </div>
-            )}
-
-            {timeFilter === 'year' && (
-              <div className="space-y-6">
-                <DailyTrendChart dailyData={chartData.dailyData} />
-                <div className="grid lg:grid-cols-2 gap-6">
-                  {chartData.weeklyData.length > 0 && (
-                    <WeeklyProgressChart weeklyData={chartData.weeklyData} />
-                  )}
-                  {chartData.monthlyData.length > 0 && (
-                    <MonthlyOverviewChart monthlyData={chartData.monthlyData} />
-                  )}
-                </div>
-              </div>
-            )}
-
-            {timeFilter === 'all' && (
-              <div className="space-y-6">
-                <DailyTrendChart dailyData={chartData.dailyData} />
-                <div className="grid lg:grid-cols-2 gap-6">
-                  <WeeklyProgressChart weeklyData={chartData.weeklyData} />
-                  <MonthlyOverviewChart monthlyData={chartData.monthlyData} />
-                </div>
-              </div>
-            )}
+            </div>
 
             {/* Writing Insights Cards */}
             <div className="grid md:grid-cols-3 gap-6">
@@ -447,7 +489,7 @@ export default function StatsPage() {
                   <div className="text-sm text-muted-foreground">Best streak (days)</div>
                 </CardContent>
               </Card>
-              
+
               <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
                 <CardContent className="relative z-10 p-6">
@@ -455,7 +497,7 @@ export default function StatsPage() {
                   <div className="text-sm text-muted-foreground">Daily average</div>
                 </CardContent>
               </Card>
-              
+
               <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
                 <CardContent className="relative z-10 p-6">
@@ -468,9 +510,9 @@ export default function StatsPage() {
         </Tabs>
       </div>
 
-      <GoalSettingsDialog 
-        open={settingsOpen} 
-        onOpenChange={setSettingsOpen} 
+      <GoalSettingsDialog
+        open={settingsOpen}
+        onOpenChange={setSettingsOpen}
       />
     </AppLayout>
   );

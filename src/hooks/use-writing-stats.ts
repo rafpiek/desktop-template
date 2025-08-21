@@ -1,6 +1,10 @@
 import { useMemo } from 'react';
 import { useProject } from '@/contexts/project-context';
 import { calculateWritingStreak, type WritingStreakData } from '@/lib/types/goals';
+import {
+  getTodayProgress,
+  getDailyProgress,
+} from '@/components/editor/v2/storage/document-storage';
 
 export interface WritingStats {
   // Streak data
@@ -72,23 +76,7 @@ export function useWritingStats(): WritingStats {
     const monthStart = new Date(today);
     monthStart.setDate(1); // Start of current month
     
-    // Group documents by date
-    const documentsByDate = new Map<string, { docs: any[], wordCount: number }>();
-    
-    documents.forEach(doc => {
-      const docDate = new Date(doc.updatedAt);
-      const dateKey = docDate.toISOString().split('T')[0];
-      
-      if (!documentsByDate.has(dateKey)) {
-        documentsByDate.set(dateKey, { docs: [], wordCount: 0 });
-      }
-      
-      const dateData = documentsByDate.get(dateKey)!;
-      dateData.docs.push(doc);
-      dateData.wordCount += doc.wordCount;
-    });
-    
-    // Calculate time-based stats
+    // Calculate time-based stats using session data
     let todayWords = 0;
     let weekWords = 0;
     let monthWords = 0;
@@ -97,59 +85,70 @@ export function useWritingStats(): WritingStats {
     
     let bestDay: { date: string; wordCount: number } | null = null;
     
-    documentsByDate.forEach((dateData, dateKey) => {
-      const docDate = new Date(dateKey);
-      docDate.setHours(0, 0, 0, 0);
+    // Get today's progress from sessions
+    const todayProgress = getTodayProgress();
+    todayWords = todayProgress?.totalWordsAdded || 0;
+    
+    // Calculate week and month stats from daily progress entries
+    const currentDate = new Date();
+    
+    for (let i = 0; i < 30; i++) { // Check last 30 days
+      const checkDate = new Date(currentDate);
+      checkDate.setDate(currentDate.getDate() - i);
+      checkDate.setHours(0, 0, 0, 0);
+      const dateKey = checkDate.toISOString().split('T')[0];
       
-      // Today's words
-      if (docDate.getTime() === today.getTime()) {
-        todayWords = dateData.wordCount;
-      }
+      const dayProgress = getDailyProgress(dateKey);
+      const dayWords = dayProgress?.totalWordsAdded || 0;
       
       // This week's words
-      if (docDate >= weekStart) {
-        weekWords += dateData.wordCount;
-        if (dateData.wordCount > 0) {
+      if (checkDate >= weekStart) {
+        weekWords += dayWords;
+        if (dayWords > 0) {
           writingDaysThisWeek++;
         }
       }
       
       // This month's words
-      if (docDate >= monthStart) {
-        monthWords += dateData.wordCount;
-        if (dateData.wordCount > 0) {
+      if (checkDate >= monthStart) {
+        monthWords += dayWords;
+        if (dayWords > 0) {
           writingDaysThisMonth++;
         }
       }
       
       // Track best day
-      if (!bestDay || dateData.wordCount > bestDay.wordCount) {
+      if (dayWords > 0 && (!bestDay || dayWords > bestDay.wordCount)) {
         bestDay = {
           date: dateKey,
-          wordCount: dateData.wordCount,
+          wordCount: dayWords,
         };
       }
-    });
+    }
     
-    // Calculate averages
-    const daysWithData = documentsByDate.size;
-    const averageWordsPerDay = daysWithData > 0 ? Math.round(totalWords / daysWithData) : 0;
+    // Calculate averages based on session data
+    let daysWithWriting = 0;
+    let totalSessionWords = 0;
+    
+    // Count days with actual writing sessions in the last 30 days
+    for (let i = 0; i < 30; i++) {
+      const checkDate = new Date(currentDate);
+      checkDate.setDate(currentDate.getDate() - i);
+      const dateKey = checkDate.toISOString().split('T')[0];
+      
+      const dayProgress = getDailyProgress(dateKey);
+      if (dayProgress && dayProgress.totalWordsAdded > 0) {
+        daysWithWriting++;
+        totalSessionWords += dayProgress.totalWordsAdded;
+      }
+    }
+    
+    const averageWordsPerDay = daysWithWriting > 0 ? Math.round(totalSessionWords / daysWithWriting) : 0;
     const averageWordsPerDocument = totalDocuments > 0 ? Math.round(totalWords / totalDocuments) : 0;
     
     // Calculate consistency score (0-100)
-    // Based on how many days in the last 30 days the user wrote something
-    const thirtyDaysAgo = new Date(today);
-    thirtyDaysAgo.setDate(today.getDate() - 30);
-    
-    let writingDaysInLast30 = 0;
-    documentsByDate.forEach((dateData, dateKey) => {
-      const docDate = new Date(dateKey);
-      if (docDate >= thirtyDaysAgo && dateData.wordCount > 0) {
-        writingDaysInLast30++;
-      }
-    });
-    
-    const consistencyScore = Math.min(Math.round((writingDaysInLast30 / 30) * 100), 100);
+    // Based on how many days in the last 30 days the user actually wrote (session-based)
+    const consistencyScore = Math.min(Math.round((daysWithWriting / 30) * 100), 100);
     
     return {
       streak,

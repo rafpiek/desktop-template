@@ -3,297 +3,179 @@ import type {
   WritingGoal,
   GoalProgress,
   GoalSettings,
-  GoalPeriod
 } from '@/lib/types/goals';
 import { createEmptyGoal, createEmptyProgress, DEFAULT_GOAL_SETTINGS } from '@/lib/types/goals';
-import type { SeededData, SeededGoalsData, SeededWritingActivity, WritingPatternConfig } from './types';
+import type { SeededData, SeededGoalsData, SeededWritingActivity } from './types';
 
 /**
- * Generate realistic historical writing statistics and goals data
+ * Generate realistic historical writing statistics and goals data for the past 6 months
  */
 export async function seedHistoricalStats(projectData: SeededData): Promise<SeededGoalsData> {
-  console.log('📊 Generating historical writing statistics...');
-  
+  console.log('📊 Generating realistic 6-month historical writing statistics...');
+
   const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  
-  // Create realistic writing goals
-  const goals = createWritingGoals();
-  
-  // Generate historical writing activity with realistic patterns
-  const historicalActivity = generateHistoricalActivity(thirtyDaysAgo, now, projectData);
-  
-  // Create goal progress based on historical activity
+  const sixMonthsAgo = new Date(now);
+  sixMonthsAgo.setMonth(now.getMonth() - 6);
+
+  const goals = createWritingGoals(sixMonthsAgo);
+  const historicalActivity = generateHistoricalActivity(sixMonthsAgo, now, projectData);
   const progress = generateGoalProgress(goals, historicalActivity);
-  
-  // Create goal settings
+
   const settings: GoalSettings = {
     ...DEFAULT_GOAL_SETTINGS,
-    dailyGoal: {
-      targetWords: 500,
-      isEnabled: true,
-      createdAt: thirtyDaysAgo.toISOString(),
-      lastModified: now.toISOString()
-    },
-    weeklyGoal: {
-      targetWords: 3500,
-      isEnabled: true,
-      createdAt: thirtyDaysAgo.toISOString(),
-      lastModified: now.toISOString()
-    },
-    monthlyGoal: {
-      targetWords: 15000,
-      isEnabled: true,
-      createdAt: thirtyDaysAgo.toISOString(),
-      lastModified: now.toISOString()
-    },
-    enableNotifications: true,
-    notificationTime: '09:00',
-    weekStartsOn: 1, // Monday
-    includeCharacterCount: false,
-    autoArchiveOldGoals: true,
-    archiveAfterDays: 90
+    dailyGoal: { targetWords: 750, isEnabled: true, createdAt: sixMonthsAgo.toISOString(), lastModified: now.toISOString() },
+    weeklyGoal: { targetWords: 4000, isEnabled: true, createdAt: sixMonthsAgo.toISOString(), lastModified: now.toISOString() },
+    monthlyGoal: { targetWords: 15000, isEnabled: true, createdAt: sixMonthsAgo.toISOString(), lastModified: now.toISOString() },
   };
-  
-  console.log(`   Generated ${historicalActivity.length} days of writing activity`);
-  console.log(`   Generated ${goals.length} writing goals`);
-  console.log(`   Generated ${progress.length} progress entries`);
-  
-  return {
-    goals,
-    progress,
-    settings,
-    historicalActivity
-  };
+
+  console.log(`   Generated ${historicalActivity.length} days of writing activity over 6 months.`);
+
+  return { goals, progress, settings, historicalActivity };
+}
+
+function createWritingGoals(startDate: Date): WritingGoal[] {
+  return [
+    createEmptyGoal({ type: 'daily', targetWords: 750, startDate: startDate.toISOString(), isActive: true }),
+    createEmptyGoal({ type: 'weekly', targetWords: 4000, startDate: getStartOfWeek(startDate).toISOString(), isActive: true }),
+    createEmptyGoal({ type: 'monthly', targetWords: 15000, startDate: getStartOfMonth(startDate).toISOString(), isActive: true }),
+  ];
 }
 
 /**
- * Create realistic writing goals
+ * Generates a realistic 6-month writing history.
  */
-function createWritingGoals(): WritingGoal[] {
-  const now = new Date();
-  const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-  const goals: WritingGoal[] = [];
-  
-  // Daily goal
-  goals.push(createEmptyGoal({
-    type: 'daily',
-    targetWords: 500,
-    startDate: thirtyDaysAgo.toISOString(),
-    isActive: true
-  }));
-  
-  // Weekly goal  
-  goals.push(createEmptyGoal({
-    type: 'weekly',
-    targetWords: 3500,
-    startDate: getStartOfWeek(thirtyDaysAgo).toISOString(),
-    isActive: true
-  }));
-  
-  // Monthly goal
-  goals.push(createEmptyGoal({
-    type: 'monthly',
-    targetWords: 15000,
-    startDate: getStartOfMonth(thirtyDaysAgo).toISOString(),
-    isActive: true
-  }));
-  
-  return goals;
-}
-
-/**
- * Generate realistic historical writing activity over the past month
- */
-function generateHistoricalActivity(
-  startDate: Date,
-  endDate: Date,
-  projectData: SeededData
-): SeededWritingActivity[] {
+function generateHistoricalActivity(startDate: Date, endDate: Date, projectData: SeededData): SeededWritingActivity[] {
   const activities: SeededWritingActivity[] = [];
-  const patternConfig: WritingPatternConfig = {
-    minDailyWords: 0,
-    maxDailyWords: 1200,
-    streakLengths: [3, 5, 7, 10, 14], // Possible streak lengths
-    breakLengths: [1, 2, 3], // Possible break lengths
-    weekendMultiplier: 1.4, // 40% more productive on weekends
-    weekdayVariance: 0.3, // 30% variance in weekday productivity
-    sprintPeriods: 2, // Two high-productivity periods
-    blockPeriods: 1, // One writer's block period
-    dailyGoalAchievementRate: 0.65 // 65% of days meet the goal
-  };
-  
   const currentDate = new Date(startDate);
+  const totalDays = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
+  const writingPattern = generatePhasedWritingPattern(totalDays);
+
   const projectIds = projectData.projects.map(p => p.id);
   const documentIds = projectData.documents.map(d => d.id);
-  
-  // Generate activity patterns
-  const activityPattern = generateWritingPattern(
-    Math.ceil((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000)),
-    patternConfig
-  );
-  
-  let dayIndex = 0;
-  while (currentDate <= endDate && dayIndex < activityPattern.length) {
-    const isWeekend = currentDate.getDay() === 0 || currentDate.getDay() === 6;
-    const baseWords = activityPattern[dayIndex];
-    
-    // Apply weekend boost
-    const finalWords = isWeekend ? Math.floor(baseWords * patternConfig.weekendMultiplier) : baseWords;
-    
-    if (finalWords > 0) {
-      // Randomly select which projects/documents were worked on
-      const workedProjects = getRandomSubset(projectIds, Math.min(2, projectIds.length));
-      const workedDocuments = getRandomSubset(documentIds, Math.min(4, documentIds.length));
-      const sessionCount = finalWords > 800 ? 2 : 1; // Multiple sessions for high-word days
-      
+
+  for (let i = 0; i < totalDays; i++) {
+    const wordsWritten = writingPattern[i];
+
+    if (wordsWritten > 0) {
       activities.push({
-        date: currentDate.toISOString().split('T')[0],
-        wordsWritten: finalWords,
-        projects: workedProjects,
-        documents: workedDocuments,
-        sessionCount
+        date: new Date(currentDate).toISOString().split('T')[0],
+        wordsWritten,
+        projects: getRandomSubset(projectIds, 2),
+        documents: getRandomSubset(documentIds, 4),
+        sessionCount: wordsWritten > 1200 ? 2 : 1,
       });
     }
-    
+
     currentDate.setDate(currentDate.getDate() + 1);
-    dayIndex++;
   }
-  
+
   return activities;
 }
 
 /**
- * Generate realistic writing patterns with streaks and breaks
+ * Generates a more realistic, phased writing pattern over a number of days.
  */
-function generateWritingPattern(days: number, config: WritingPatternConfig): number[] {
-  const pattern: number[] = new Array(days).fill(0);
-  let currentDay = 0;
-  
-  while (currentDay < days) {
-    // Decide on streak or break
-    const isStreak = Math.random() > 0.3; // 70% chance of productive period
-    
-    if (isStreak) {
-      const streakLength = config.streakLengths[Math.floor(Math.random() * config.streakLengths.length)];
-      const endDay = Math.min(currentDay + streakLength, days);
-      
-      // Generate words for streak period
-      for (let i = currentDay; i < endDay; i++) {
-        const baseWords = config.minDailyWords + 
-          Math.random() * (config.maxDailyWords - config.minDailyWords);
-        
-        // Add some variance - some days higher, some lower
-        const variance = 1 + (Math.random() - 0.5) * config.weekdayVariance;
-        const finalWords = Math.max(0, Math.floor(baseWords * variance));
-        
-        // Ensure goal achievement rate is realistic
-        if (Math.random() < config.dailyGoalAchievementRate) {
-          pattern[i] = Math.max(finalWords, 500); // Meet daily goal
-        } else {
-          pattern[i] = Math.min(finalWords, 450); // Don't quite meet goal
+function generatePhasedWritingPattern(days: number): number[] {
+  const pattern = new Array(days).fill(0);
+  const dailyGoalTarget = 750;
+
+  const phases = [
+    { duration: 0.25, base: 250, chance: 0.5, weekend: 1.8 },
+    { duration: 0.35, base: 600, chance: 0.75, weekend: 1.5 },
+    { duration: 0.25, base: 1200, chance: 0.9, weekend: 2.0 },
+    { duration: 0.15, base: 400, chance: 0.6, weekend: 1.2 },
+  ];
+
+  let dayCursor = 0;
+  for (const phase of phases) {
+    const phaseDays = Math.floor(days * phase.duration);
+    for (let i = 0; i < phaseDays && dayCursor < days; i++) {
+      const date = new Date();
+      date.setDate(date.getDate() - (days - dayCursor - 1));
+      const dayOfWeek = date.getDay();
+
+      if (Math.random() < phase.chance) {
+        let dailyWords = phase.base * (0.75 + Math.random() * 0.5);
+        if (dayOfWeek === 0 || dayOfWeek === 6) {
+          dailyWords *= phase.weekend * (0.9 + Math.random() * 0.2);
         }
+        pattern[dayCursor] = Math.floor(dailyWords);
       }
-      
-      currentDay = endDay;
-    } else {
-      // Break period (writer's block or busy days)
-      const breakLength = config.breakLengths[Math.floor(Math.random() * config.breakLengths.length)];
-      const endDay = Math.min(currentDay + breakLength, days);
-      
-      // Zero or very low word counts during breaks
-      for (let i = currentDay; i < endDay; i++) {
-        pattern[i] = Math.random() < 0.3 ? Math.floor(Math.random() * 100) : 0;
-      }
-      
-      currentDay = endDay;
+      dayCursor++;
     }
   }
-  
-  // Add sprint periods (high-productivity days)
-  for (let i = 0; i < config.sprintPeriods; i++) {
-    const sprintDay = Math.floor(Math.random() * days);
-    pattern[sprintDay] = Math.floor(config.maxDailyWords * (1.2 + Math.random() * 0.8)); // 120-200% of max
-  }
-  
-  // Add writer's block periods (consecutive zero days)
-  for (let i = 0; i < config.blockPeriods; i++) {
-    const blockStart = Math.floor(Math.random() * (days - 3));
-    const blockLength = 2 + Math.floor(Math.random() * 3); // 2-4 days
-    for (let j = 0; j < blockLength && blockStart + j < days; j++) {
-      pattern[blockStart + j] = 0;
+
+  // Explicitly engineer streaks for a convincing demo
+  const createStreak = (startDay: number, length: number) => {
+    for (let i = 0; i < length; i++) {
+      const dayIndex = startDay + i;
+      if (dayIndex < days) {
+        pattern[dayIndex] = dailyGoalTarget + Math.floor(Math.random() * 800);
+      }
     }
-  }
-  
-  return pattern;
+  };
+
+  // A long streak in the middle to serve as the "best streak"
+  createStreak(Math.floor(days * 0.5), 12);
+
+  // A current streak that ends on the last day of seeded data (yesterday)
+  const currentStreakLength = 7;
+  createStreak(days - currentStreakLength, currentStreakLength);
+
+  // Final pass to cap outliers
+  const absoluteMax = 8000;
+  return pattern.map(w => Math.min(Math.floor(w), absoluteMax));
 }
+
 
 /**
  * Generate goal progress entries based on historical activity
  */
 function generateGoalProgress(goals: WritingGoal[], activities: SeededWritingActivity[]): GoalProgress[] {
   const progress: GoalProgress[] = [];
-  
-  // Group activities by date for easier processing
-  const activitiesByDate = new Map<string, SeededWritingActivity>();
-  activities.forEach(activity => {
-    activitiesByDate.set(activity.date, activity);
-  });
-  
   const dailyGoal = goals.find(g => g.type === 'daily');
   const weeklyGoal = goals.find(g => g.type === 'weekly');
   const monthlyGoal = goals.find(g => g.type === 'monthly');
-  
-  // Generate daily progress entries
+
   if (dailyGoal) {
     activities.forEach(activity => {
       progress.push(createEmptyProgress({
         goalId: dailyGoal.id,
         date: activity.date,
         wordsWritten: activity.wordsWritten,
-        charsWritten: activity.wordsWritten * 5, // Approximate chars from words
+        charsWritten: activity.wordsWritten * 5,
         projectIds: activity.projects,
         documentIds: activity.documents
       }));
     });
   }
-  
-  // Generate weekly progress entries
+
   if (weeklyGoal) {
-    const weeklyActivities = groupActivitiesByWeek(activities);
-    weeklyActivities.forEach(week => {
-      const totalWords = week.activities.reduce((sum, a) => sum + a.wordsWritten, 0);
-      if (totalWords > 0) {
-        progress.push(createEmptyProgress({
-          goalId: weeklyGoal.id,
-          date: week.startDate,
-          wordsWritten: totalWords,
-          charsWritten: totalWords * 5,
-          projectIds: [...new Set(week.activities.flatMap(a => a.projects))],
-          documentIds: [...new Set(week.activities.flatMap(a => a.documents))]
-        }));
-      }
+    groupActivitiesByPeriod(activities, 'week').forEach(group => {
+      progress.push(createEmptyProgress({
+        goalId: weeklyGoal.id,
+        date: group.startDate,
+        wordsWritten: group.totalWords,
+        charsWritten: group.totalWords * 5,
+        projectIds: group.projectIds,
+        documentIds: group.documentIds
+      }));
     });
   }
-  
-  // Generate monthly progress entries
+
   if (monthlyGoal) {
-    const monthlyActivities = groupActivitiesByMonth(activities);
-    monthlyActivities.forEach(month => {
-      const totalWords = month.activities.reduce((sum, a) => sum + a.wordsWritten, 0);
-      if (totalWords > 0) {
-        progress.push(createEmptyProgress({
-          goalId: monthlyGoal.id,
-          date: month.startDate,
-          wordsWritten: totalWords,
-          charsWritten: totalWords * 5,
-          projectIds: [...new Set(month.activities.flatMap(a => a.projects))],
-          documentIds: [...new Set(month.activities.flatMap(a => a.documents))]
-        }));
-      }
+    groupActivitiesByPeriod(activities, 'month').forEach(group => {
+      progress.push(createEmptyProgress({
+        goalId: monthlyGoal.id,
+        date: group.startDate,
+        wordsWritten: group.totalWords,
+        charsWritten: group.totalWords * 5,
+        projectIds: group.projectIds,
+        documentIds: group.documentIds
+      }));
     });
   }
-  
+
   return progress;
 }
 
@@ -301,69 +183,38 @@ function generateGoalProgress(goals: WritingGoal[], activities: SeededWritingAct
  * Utility functions
  */
 function getRandomSubset<T>(array: T[], maxCount: number): T[] {
-  const shuffled = [...array].sort(() => Math.random() - 0.5);
-  const count = Math.max(1, Math.floor(Math.random() * maxCount) + 1);
+  const shuffled = [...array].sort(() => 0.5 - Math.random());
+  const count = Math.max(1, Math.floor(Math.random() * maxCount));
   return shuffled.slice(0, count);
 }
 
 function getStartOfWeek(date: Date): Date {
-  const startOfWeek = new Date(date);
-  const day = startOfWeek.getDay();
-  const diff = startOfWeek.getDate() - day + (day === 0 ? -6 : 1); // Monday as start of week
-  startOfWeek.setDate(diff);
-  startOfWeek.setHours(0, 0, 0, 0);
-  return startOfWeek;
+  const d = new Date(date);
+  const day = d.getDay();
+  const diff = d.getDate() - day + (day === 0 ? -6 : 1); // Monday start
+  return new Date(new Date(d.setDate(diff)).setHours(0, 0, 0, 0));
 }
 
 function getStartOfMonth(date: Date): Date {
-  const startOfMonth = new Date(date);
-  startOfMonth.setDate(1);
-  startOfMonth.setHours(0, 0, 0, 0);
-  return startOfMonth;
+  return new Date(new Date(date.getFullYear(), date.getMonth(), 1).setHours(0, 0, 0, 0));
 }
 
-function groupActivitiesByWeek(activities: SeededWritingActivity[]): Array<{
-  startDate: string;
-  activities: SeededWritingActivity[];
-}> {
-  const weeks = new Map<string, SeededWritingActivity[]>();
-  
-  activities.forEach(activity => {
-    const date = new Date(activity.date);
-    const startOfWeek = getStartOfWeek(date);
-    const weekKey = startOfWeek.toISOString().split('T')[0];
-    
-    if (!weeks.has(weekKey)) {
-      weeks.set(weekKey, []);
-    }
-    weeks.get(weekKey)!.push(activity);
-  });
-  
-  return Array.from(weeks.entries()).map(([startDate, weekActivities]) => ({
-    startDate,
-    activities: weekActivities
-  }));
-}
+function groupActivitiesByPeriod(activities: SeededWritingActivity[], period: 'week' | 'month') {
+  const groups = new Map<string, SeededWritingActivity[]>();
 
-function groupActivitiesByMonth(activities: SeededWritingActivity[]): Array<{
-  startDate: string;
-  activities: SeededWritingActivity[];
-}> {
-  const months = new Map<string, SeededWritingActivity[]>();
-  
   activities.forEach(activity => {
     const date = new Date(activity.date);
-    const startOfMonth = getStartOfMonth(date);
-    const monthKey = startOfMonth.toISOString().split('T')[0];
-    
-    if (!months.has(monthKey)) {
-      months.set(monthKey, []);
-    }
-    months.get(monthKey)!.push(activity);
+    const startOfPeriod = period === 'week' ? getStartOfWeek(date) : getStartOfMonth(date);
+    const key = startOfPeriod.toISOString().split('T')[0];
+
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key)!.push(activity);
   });
-  
-  return Array.from(months.entries()).map(([startDate, monthActivities]) => ({
-    startDate,
-    activities: monthActivities
-  }));
+
+  return Array.from(groups.entries()).map(([startDate, periodActivities]) => {
+    const totalWords = periodActivities.reduce((sum, a) => sum + a.wordsWritten, 0);
+    const projectIds = [...new Set(periodActivities.flatMap(a => a.projects))];
+    const documentIds = [...new Set(periodActivities.flatMap(a => a.documents))];
+    return { startDate, totalWords, projectIds, documentIds };
+  });
 }

@@ -4,6 +4,11 @@ import { cn } from '@/lib/utils';
 import { useGoalsContext } from '@/contexts/goals-context';
 import { GoalAchievementCelebration } from '@/components/goals/goal-achievement-celebration';
 import { Progress } from '@/components/ui/progress';
+import { 
+  getTodayProgress,
+  getCurrentSession,
+  type WritingSession 
+} from '@/components/editor/v2/storage/document-storage';
 
 interface TextStats {
   wordCount: number;
@@ -51,12 +56,11 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
       return new Set();
     }
   });
-  const [sessionStartWords, setSessionStartWords] = useState(0);
+  const [currentSession, setCurrentSession] = useState<WritingSession | null>(null);
   const [dailyProgressWords, setDailyProgressWords] = useState(0);
-  const previousWordCountRef = useRef(textStats.wordCount);
   const hasInitializedRef = useRef(false);
 
-  const { stats, getGoalByType, trackDocumentChange, getTodayProgress, goals } = useGoalsContext();
+  const { stats, getGoalByType, trackDocumentChange, getTodayProgress: getGoalTodayProgress, goals } = useGoalsContext();
 
   // Close widget when clicking outside
   useEffect(() => {
@@ -74,17 +78,26 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
     }
   }, [isVisible, onToggle]);
 
-  // Initialize session tracking - SIMPLIFIED
+  // Initialize session tracking with our new system
   useEffect(() => {
     if (!hasInitializedRef.current && documentId) {
-      console.log('📝 Initializing session - SIMPLE');
-      // Don't set any base progress - we'll use stats.daily.achieved directly
-      setSessionStartWords(0); // Always start from 0 for simplicity
+      console.log('📝 Initializing session tracking');
+      
+      // Get current session for this document
+      const session = getCurrentSession(documentId);
+      setCurrentSession(session);
+      
+      // Get today's total progress
+      const todayProgress = getTodayProgress();
+      setDailyProgressWords(todayProgress?.totalWordsAdded || 0);
+      
       hasInitializedRef.current = true;
       
       // Check if we should immediately celebrate (goal already achieved but not celebrated)
       const dailyGoal = getGoalByType('daily');
-      if (dailyGoal && dailyGoal.isActive && textStats.wordCount >= dailyGoal.targetWords) {
+      const totalDailyWords = todayProgress?.totalWordsAdded || 0;
+      
+      if (dailyGoal && dailyGoal.isActive && totalDailyWords >= dailyGoal.targetWords) {
         // Clear stale celebration to allow immediate celebration
         const today = new Date().toISOString().split('T')[0];
         const lastCelebrationTime = localStorage.getItem('last-celebration-time');
@@ -99,27 +112,27 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
         }
       }
     }
-  }, [documentId, textStats.wordCount, getGoalByType]);
+  }, [documentId, getGoalByType]);
 
-    // Track word count changes and check for celebrations
+    // Track session updates and check for celebrations
   useEffect(() => {
     if (!documentId || !projectId) return;
 
-    // Track document changes for goals
-    const wordDelta = textStats.wordCount - previousWordCountRef.current;
-    if (wordDelta !== 0) {
-      trackDocumentChange(documentId, projectId, Math.abs(wordDelta), Math.abs(wordDelta) * 5);
-    }
-    previousWordCountRef.current = textStats.wordCount;
+    // Update session data and daily progress
+    const session = getCurrentSession(documentId);
+    setCurrentSession(session);
+    
+    const todayProgress = getTodayProgress();
+    const totalDailyWords = todayProgress?.totalWordsAdded || 0;
+    setDailyProgressWords(totalDailyWords);
 
-            // Check if daily goal is achieved and not yet celebrated
+    // Check if daily goal is achieved and not yet celebrated
     const dailyGoal = getGoalByType('daily');
-    const totalDailyWords = textStats.wordCount; // Simple - just use current word count
 
     console.log('🔍 Checking goal achievement:', {
       dailyGoal: dailyGoal?.targetWords,
       isActive: dailyGoal?.isActive,
-      currentWords: textStats.wordCount,
+      sessionWords: session?.wordsAdded || 0,
       totalDailyWords,
       alreadyCelebrated: dailyGoal ? celebratedGoals.has(dailyGoal.id) : false,
       celebratedGoalsSet: [...celebratedGoals],
@@ -166,15 +179,13 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
         }, msUntilMidnight);
       }
     }
-  }, [textStats.wordCount, documentId, projectId, getGoalByType, trackDocumentChange, celebratedGoals, sessionStartWords, dailyProgressWords]);
+  }, [textStats.wordCount, documentId, projectId, getGoalByType, celebratedGoals]);
 
-        // Calculate real-time progress - TRUE REACT WAY
+        // Calculate real-time progress using session-based data
   const dailyGoal = getGoalByType('daily');
 
-  // HERE'S THE KEY: For real-time updates, we need to use the CURRENT document's word count
-  // The stats.daily.achieved is stale and only updates on page load
-  // So for THIS document, we use textStats.wordCount directly
-  const totalDailyWords = textStats.wordCount; // THIS IS REACTIVE!
+  // Use session-based daily progress, not document word count
+  const totalDailyWords = dailyProgressWords; // Session-based daily progress
   const dailyPercentage = dailyGoal ? (totalDailyWords / dailyGoal.targetWords) * 100 : 0;
   const showGoalProgress = dailyGoal && dailyGoal.isActive && isVisible;
 
@@ -370,7 +381,7 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
                     Reset Today's Celebrations
                   </button>
                   <div className="text-xs text-muted-foreground/60">
-                    Debug: {totalDailyWords}/{dailyGoal?.targetWords || '?'} words
+                    Session: {currentSession?.wordsAdded || 0} words | Daily: {totalDailyWords}/{dailyGoal?.targetWords || '?'} words
                   </div>
                 </div>
               )}
