@@ -125,14 +125,21 @@ export function useChapters() {
     ));
   }, [setChapters]);
 
-  // Update chapter word count (should be called when documents change)
-  const updateChapterWordCount = useCallback((chapterId: string, wordCount: number) => {
-    setChapters(prev => prev.map(chapter =>
-      chapter.id === chapterId
-        ? { ...chapter, wordCount, updatedAt: new Date().toISOString() }
-        : chapter
+  // Update chapter word count based on its documents
+  const updateChapterWordCount = useCallback((chapterId: string, documents: { wordCount: number }[]) => {
+    const chapter = chapters.find(c => c.id === chapterId);
+    if (!chapter) return;
+
+    const totalWordCount = documents
+      .filter(doc => chapter.documentIds.includes(doc.id))
+      .reduce((sum, doc) => sum + doc.wordCount, 0);
+
+    setChapters(prev => prev.map(c =>
+      c.id === chapterId
+        ? { ...c, wordCount: totalWordCount, updatedAt: new Date().toISOString() }
+        : c
     ));
-  }, [setChapters]);
+  }, [chapters, setChapters]);
 
   // Reorder chapters
   const reorderChapters = useCallback((projectId: string, chapterIds: string[]) => {

@@ -1,12 +1,13 @@
 import { useState } from 'react';
-import { Plus, BookOpen, Target, TrendingUp, Archive, PenTool, Sparkles, ArrowRight, Clock } from 'lucide-react';
+import { Plus, BookOpen, PenTool, Sparkles, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { AppLayout } from '@/components/app-layout';
 import { ProjectCard } from '@/components/projects/project-card';
 import { ProjectFormDialog } from '@/components/projects/project-form-dialog';
 import { ProjectFilters } from '@/components/projects/project-filters';
 import { useProjects } from '@/hooks/use-projects';
+import { useSeeder } from '@/hooks/use-seeder';
+import { useClearDemo } from '@/hooks/use-clear-demo';
 import { cn } from '@/lib/utils';
 import type {
   Project,
@@ -15,6 +16,7 @@ import type {
   ProjectFilters as Filters,
   ProjectSort,
 } from '@/lib/types/project';
+import React from 'react';
 
 export default function ProjectsPage() {
   const {
@@ -34,21 +36,33 @@ export default function ProjectsPage() {
   const [filters, setFilters] = useState<Filters>({ isArchived: false });
   const [sort, setSort] = useState<ProjectSort>({ by: 'updatedAt', order: 'desc' });
 
+  // Clear broken demo data first (set to true once to clear)
+  useClearDemo(false);
+
+  // Handle demo seeding - set to true to enable seeding
+  const { isSeeding, seedCompleted, error: seedError } = useSeeder(true);
+
+  React.useEffect(() => {
+    if (seedCompleted) {
+      // window.location.reload();
+    }
+  }, [seedCompleted]);
+
   const filteredProjects = getFilteredProjects(filters, sort);
-  
+
   // Find the most recently updated project
-  const mostRecentProject = projects.length > 0 
-    ? projects.reduce((latest, current) => 
+  const mostRecentProject = projects.length > 0
+    ? projects.reduce((latest, current) =>
         new Date(current.updatedAt) > new Date(latest.updatedAt) ? current : latest
       )
     : null;
 
-  const handleCreateProject = (data: CreateProjectInput) => {
-    createProject(data);
+  const handleCreateProject = (data: CreateProjectInput | UpdateProjectInput) => {
+    createProject(data as CreateProjectInput);
   };
 
-  const handleUpdateProject = (data: UpdateProjectInput) => {
-    updateProject(data);
+  const handleUpdateProject = (data: CreateProjectInput | UpdateProjectInput) => {
+    updateProject(data as UpdateProjectInput);
     setEditingProject(undefined);
   };
 
@@ -68,29 +82,35 @@ export default function ProjectsPage() {
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())[0];
 
   // Smart suggestions based on user's work
-  const smartActions = [
-    recentProject && {
+  const smartActions = [];
+
+  if (recentProject) {
+    smartActions.push({
       type: 'continue',
       title: `Continue "${recentProject.name}"`,
       subtitle: `${recentProject.wordCount.toLocaleString()} words written`,
       href: `/projects/${recentProject.id}`,
       priority: true
-    },
-    {
-      type: 'new',
-      title: 'Start New Project',
-      subtitle: 'Begin your next great story',
-      action: () => setIsCreateDialogOpen(true),
-      priority: false
-    },
-    stats.inProgressProjects > 0 && {
+    });
+  }
+
+  smartActions.push({
+    type: 'new',
+    title: 'Start New Project',
+    subtitle: 'Begin your next great story',
+    action: () => setIsCreateDialogOpen(true),
+    priority: false
+  });
+
+  if (stats.inProgressProjects > 0) {
+    smartActions.push({
       type: 'review',
       title: 'Review Drafts',
       subtitle: `${stats.inProgressProjects} projects in progress`,
-      action: () => setFilters({ status: 'in_progress' }),
+      action: () => setFilters({ status: ['in-progress'] }),
       priority: false
-    }
-  ].filter(Boolean);
+    });
+  }
 
   return (
     <AppLayout showNavigation={true}>
@@ -100,18 +120,18 @@ export default function ProjectsPage() {
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-muted/50 text-sm text-muted-foreground mb-8">
             <Sparkles className="h-4 w-4 mr-2" />
-            {stats.totalProjects > 0 
+            {stats.totalProjects > 0
               ? `${stats.totalWordCount.toLocaleString()} words across ${stats.totalProjects} projects`
               : 'Welcome to Zeyn'
             }
           </div>
-          
+
           <h1 className="text-5xl md:text-6xl font-bold bg-gradient-to-br from-foreground via-foreground/80 to-foreground/60 bg-clip-text text-transparent leading-tight">
             {stats.totalProjects > 0 ? 'Your Stories' : 'Where stories begin'}
           </h1>
-          
+
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            {stats.totalProjects > 0 
+            {stats.totalProjects > 0
               ? 'Continue crafting the narratives that matter to you'
               : 'Transform ideas into compelling narratives with an editor designed for writers'
             }
@@ -145,8 +165,8 @@ export default function ProjectsPage() {
                 key={index}
                 className={cn(
                   "group relative overflow-hidden rounded-2xl border-2 transition-all duration-300 hover:shadow-lg hover:shadow-primary/10 ring-1 ring-border/10",
-                  action.priority 
-                    ? "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/30 flex-1" 
+                  action.priority
+                    ? "bg-gradient-to-br from-primary/5 to-primary/10 border-primary/30 flex-1"
                     : "bg-card hover:bg-muted/30 flex-1 sm:flex-none sm:w-64 border-border/20"
                 )}
               >
@@ -159,7 +179,7 @@ export default function ProjectsPage() {
                     <p className="text-muted-foreground text-sm">{action.subtitle}</p>
                   </a>
                 ) : (
-                  <button 
+                  <button
                     onClick={action.action}
                     className="w-full text-left p-6"
                   >
@@ -170,7 +190,7 @@ export default function ProjectsPage() {
                     <p className="text-muted-foreground text-sm">{action.subtitle}</p>
                   </button>
                 )}
-                
+
                 {action.priority && (
                   <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000"></div>
                 )}
@@ -218,8 +238,8 @@ export default function ProjectsPage() {
                     Every great story starts with a single word. Let's write yours.
                   </p>
                 </div>
-                <Button 
-                  onClick={() => setIsCreateDialogOpen(true)} 
+                <Button
+                  onClick={() => setIsCreateDialogOpen(true)}
                   size="lg"
                   className="gap-3 px-8 py-6 text-lg bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 shadow-lg hover:shadow-xl transition-all duration-300"
                 >
@@ -241,7 +261,7 @@ export default function ProjectsPage() {
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {filteredProjects.map((project, index) => (
-              <div 
+              <div
                 key={project.id}
                 className="animate-in fade-in slide-in-from-bottom-4 duration-500"
                 style={{ animationDelay: `${index * 100}ms` }}
@@ -274,6 +294,31 @@ export default function ProjectsPage() {
         project={editingProject}
         onSubmit={handleUpdateProject}
       />
+
+      {/* Seeding Loading State */}
+      {isSeeding && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="flex flex-col items-center gap-4">
+            <Loader2 className="h-12 w-12 animate-spin text-primary" />
+            <p className="text-lg font-medium">Generating demo data...</p>
+            <p className="text-sm text-muted-foreground">This will take a few seconds</p>
+          </div>
+        </div>
+      )}
+
+      {/* Seeding Error */}
+      {seedError && (
+        <div className="fixed inset-0 z-50 bg-background/80 backdrop-blur-sm flex items-center justify-center">
+          <div className="bg-background border rounded-lg p-6 max-w-md flex flex-col items-center gap-4">
+            <AlertCircle className="h-12 w-12 text-destructive" />
+            <p className="text-lg font-medium">Seeding Failed</p>
+            <p className="text-sm text-muted-foreground text-center">{seedError}</p>
+            <Button onClick={() => window.location.href = window.location.pathname}>
+              Close
+            </Button>
+          </div>
+        </div>
+      )}
       </div>
     </AppLayout>
   );

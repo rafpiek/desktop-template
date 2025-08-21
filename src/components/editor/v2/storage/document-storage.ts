@@ -4,11 +4,11 @@ import type { TiptapValue, TiptapDocumentData, TiptapTextStats } from '../tiptap
 import type { Document, DocumentStatus, ProjectTag } from '@/lib/types/project';
 
 // Storage key patterns - using original clean pattern
-export const getDocumentStorageKey = (documentId: string): string => 
+export const getDocumentStorageKey = (documentId: string): string =>
   `document-data-${documentId}`;
 
 // Get backup storage key for JSON export
-export const getDocumentBackupKey = (documentId: string): string => 
+export const getDocumentBackupKey = (documentId: string): string =>
   `document-backup-${documentId}`;
 
 // Default empty document structure
@@ -37,19 +37,19 @@ export const calculateTextStats = (content: TiptapValue): TiptapTextStats => {
 
   const extractText = (node: unknown): string => {
     if (!node) return '';
-    
+
     if (typeof node === 'string') return node;
-    
+
     if (node.type === 'text' && node.text) {
       return node.text;
     }
-    
+
     if (node.content && Array.isArray(node.content)) {
       // Join with space to properly separate blocks (paragraphs, headings, etc.)
       // This ensures words at block boundaries don't merge together
       return node.content.map(extractText).join(' ');
     }
-    
+
     return '';
   };
 
@@ -96,7 +96,7 @@ export const loadDocumentData = (documentId: string): TiptapDocumentData => {
           lastModified: new Date().toISOString(),
           version: documentData.version || '1.0',
         };
-        
+
         saveDocumentData(documentId, updatedData);
         return updatedData;
       }
@@ -127,12 +127,12 @@ export const saveDocumentData = (documentId: string, documentData: TiptapDocumen
   try {
     localStorage.setItem(storageKey, JSON.stringify(documentData));
   } catch (error) {
-    
+
     // Try to free up space by removing old backups
     try {
       const backupKey = getDocumentBackupKey(documentId);
       localStorage.removeItem(backupKey);
-      
+
       // Retry saving
       localStorage.setItem(storageKey, JSON.stringify(documentData));
     } catch (retryError) {
@@ -158,7 +158,7 @@ export const saveDocumentContent = (documentId: string, content: TiptapValue): T
 export const createDocumentBackup = (documentId: string): void => {
   const documentData = loadDocumentData(documentId);
   const backupKey = getDocumentBackupKey(documentId);
-  
+
   const backup = {
     ...documentData,
     backupCreated: new Date().toISOString(),
@@ -206,10 +206,10 @@ export const cleanupOldDocumentData = (retentionDays: number = 30): number => {
       if (lastModified < cutoffDate) {
         const storageKey = getDocumentStorageKey(documentId);
         const backupKey = getDocumentBackupKey(documentId);
-        
+
         localStorage.removeItem(storageKey);
         localStorage.removeItem(backupKey);
-        
+
         cleanedCount++;
       }
     } catch (error) {

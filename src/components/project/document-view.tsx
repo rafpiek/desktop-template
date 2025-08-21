@@ -80,6 +80,14 @@ export function DocumentView() {
     }
   }, [document, draftId, documentId, projectId, _chapterId, setLastDocument]);
 
+  // Log all saved documents for debugging
+  useEffect(() => {
+    const savedDocsRaw = localStorage.getItem('zeyn-documents');
+    if (savedDocsRaw) {
+      console.log('All documents from localStorage:', JSON.parse(savedDocsRaw));
+    }
+  }, [documentId, draftId]);
+
   // Function to clear the new document flag
   const clearNewDocumentFlag = () => {
     const newSearchParams = new URLSearchParams(searchParams);

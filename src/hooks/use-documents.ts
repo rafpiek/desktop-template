@@ -10,42 +10,61 @@ import {
   createEmptyDocument,
   calculateWordCount,
 } from '@/lib/types/project';
+import {
+  loadDocumentData,
+  saveDocumentContent
+} from '@/components/editor/v2/storage/document-storage';
 
 const DOCUMENTS_STORAGE_KEY = 'zeyn-documents';
 
 export function useDocuments() {
-  const [documents, setDocuments] = useLocalStorage<Document[]>(DOCUMENTS_STORAGE_KEY, []);
+  const [documents, setDocuments] = useLocalStorage<Omit<Document, 'content'>[]>(DOCUMENTS_STORAGE_KEY, []);
 
   // Create a new document
   const createDocument = useCallback((input: CreateDocumentInput) => {
-    const newDocument = createEmptyDocument(input);
+    const { content, ...rest } = input;
+    const newDocument = createEmptyDocument(rest);
+
+    // Save content to its own key
+    if (content) {
+      saveDocumentContent(newDocument.id, content);
+      newDocument.wordCount = calculateWordCount(content);
+    }
+
     setDocuments(prev => [...prev, newDocument]);
     return newDocument;
   }, [setDocuments]);
 
   // Update an existing document
   const updateDocument = useCallback((input: UpdateDocumentInput) => {
+    const { content, ...rest } = input;
+
+    // Update content in its individual storage
+    if (content) {
+      const stats = saveDocumentContent(input.id, content);
+      rest.wordCount = stats.wordCount;
+    }
+
     setDocuments(prev => prev.map(document => {
       if (document.id !== input.id) return document;
 
-      const updatedDocument: Document = {
+      return {
         ...document,
-        ...input,
+        ...rest,
         updatedAt: new Date().toISOString(),
       };
-
-      // Recalculate word count if content was updated
-      if (input.content) {
-        updatedDocument.wordCount = calculateWordCount(input.content);
-      }
-
-      return updatedDocument;
     }));
   }, [setDocuments]);
 
   // Delete a document
   const deleteDocument = useCallback((id: string) => {
     setDocuments(prev => prev.filter(document => document.id !== id));
+    // Also remove the individual content from localStorage
+    try {
+      localStorage.removeItem(`document-data-${id}`);
+    } catch (e) {
+      console.error(`Failed to delete content for document ${id}`, e);
+    }
   }, [setDocuments]);
 
   // Toggle completion status
@@ -59,28 +78,45 @@ export function useDocuments() {
 
   // Duplicate a document
   const duplicateDocument = useCallback((id: string) => {
-    const document = documents.find(d => d.id === id);
-    if (!document) return null;
+    const docMetadata = documents.find(d => d.id === id);
+    if (!docMetadata) return null;
 
-    const duplicatedDocument: Document = {
-      ...document,
+    // Load the original document's content
+    const originalContent = loadDocumentData(id).content;
+
+    const duplicatedDocument: Omit<Document, 'content'> = {
+      ...docMetadata,
       id: crypto.randomUUID(),
-      title: `${document.title} (Copy)`,
+      title: `${docMetadata.title} (Copy)`,
       createdAt: new Date().toISOString(),
       updatedAt: new Date().toISOString(),
     };
+
+    // Save the duplicated content to its new key
+    if (originalContent) {
+      saveDocumentContent(duplicatedDocument.id, originalContent);
+    }
 
     setDocuments(prev => [...prev, duplicatedDocument]);
     return duplicatedDocument;
   }, [documents, setDocuments]);
 
-  // Get a single document by ID
+  // Get a single document by ID, now including its content
   const getDocument = useCallback((id: string): Document | undefined => {
-    return documents.find(document => document.id === id);
+    const docMetadata = documents.find(document => document.id === id);
+    if (!docMetadata) return undefined;
+
+    // Load content from individual storage and combine with metadata
+    const content = loadDocumentData(id).content;
+
+    return {
+      ...docMetadata,
+      content,
+    };
   }, [documents]);
 
   // Get documents by project ID
-  const getDocumentsByProject = useCallback((projectId: string): Document[] => {
+  const getDocumentsByProject = useCallback((projectId: string): Omit<Document, 'content'>[] => {
     return documents.filter(document => document.projectId === projectId);
   }, [documents]);
 

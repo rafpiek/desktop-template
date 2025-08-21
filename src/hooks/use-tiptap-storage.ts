@@ -30,6 +30,11 @@ export function useTiptapStorage(documentId: string) {
 
     try {
       const data = loadDocumentData(docId);
+      console.log('Loaded document data from storage:', {
+        documentId: docId,
+        content: data.content,
+        wordCount: data.wordCount,
+      });
       const extractParagraphText = (content: any): string => {
         if (!content?.content?.content) return '';
         return content.content.content
