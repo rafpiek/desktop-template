@@ -8,7 +8,7 @@ import { AdvancedSettings } from "@/components/settings/advanced-settings"
 
 export default function SettingsPage() {
   return (
-    <AppLayout title="Settings" maxWidth="full">
+    <AppLayout showNavigation={true}>
       <SettingsLayout>
         <Routes>
           <Route index element={<Navigate to="general" replace />} />

@@ -77,9 +77,9 @@ export function ContinueOnSection() {
     <section className="space-y-8 relative">
       {/* Section Header */}
       <div className="text-center space-y-4">
-        <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20">
-          <Zap className="h-4 w-4 mr-2 text-primary animate-pulse" />
-          <span className="text-sm font-medium text-primary">Pick up where you left off</span>
+        <div className="inline-flex items-center px-4 py-2 rounded-full bg-gradient-to-r from-primary/10 to-primary/5 border border-primary/20 dark:border-white/30">
+          <Zap className="h-4 w-4 mr-2 text-primary dark:text-white animate-pulse" />
+          <span className="text-sm font-medium text-foreground dark:text-white">Pick up where you left off</span>
         </div>
         <h2 className="text-3xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
           Continue Your Story

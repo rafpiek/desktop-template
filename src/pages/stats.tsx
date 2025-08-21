@@ -64,7 +64,7 @@ export default function StatsPage() {
 
   return (
     <AppLayout showNavigation={true}>
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-6xl mx-auto space-y-8">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
@@ -107,50 +107,116 @@ export default function StatsPage() {
             <div className="grid lg:grid-cols-3 gap-8">
               {/* Main Today's Goal */}
               <div className="lg:col-span-2">
-                <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden h-full ring-1 ring-border/10">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-1000"></div>
+                <Card className={cn(
+                  "border-2 relative overflow-hidden h-full transition-all duration-500",
+                  isGoalMet 
+                    ? "border-emerald-400/60 bg-gradient-to-br from-emerald-500/20 via-green-500/15 to-emerald-600/20 shadow-2xl shadow-emerald-500/25 ring-2 ring-emerald-400/30 animate-in fade-in duration-1000"
+                    : "border-border/20 bg-gradient-to-br from-card to-card/50 ring-1 ring-border/10"
+                )}>
+                  <div className={cn(
+                    "absolute inset-0 transition-transform duration-1000",
+                    isGoalMet
+                      ? "bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent animate-in slide-in-from-left duration-1500"
+                      : "bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] hover:translate-x-[100%]"
+                  )}></div>
+                  
+                  {/* Celebration sparkles when goal achieved */}
+                  {isGoalMet && (
+                    <>
+                      <div className="absolute top-4 right-4 animate-in bounce-in duration-700 delay-100">✨</div>
+                      <div className="absolute top-8 right-12 animate-in bounce-in duration-800 delay-200">🎉</div>
+                      <div className="absolute top-6 right-20 animate-in bounce-in duration-700 delay-300">⭐</div>
+                      <div className="absolute bottom-8 left-8 animate-in bounce-in duration-800 delay-150">🚀</div>
+                      <div className="absolute bottom-12 left-16 animate-in bounce-in duration-700 delay-250">💪</div>
+                    </>
+                  )}
                   
                   <CardHeader className="relative z-10 pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center">
-                          <Target className="h-6 w-6 text-emerald-500" />
+                        <div className={cn(
+                          "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500",
+                          isGoalMet 
+                            ? "bg-gradient-to-br from-emerald-400/30 to-green-500/30 animate-in zoom-in duration-700 shadow-lg shadow-emerald-400/25"
+                            : "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20"
+                        )}>
+                          <Target className={cn(
+                            "h-6 w-6 transition-all duration-500",
+                            isGoalMet ? "text-emerald-400 animate-in spin-in-180 duration-800" : "text-emerald-500"
+                          )} />
                         </div>
                         <div>
-                          <CardTitle className="text-2xl font-bold">Today's Progress</CardTitle>
-                          <p className="text-muted-foreground text-sm mt-1">
-                            {isGoalMet ? '🎉 Goal achieved!' : `${(stats.daily.target - todayWords).toLocaleString()} words to go`}
+                          <CardTitle className={cn(
+                            "text-2xl font-bold transition-all duration-500",
+                            isGoalMet ? "text-emerald-300 animate-in slide-in-from-left duration-600" : ""
+                          )}>Today's Progress</CardTitle>
+                          <p className={cn(
+                            "text-sm mt-1 font-semibold transition-all duration-500",
+                            isGoalMet ? "text-emerald-200 text-lg animate-in slide-in-from-left duration-700" : "text-muted-foreground"
+                          )}>
+                            {isGoalMet ? '🎉 GOAL ACHIEVED! 🎉' : `${(stats.daily.target - todayWords).toLocaleString()} words to go`}
                           </p>
                         </div>
                       </div>
-                      {isGoalMet && <Trophy className="h-8 w-8 text-yellow-500 animate-pulse" />}
+                      {isGoalMet && (
+                        <div className="flex items-center gap-2">
+                          <Trophy className="h-10 w-10 text-yellow-400 animate-in bounce-in duration-1000 shadow-lg shadow-yellow-400/25" />
+                          <div className="text-4xl animate-in bounce-in duration-1200 delay-200">🏆</div>
+                        </div>
+                      )}
                     </div>
                   </CardHeader>
                   
                   <CardContent className="relative z-10 space-y-6">
                     <div className="text-center space-y-2">
-                      <div className="text-6xl font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
+                      <div className={cn(
+                        "text-6xl font-bold transition-all duration-500",
+                        isGoalMet 
+                          ? "bg-gradient-to-r from-emerald-300 via-green-300 to-emerald-400 bg-clip-text text-transparent animate-in zoom-in duration-800 drop-shadow-lg"
+                          : "bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
+                      )}>
                         {todayWords.toLocaleString()}
                       </div>
-                      <div className="text-lg text-muted-foreground">of {stats.daily.target.toLocaleString()} words</div>
+                      <div className={cn(
+                        "text-lg transition-all duration-500",
+                        isGoalMet ? "text-emerald-200 font-semibold" : "text-muted-foreground"
+                      )}>
+                        {isGoalMet ? `🎯 Target CRUSHED! (${stats.daily.target.toLocaleString()} words)` : `of ${stats.daily.target.toLocaleString()} words`}
+                      </div>
                     </div>
                     
                     <div className="space-y-3">
                       <div className="flex justify-between text-sm">
-                        <span className="font-medium">{stats.daily.percentage}% Complete</span>
                         <span className={cn(
-                          "font-bold",
-                          isGoalMet ? "text-emerald-500" : "text-muted-foreground"
+                          "font-medium transition-all duration-500",
+                          isGoalMet ? "text-emerald-200 text-base animate-in slide-in-from-left duration-900" : ""
+                        )}>{stats.daily.percentage}% Complete</span>
+                        <span className={cn(
+                          "font-bold transition-all duration-500",
+                          isGoalMet ? "text-emerald-300 text-xl animate-in slide-in-from-right duration-900" : "text-muted-foreground"
                         )}>
-                          {stats.daily.percentage}%
+                          {isGoalMet ? `${stats.daily.percentage}% 🔥` : `${stats.daily.percentage}%`}
                         </span>
                       </div>
                       <div className="relative">
                         <Progress 
                           value={stats.daily.percentage} 
-                          className="h-3 bg-muted"
+                          className={cn(
+                            "h-3 transition-all duration-500",
+                            isGoalMet ? "h-4 bg-emerald-900/30" : "bg-muted"
+                          )}
                         />
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-1000 rounded-full"></div>
+                        <div className={cn(
+                          "absolute inset-0 rounded-full transition-transform duration-1000",
+                          isGoalMet 
+                            ? "bg-gradient-to-r from-emerald-400/30 via-emerald-300/40 to-emerald-400/30 animate-in slide-in-from-left duration-1000"
+                            : "bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%]"
+                        )}></div>
+                        
+                        {/* Celebration glow effect */}
+                        {isGoalMet && (
+                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-green-400/20 rounded-full animate-in zoom-in duration-800"></div>
+                        )}
                       </div>
                     </div>
                   </CardContent>

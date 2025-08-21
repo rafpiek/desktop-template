@@ -1,7 +1,7 @@
 import { Link, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { ThemeToggle } from "@/components/theme-toggle"
-import { Home, BookOpen, Settings, PenTool } from "lucide-react"
+import { Home, BookOpen, Settings, PenTool, TrendingUp } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface TopBarProps {
@@ -59,6 +59,20 @@ export function TopBar({ title, showNavigation = true }: TopBarProps) {
               <Link to="/projects">
                 <BookOpen className="h-4 w-4" />
                 Projects
+              </Link>
+            </Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              asChild
+              className={cn(
+                "gap-2 transition-all duration-200 hover:bg-muted/50",
+                isActive("/stats") && "bg-muted text-foreground font-medium"
+              )}
+            >
+              <Link to="/stats">
+                <TrendingUp className="h-4 w-4" />
+                Stats
               </Link>
             </Button>
             <Button 

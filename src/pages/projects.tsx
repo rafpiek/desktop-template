@@ -93,9 +93,10 @@ export default function ProjectsPage() {
   ].filter(Boolean);
 
   return (
-    <AppLayout maxWidth="wide">
-      {/* Hero Section */}
-      <div className="relative mb-16">
+    <AppLayout showNavigation={true}>
+      <div className="max-w-6xl mx-auto space-y-8">
+        {/* Hero Section */}
+        <div className="relative mb-16">
         <div className="max-w-4xl mx-auto text-center space-y-6">
           <div className="inline-flex items-center px-4 py-2 rounded-full bg-muted/50 text-sm text-muted-foreground mb-8">
             <Sparkles className="h-4 w-4 mr-2" />
@@ -273,6 +274,7 @@ export default function ProjectsPage() {
         project={editingProject}
         onSubmit={handleUpdateProject}
       />
+      </div>
     </AppLayout>
   );
 }
