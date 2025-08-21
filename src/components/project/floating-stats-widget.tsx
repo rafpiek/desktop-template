@@ -1,14 +1,10 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { X, BarChart3, Target, Flame, TrendingUp } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useGoalsContext } from '@/contexts/goals-context';
+import { useGoalProgress } from '@/contexts/goal-progress-context';
 import { GoalAchievementCelebration } from '@/components/goals/goal-achievement-celebration';
 import { Progress } from '@/components/ui/progress';
-import { 
-  getTodayProgress,
-  getCurrentSession,
-  type WritingSession 
-} from '@/components/editor/v2/storage/document-storage';
 
 interface TextStats {
   wordCount: number;
@@ -28,39 +24,20 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
   const [isHovered, setIsHovered] = useState(false);
   const [showCelebration, setShowCelebration] = useState(false);
   const [celebratedGoals, setCelebratedGoals] = useState<Set<string>>(() => {
-    // Check if we've already celebrated today
     try {
       const today = new Date().toISOString().split('T')[0];
       const stored = localStorage.getItem('celebrated-goals-' + today);
-      // Clear any stale celebration data on mount to ensure celebrations work
       if (stored) {
-        try {
-          const parsed = JSON.parse(stored);
-          // Only keep celebrations from the last hour to avoid blocking legitimate celebrations
-          const lastCelebrationTime = localStorage.getItem('last-celebration-time');
-          if (lastCelebrationTime) {
-            const timeDiff = Date.now() - parseInt(lastCelebrationTime);
-            if (timeDiff > 3600000) { // More than 1 hour
-              console.log('🔄 Clearing stale celebration data');
-              localStorage.removeItem('celebrated-goals-' + today);
-              return new Set();
-            }
-          }
-          return new Set(parsed);
-        } catch {
-          return new Set();
-        }
+        return new Set(JSON.parse(stored));
       }
       return new Set();
     } catch {
       return new Set();
     }
   });
-  const [currentSession, setCurrentSession] = useState<WritingSession | null>(null);
-  const [dailyProgressWords, setDailyProgressWords] = useState(0);
-  const hasInitializedRef = useRef(false);
 
-  const { stats, getGoalByType, trackDocumentChange, getTodayProgress: getGoalTodayProgress, goals } = useGoalsContext();
+  const { stats, getGoalByType, goals } = useGoalsContext();
+  const { dailyProgress, resetToday } = useGoalProgress();
 
   // Close widget when clicking outside
   useEffect(() => {
@@ -78,139 +55,29 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
     }
   }, [isVisible, onToggle]);
 
-  // Initialize session tracking with our new system
-  useEffect(() => {
-    if (!hasInitializedRef.current && documentId) {
-      console.log('📝 Initializing session tracking');
-      
-      // Get current session for this document
-      const session = getCurrentSession(documentId);
-      setCurrentSession(session);
-      
-      // Get today's total progress
-      const todayProgress = getTodayProgress();
-      setDailyProgressWords(todayProgress?.totalWordsAdded || 0);
-      
-      hasInitializedRef.current = true;
-      
-      // Check if we should immediately celebrate (goal already achieved but not celebrated)
-      const dailyGoal = getGoalByType('daily');
-      const totalDailyWords = todayProgress?.totalWordsAdded || 0;
-      
-      if (dailyGoal && dailyGoal.isActive && totalDailyWords >= dailyGoal.targetWords) {
-        // Clear stale celebration to allow immediate celebration
-        const today = new Date().toISOString().split('T')[0];
-        const lastCelebrationTime = localStorage.getItem('last-celebration-time');
-        const timeSinceLastCelebration = lastCelebrationTime ? Date.now() - parseInt(lastCelebrationTime) : Infinity;
-        
-        // If it's been more than 5 minutes since last celebration, allow it again
-        if (timeSinceLastCelebration > 300000) { // 5 minutes
-          console.log('🎉 Goal already achieved, clearing stale celebration to trigger new one!');
-          localStorage.removeItem('celebrated-goals-' + today);
-          localStorage.removeItem('last-celebration-time');
-          setCelebratedGoals(new Set());
-        }
-      }
-    }
-  }, [documentId, getGoalByType]);
-
-    // Track session updates and check for celebrations
-  useEffect(() => {
-    if (!documentId || !projectId) return;
-
-    // Update session data and daily progress
-    const session = getCurrentSession(documentId);
-    setCurrentSession(session);
-    
-    const todayProgress = getTodayProgress();
-    const totalDailyWords = todayProgress?.totalWordsAdded || 0;
-    setDailyProgressWords(totalDailyWords);
-
-    // Check if daily goal is achieved and not yet celebrated
-    const dailyGoal = getGoalByType('daily');
-
-    console.log('🔍 Checking goal achievement:', {
-      dailyGoal: dailyGoal?.targetWords,
-      isActive: dailyGoal?.isActive,
-      sessionWords: session?.wordsAdded || 0,
-      totalDailyWords,
-      alreadyCelebrated: dailyGoal ? celebratedGoals.has(dailyGoal.id) : false,
-      celebratedGoalsSet: [...celebratedGoals],
-      showCelebration,
-      wouldTrigger: dailyGoal && dailyGoal.isActive && totalDailyWords >= dailyGoal.targetWords && !celebratedGoals.has(dailyGoal.id)
-    });
-
-    if (dailyGoal && dailyGoal.isActive) {
-      if (totalDailyWords >= dailyGoal.targetWords && !celebratedGoals.has(dailyGoal.id)) {
-        // Trigger celebration!
-        console.log('🎯 GOAL ACHIEVED! Triggering celebration...', {
-          totalDailyWords,
-          target: dailyGoal.targetWords,
-          celebrated: celebratedGoals.has(dailyGoal.id),
-          goalId: dailyGoal.id
-        });
-        console.log('🚀 SETTING showCelebration to TRUE!');
-        setShowCelebration(true);
-        setCelebratedGoals(prev => {
-          const newSet = new Set([...prev, dailyGoal.id]);
-          // Persist to localStorage for today
-          try {
-            const today = new Date().toISOString().split('T')[0];
-            localStorage.setItem('celebrated-goals-' + today, JSON.stringify([...newSet]));
-            localStorage.setItem('last-celebration-time', Date.now().toString());
-          } catch {}
-          return newSet;
-        });
-
-        // Reset celebration tracking at midnight
-        const now = new Date();
-        const tomorrow = new Date(now);
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        tomorrow.setHours(0, 0, 0, 0);
-        const msUntilMidnight = tomorrow.getTime() - now.getTime();
-
-        setTimeout(() => {
-          setCelebratedGoals(prev => {
-            const newSet = new Set(prev);
-            newSet.delete(dailyGoal.id);
-            return newSet;
-          });
-          hasInitializedRef.current = false; // Reset for next day
-        }, msUntilMidnight);
-      }
-    }
-  }, [textStats.wordCount, documentId, projectId, getGoalByType, celebratedGoals]);
-
-        // Calculate real-time progress using session-based data
+  // Simple daily goal calculation
   const dailyGoal = getGoalByType('daily');
-
-  // Use session-based daily progress, not document word count
-  const totalDailyWords = dailyProgressWords; // Session-based daily progress
+  const totalDailyWords = dailyProgress.totalWords; // From context - SIMPLE!
   const dailyPercentage = dailyGoal ? (totalDailyWords / dailyGoal.targetWords) * 100 : 0;
   const showGoalProgress = dailyGoal && dailyGoal.isActive && isVisible;
 
-  // Celebration check - using reactive word count
+  console.log('🎯 SIMPLE DAILY GOAL:', {
+    totalDailyWords,
+    target: dailyGoal?.targetWords,
+    percentage: dailyPercentage,
+    note: 'Using simple context-based tracking'
+  });
+
+  // Celebration check
   const shouldCelebrate = dailyGoal &&
     dailyGoal.isActive &&
     totalDailyWords >= dailyGoal.targetWords &&
     !celebratedGoals.has(dailyGoal.id);
 
-  console.log('🎯 REACTIVE:', {
-    wordCount: textStats.wordCount,
-    target: dailyGoal?.targetWords,
-    percentage: dailyPercentage,
-    shouldCelebrate,
-    alreadyCelebrated: dailyGoal ? celebratedGoals.has(dailyGoal.id) : false
-  });
-
   // Trigger celebration when needed
   useEffect(() => {
     if (shouldCelebrate && !showCelebration) {
-      console.log('💥 SIMPLE TRIGGER: Setting celebration to TRUE!', {
-        totalDailyWords,
-        target: dailyGoal?.targetWords,
-        shouldCelebrate
-      });
+      console.log('🎉 Goal achieved! Triggering celebration');
       setShowCelebration(true);
 
       // Mark as celebrated
@@ -220,13 +87,12 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
           try {
             const today = new Date().toISOString().split('T')[0];
             localStorage.setItem('celebrated-goals-' + today, JSON.stringify([...newSet]));
-            localStorage.setItem('last-celebration-time', Date.now().toString());
           } catch {}
           return newSet;
         });
       }
     }
-  }, [shouldCelebrate, showCelebration, dailyGoal, totalDailyWords]);
+  }, [shouldCelebrate, showCelebration, dailyGoal]);
 
   // Debug log to check goal values
   useEffect(() => {
@@ -380,8 +246,17 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
                   >
                     Reset Today's Celebrations
                   </button>
+                  <button
+                    onClick={() => {
+                      resetToday();
+                      console.log('🔄 Reset daily progress');
+                    }}
+                    className="block text-xs text-muted-foreground hover:text-foreground underline"
+                  >
+                    Reset Today's Progress
+                  </button>
                   <div className="text-xs text-muted-foreground/60">
-                    Session: {currentSession?.wordsAdded || 0} words | Daily: {totalDailyWords}/{dailyGoal?.targetWords || '?'} words
+                    Daily Progress: {totalDailyWords}/{dailyGoal?.targetWords || '?'} words
                   </div>
                 </div>
               )}

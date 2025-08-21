@@ -6,6 +6,7 @@ import App from './App.tsx'
 import { ThemeProvider } from '@/components/theme-provider'
 import { ProjectProvider } from '@/contexts/project-context'
 import { GoalsProvider } from '@/contexts/goals-context'
+import { GoalProgressProvider } from '@/contexts/goal-progress-context'
 import { LastAccessedProvider } from '@/contexts/last-accessed-context'
 // Demo data seeder for recording demos
 // import { seedDemoData } from '@/infra/seeder'
@@ -24,7 +25,9 @@ createRoot(document.getElementById('root')!).render(
         <ProjectProvider>
           <BrowserRouter>
             <GoalsProvider>
-              <App />
+              <GoalProgressProvider>
+                <App />
+              </GoalProgressProvider>
             </GoalsProvider>
           </BrowserRouter>
         </ProjectProvider>

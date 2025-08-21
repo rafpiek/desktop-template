@@ -22,10 +22,9 @@ import {
   DEFAULT_GOAL_SETTINGS,
 } from '@/lib/types/goals';
 import {
-  getTodayProgress as getSessionTodayProgress,
-  getDailyProgress,
-  getAllActiveSessions,
-} from '@/components/editor/v2/storage/document-storage';
+  getTodayWordProgress,
+  getProgressForDate,
+} from '@/components/editor/v2/storage/daily-progress-storage';
 
 const GOALS_STORAGE_KEY = 'zeyn-goals';
 const GOAL_PROGRESS_STORAGE_KEY = 'zeyn-goal-progress';
@@ -141,12 +140,12 @@ export function useGoals(documents: any[] = []) {
     });
   }, [progress]);
 
-  // Get progress for today - calculate from writing sessions
+  // Get progress for today - calculate from simple daily progress
   const getTodayProgress = useCallback(() => {
     const today = new Date().toISOString().split('T')[0];
-    const dailyProgress = getSessionTodayProgress();
+    const dailyProgress = getTodayWordProgress();
 
-    if (!dailyProgress || dailyProgress.totalWordsAdded <= 0) {
+    if (!dailyProgress || dailyProgress.wordsAdded <= 0) {
       return [];
     }
 
@@ -155,12 +154,12 @@ export function useGoals(documents: any[] = []) {
       id: 'today',
       goalId: 'daily',
       date: today,
-      wordsWritten: dailyProgress.totalWordsAdded,
-      charsWritten: dailyProgress.totalWordsAdded * 5, // Rough estimate
-      projectIds: dailyProgress.projectIds,
-      documentIds: dailyProgress.documentIds,
-      createdAt: today,
-      updatedAt: today,
+      wordsWritten: dailyProgress.wordsAdded,
+      charsWritten: dailyProgress.wordsAdded * 5, // Rough estimate
+      projectIds: [], // Not tracked in simple progress system
+      documentIds: [], // Not tracked in simple progress system
+      createdAt: dailyProgress.lastUpdated,
+      updatedAt: dailyProgress.lastUpdated,
     }];
   }, []);
 

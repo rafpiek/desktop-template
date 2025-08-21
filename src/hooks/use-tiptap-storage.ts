@@ -1,16 +1,12 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
 import { useDebounce } from './use-debounce';
+import { useDailyWordTracking } from './use-daily-word-tracking';
 import type { TiptapValue, TiptapDocumentData, TiptapTextStats } from '@/components/editor/v2/tiptap-types';
 import {
   loadDocumentData,
   saveDocumentContent,
   calculateTextStats,
-  getEmptyDocumentData,
-  startWritingSession,
-  updateWritingSession,
-  endWritingSession,
-  getCurrentSession,
-  type WritingSession
+  getEmptyDocumentData
 } from '@/components/editor/v2/storage/document-storage';
 import { Constants } from '@/infra/constants';
 
@@ -27,59 +23,12 @@ export function useTiptapStorage(documentId: string, projectId?: string) {
   const lastSavedContentRef = useRef<TiptapValue | null>(null);
   const debouncedContentDocumentIdRef = useRef<string | null>(null);
 
-  // Writing session state
-  const [currentSession, setCurrentSession] = useState<WritingSession | null>(null);
-  const [sessionWordsAdded, setSessionWordsAdded] = useState(0);
-  const sessionStartedRef = useRef<boolean>(false);
+  // Simple daily word tracking
+  const { trackWordCount, resetForDocument } = useDailyWordTracking();
 
   // Debounce content changes for auto-save (500ms delay)
   const debouncedContent = useDebounce(content, Constants.AUTO_SAVE_DELAY);
 
-  // Session management functions
-  const startSession = useCallback((baselineWordCount: number) => {
-    if (sessionStartedRef.current) return; // Already started
-    
-    try {
-      const session = startWritingSession(documentId, baselineWordCount, projectId);
-      setCurrentSession(session);
-      setSessionWordsAdded(0);
-      sessionStartedRef.current = true;
-      console.log('Started writing session:', session.id, 'baseline:', baselineWordCount);
-    } catch (error) {
-      console.error('Failed to start writing session:', error);
-    }
-  }, [documentId, projectId]);
-
-  const updateSession = useCallback((currentWordCount: number) => {
-    if (!sessionStartedRef.current) return;
-    
-    try {
-      const updatedSession = updateWritingSession(documentId, currentWordCount);
-      if (updatedSession) {
-        setCurrentSession(updatedSession);
-        setSessionWordsAdded(updatedSession.wordsAdded);
-        console.log('Updated session:', updatedSession.wordsAdded, 'words added');
-      }
-    } catch (error) {
-      console.error('Failed to update writing session:', error);
-    }
-  }, [documentId]);
-
-  const endSession = useCallback(() => {
-    if (!sessionStartedRef.current) return;
-    
-    try {
-      const endedSession = endWritingSession(documentId);
-      if (endedSession) {
-        console.log('Ended writing session:', endedSession.id, 'total words added:', endedSession.wordsAdded);
-      }
-      setCurrentSession(null);
-      setSessionWordsAdded(0);
-      sessionStartedRef.current = false;
-    } catch (error) {
-      console.error('Failed to end writing session:', error);
-    }
-  }, [documentId]);
 
   // Load document data
   const loadDocumentDataInternal = useCallback((docId: string): TiptapDocumentData => {
@@ -153,20 +102,15 @@ export function useTiptapStorage(documentId: string, projectId?: string) {
       setTextStats(stats);
     }
 
-    // Update writing session with current word count
-    updateSession(stats.wordCount);
-  }, [documentId, updateSession]);
+    // Track word changes for daily progress
+    trackWordCount(stats.wordCount);
+  }, [documentId, trackWordCount]);
 
   // Load content when document ID changes
   useEffect(() => {
 
     if (currentDocumentIdRef.current !== documentId) {
       setIsLoading(true);
-
-      // End current session before switching documents
-      if (currentDocumentIdRef.current) {
-        endSession();
-      }
 
       // Save current document before switching (if we have one)
       if (currentDocumentIdRef.current && lastSavedContentRef.current) {
@@ -187,21 +131,12 @@ export function useTiptapStorage(documentId: string, projectId?: string) {
       };
       setTextStats(loadedStats);
 
-      // Check if there's an existing active session or start a new one
-      const existingSession = getCurrentSession(documentId);
-      if (existingSession) {
-        setCurrentSession(existingSession);
-        setSessionWordsAdded(existingSession.wordsAdded);
-        sessionStartedRef.current = true;
-        console.log('Resumed existing session:', existingSession.id);
-      } else {
-        // Start new session with current word count as baseline
-        startSession(loadedStats.wordCount);
-      }
+      // Reset daily word tracker for new document (establishes baseline)
+      resetForDocument(loadedStats.wordCount);
 
       setIsLoading(false);
     }
-  }, [documentId, endSession, startSession]);
+  }, [documentId, resetForDocument]);
 
   // Auto-save when content changes (debounced)
   useEffect(() => {
@@ -220,16 +155,11 @@ export function useTiptapStorage(documentId: string, projectId?: string) {
   // Save on unmount or when document changes
   useEffect(() => {
     return () => {
-      // End session before unmounting
-      if (sessionStartedRef.current) {
-        endSession();
-      }
-      
       if (currentDocumentIdRef.current && lastSavedContentRef.current) {
         saveDocumentContent(currentDocumentIdRef.current, lastSavedContentRef.current);
       }
     };
-  }, [endSession]);
+  }, []);
 
   return {
     content,
@@ -239,10 +169,5 @@ export function useTiptapStorage(documentId: string, projectId?: string) {
     saveNow,
     loadDocumentData: loadDocumentDataInternal,
     saveDocumentData,
-    // Session tracking
-    currentSession,
-    sessionWordsAdded,
-    startSession,
-    endSession,
   };
 }
