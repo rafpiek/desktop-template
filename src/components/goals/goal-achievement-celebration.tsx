@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom';
 import { cn } from '@/lib/utils';
-import { Trophy, TrendingUp, Sparkles, Clock } from 'lucide-react';
+import { Trophy, TrendingUp, Sparkles, Clock, X } from 'lucide-react';
 
 interface GoalAchievementCelebrationProps {
   show: boolean;
@@ -173,8 +173,8 @@ export function GoalAchievementCelebration({
           </div>
         </div>
         
-        {/* Elegant timeout indicator - top right */}
-        <div className="absolute -top-2 -right-2">
+        {/* Timer indicator - top left */}
+        <div className="absolute top-2 left-2">
           <div className="relative w-8 h-8">
             <svg width="32" height="32" className="transform -rotate-90">
               <circle
@@ -205,6 +205,26 @@ export function GoalAchievementCelebration({
             </div>
           </div>
         </div>
+
+        {/* Close button - top right */}
+        <button
+          onClick={() => {
+            setIsVisible(false);
+            onComplete();
+          }}
+          className={cn(
+            "absolute top-2 right-2",
+            "w-8 h-8 rounded-full",
+            "bg-gray-800/90 hover:bg-gray-700/90 border border-white/20",
+            "backdrop-blur-sm",
+            "flex items-center justify-center",
+            "transition-all duration-200",
+            "hover:scale-105 group z-20"
+          )}
+          title="Close celebration"
+        >
+          <X className="w-4 h-4 text-white/70 group-hover:text-white" />
+        </button>
         
         {/* Content */}
         <div className="relative z-10 p-6 space-y-4">
