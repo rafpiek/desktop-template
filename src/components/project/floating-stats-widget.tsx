@@ -203,16 +203,16 @@ export function FloatingStatsWidget({ textStats, isVisible, onToggle, documentId
                   {realtimeStats.daily.achieved.toLocaleString()} / {realtimeStats.daily.target.toLocaleString()}
                 </span>
               </div>
-              <div className="relative">
+              <div className="space-y-1">
                 <Progress
                   value={Math.min(realtimeStats.daily.percentage, 100)}
                   className="h-2 transition-all duration-300"
                 />
                 {realtimeStats.daily.percentage > 100 && (
-                  <div className="absolute -top-6 right-0 flex items-center gap-1">
+                  <div className="flex items-center justify-end gap-1 mt-1">
                     <TrendingUp className="w-3 h-3 text-green-500" />
                     <span className="text-xs font-bold text-green-500">
-                      {Math.round(realtimeStats.daily.percentage)}%
+                      +{Math.round(realtimeStats.daily.percentage - 100)}% extra!
                     </span>
                   </div>
                 )}
