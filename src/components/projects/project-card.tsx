@@ -66,26 +66,23 @@ export function ProjectCard({
   return (
     <Card 
       className={cn(
-        "group relative transition-all duration-300 hover:shadow-lg hover:shadow-primary/20 hover:-translate-y-1 border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-primary/40 h-full ring-1 ring-border/10 cursor-pointer",
-        project.isFavorite && "ring-2 ring-yellow-400/40 shadow-lg shadow-yellow-400/20 border-yellow-400/40",
-        isLastUsed && "ring-2 ring-emerald-400/50 shadow-lg shadow-emerald-400/25 border-emerald-400/50 bg-gradient-to-br from-emerald-950/20 to-card/50",
-        project.isArchived && "opacity-60 hover:opacity-80",
-        "before:absolute before:inset-0 before:bg-gradient-to-br before:from-transparent before:via-transparent before:to-primary/5 before:opacity-0 before:transition-opacity before:duration-300 hover:before:opacity-100"
+        "group relative transition-colors duration-200 border-2 border-border bg-card hover:border-primary/50 hover:shadow-md h-full cursor-pointer",
+        project.isFavorite && "ring-2 ring-yellow-400/40 border-yellow-400/40",
+        isLastUsed && "ring-2 ring-emerald-400/50 border-emerald-400/50",
+        project.isArchived && "opacity-60 hover:opacity-80"
       )}
       onClick={handleCardClick}
-    >  
-      {/* Shimmer effect - matches home page cards */}
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700 overflow-hidden rounded-lg"></div>
+    >
       
       {/* Floating Last Used Label */}
       {isLastUsed && (
-        <div className="absolute -top-3 -left-3 z-20">
-          <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-emerald-500 text-white shadow-lg shadow-emerald-500/25 border border-emerald-400/50">
+        <div className="absolute -top-2 -left-2 z-10 pointer-events-none">
+          <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium bg-emerald-500 text-white">
             ✨ you wrote last words here
           </span>
         </div>
       )}
-      <CardHeader className="relative z-10 pb-3">
+      <CardHeader className="relative pb-3">
         {/* Header with Title and Actions */}
         <div className="flex items-start justify-between mb-3">
           <div className="flex-1 min-w-0">
@@ -163,7 +160,7 @@ export function ProjectCard({
         </div>
       </CardHeader>
 
-      <CardContent className="relative z-10 pt-0">
+      <CardContent className="relative pt-0">
         {/* Key Metrics - Compact */}
         <div className="grid grid-cols-2 gap-4 mb-4">
           <div className="space-y-0.5">

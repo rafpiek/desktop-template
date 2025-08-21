@@ -259,23 +259,18 @@ export default function ProjectsPage() {
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-            {filteredProjects.map((project, index) => (
-              <div
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredProjects.map((project) => (
+              <ProjectCard
                 key={project.id}
-                className="animate-in fade-in slide-in-from-bottom-4 duration-500"
-                style={{ animationDelay: `${index * 100}ms` }}
-              >
-                <ProjectCard
-                  project={project}
-                  onEdit={handleEditProject}
-                  onDelete={handleDeleteProject}
-                  onDuplicate={duplicateProject}
-                  onToggleFavorite={toggleFavorite}
-                  onToggleArchive={toggleArchive}
-                  isLastUsed={mostRecentProject?.id === project.id && !project.isArchived}
-                />
-              </div>
+                project={project}
+                onEdit={handleEditProject}
+                onDelete={handleDeleteProject}
+                onDuplicate={duplicateProject}
+                onToggleFavorite={toggleFavorite}
+                onToggleArchive={toggleArchive}
+                isLastUsed={mostRecentProject?.id === project.id && !project.isArchived}
+              />
             ))}
           </div>
         )}
