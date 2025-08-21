@@ -74,15 +74,21 @@ export function useTiptapStorage(documentId: string) {
   }, [content, documentId, saveDocumentData]);
 
   // Update content and trigger stats calculation
-  const updateContent = useCallback((newContent: TiptapValue) => {
+  const updateContent = useCallback((newContent: TiptapValue, immediateStats?: TiptapTextStats) => {
     setContent(newContent);
 
     // Track which document this content belongs to
     debouncedContentDocumentIdRef.current = documentId;
 
-    // Calculate stats immediately for UI responsiveness
-    const stats = calculateTextStats(newContent);
-    setTextStats(stats);
+    // Use provided stats for immediate update, or calculate if not provided
+    if (immediateStats) {
+      // Use stats directly from the editor for immediate updates
+      setTextStats(immediateStats);
+    } else {
+      // Fallback to calculating stats if not provided
+      const stats = calculateTextStats(newContent);
+      setTextStats(stats);
+    }
   }, [documentId]);
 
   // Load content when document ID changes

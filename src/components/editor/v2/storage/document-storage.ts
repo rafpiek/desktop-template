@@ -45,7 +45,9 @@ export const calculateTextStats = (content: TiptapValue): TiptapTextStats => {
     }
     
     if (node.content && Array.isArray(node.content)) {
-      return node.content.map(extractText).join('');
+      // Join with space to properly separate blocks (paragraphs, headings, etc.)
+      // This ensures words at block boundaries don't merge together
+      return node.content.map(extractText).join(' ');
     }
     
     return '';

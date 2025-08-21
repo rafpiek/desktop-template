@@ -1,0 +1,544 @@
+/* Goal Achievement Celebration Animations - Premium Corner Design */
+
+/* Premium flame animations */
+@keyframes premium-flame {
+  0%, 100% {
+    transform: translateY(0) scaleY(1) skewX(0deg);
+    opacity: 0.9;
+  }
+  25% {
+    transform: translateY(-2px) scaleY(1.05) skewX(-1deg);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-1px) scaleY(0.98) skewX(1deg);
+    opacity: 0.95;
+  }
+  75% {
+    transform: translateY(-3px) scaleY(1.03) skewX(-0.5deg);
+    opacity: 1;
+  }
+}
+
+@keyframes premium-flame-inner {
+  0%, 100% {
+    transform: translateY(0) scale(1) rotate(0deg);
+    opacity: 0.8;
+  }
+  30% {
+    transform: translateY(-1px) scale(1.02) rotate(1deg);
+    opacity: 0.9;
+  }
+  60% {
+    transform: translateY(-2px) scale(0.98) rotate(-1deg);
+    opacity: 0.85;
+  }
+}
+
+@keyframes flame-tip {
+  0%, 100% {
+    transform: scale(1) translateY(0);
+    opacity: 0.7;
+  }
+  50% {
+    transform: scale(1.1) translateY(-2px);
+    opacity: 0.9;
+  }
+}
+
+/* Spark floating animation */
+@keyframes spark-float {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.7;
+  }
+  100% {
+    transform: translateY(-80px) translateX(15px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* Trophy pulse animation */
+@keyframes trophy-pulse {
+  0%, 100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.1);
+    opacity: 0.9;
+  }
+}
+
+/* Progress sweep animation */
+@keyframes progress-sweep {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Gentle sparkle animation */
+@keyframes sparkle-gentle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.15) rotate(90deg);
+    opacity: 0.8;
+  }
+}
+
+/* Glow pulse animation */
+@keyframes glow-pulse {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Full-screen backdrop fade-in */
+@keyframes fade-in {
+  0% {
+    opacity: 0;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+/* Flames rising animation */
+@keyframes flames-rise {
+  0% {
+    transform: translateY(100%) scale(0.5);
+    opacity: 0;
+  }
+  50% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0) scale(1);
+    opacity: 1;
+  }
+}
+
+/* Flame dancing animations */
+@keyframes flame-dance {
+  0%, 100% {
+    transform: translateX(0) scaleY(1) skewX(0deg);
+  }
+  25% {
+    transform: translateX(-2px) scaleY(1.1) skewX(-2deg);
+  }
+  50% {
+    transform: translateX(1px) scaleY(0.95) skewX(1deg);
+  }
+  75% {
+    transform: translateX(-1px) scaleY(1.05) skewX(-1deg);
+  }
+}
+
+@keyframes flame-dance-2 {
+  0%, 100% {
+    transform: translateX(0) scaleY(1) skewX(0deg);
+  }
+  30% {
+    transform: translateX(1px) scaleY(1.08) skewX(1deg);
+  }
+  60% {
+    transform: translateX(-1px) scaleY(0.92) skewX(-1deg);
+  }
+  80% {
+    transform: translateX(0.5px) scaleY(1.03) skewX(0.5deg);
+  }
+}
+
+@keyframes flame-dance-3 {
+  0%, 100% {
+    transform: translateX(0) scaleY(1) skewX(0deg);
+  }
+  20% {
+    transform: translateX(-1px) scaleY(1.06) skewX(-1deg);
+  }
+  40% {
+    transform: translateX(1px) scaleY(0.94) skewX(1deg);
+  }
+  70% {
+    transform: translateX(-0.5px) scaleY(1.02) skewX(-0.5deg);
+  }
+}
+
+/* Ember floating animation */
+@keyframes ember-float {
+  0% {
+    transform: translateY(0) translateX(0) scale(0.5);
+    opacity: 0;
+  }
+  10% {
+    opacity: 1;
+  }
+  90% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-200px) translateX(20px) scale(0.2);
+    opacity: 0;
+  }
+}
+
+/* Celebration entrance animation - optimized for corner */
+@keyframes celebration-entrance {
+  0% {
+    transform: scale(0.4) translateY(50px) translateX(30px);
+    opacity: 0;
+  }
+  60% {
+    transform: scale(1.05) translateY(-5px) translateX(-5px);
+    opacity: 0.9;
+  }
+  100% {
+    transform: scale(1) translateY(0) translateX(0);
+    opacity: 1;
+  }
+}
+
+/* Trophy bounce animation */
+@keyframes trophy-bounce {
+  0%, 100% {
+    transform: translateY(0) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(5deg);
+  }
+}
+
+/* Progress shine animation */
+@keyframes progress-shine {
+  0% {
+    background-position: 0% 50%;
+  }
+  100% {
+    background-position: 100% 50%;
+  }
+}
+
+/* Sparkle animation */
+@keyframes sparkle {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.2) rotate(180deg);
+    opacity: 0.8;
+  }
+}
+
+/* Ambient glow animation */
+@keyframes ambient-glow {
+  0%, 100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 0.6;
+  }
+}
+
+/* Gentle pulse for timeout indicator */
+@keyframes pulse-gentle {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+/* Slide up animation for the notification */
+@keyframes slide-up {
+  0% {
+    transform: translateY(120%);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+/* Fire particle animation - subtle floating upward effect */
+@keyframes fire-particle {
+  0% {
+    transform: translateY(0) scale(1) translateX(0);
+    opacity: 1;
+  }
+  50% {
+    transform: translateY(-40px) scale(1.5) translateX(10px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(-80px) scale(0.5) translateX(-5px);
+    opacity: 0;
+  }
+}
+
+/* Subtle fire particle animation */
+@keyframes fire-particle-subtle {
+  0% {
+    transform: translateY(0) scale(0.8) translateX(0);
+    opacity: 0.6;
+  }
+  50% {
+    transform: translateY(-30px) scale(1) translateX(5px);
+    opacity: 0.3;
+  }
+  100% {
+    transform: translateY(-60px) scale(0.4) translateX(-3px);
+    opacity: 0;
+  }
+}
+
+/* Flame flicker for decorative flames */
+@keyframes flame-flicker {
+  0%, 100% {
+    transform: scale(1) rotate(0deg);
+    filter: brightness(1) hue-rotate(0deg);
+  }
+  25% {
+    transform: scale(1.1) rotate(-5deg);
+    filter: brightness(1.2) hue-rotate(10deg);
+  }
+  50% {
+    transform: scale(0.95) rotate(3deg);
+    filter: brightness(0.9) hue-rotate(-5deg);
+  }
+  75% {
+    transform: scale(1.05) rotate(-2deg);
+    filter: brightness(1.1) hue-rotate(5deg);
+  }
+}
+
+/* Subtle bounce for trophy icon */
+@keyframes bounce-subtle {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+/* Shimmer effect for progress bar */
+@keyframes shimmer {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+/* Celebration card glow effect */
+@keyframes celebration-glow {
+  0%, 100% {
+    box-shadow: 
+      0 10px 40px rgba(249, 115, 22, 0.3),
+      0 0 80px rgba(249, 115, 22, 0.1),
+      inset 0 0 30px rgba(255, 255, 255, 0.1);
+  }
+  50% {
+    box-shadow: 
+      0 15px 60px rgba(249, 115, 22, 0.4),
+      0 0 100px rgba(249, 115, 22, 0.2),
+      inset 0 0 40px rgba(255, 255, 255, 0.15);
+  }
+}
+
+/* Utility classes */
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out forwards;
+}
+
+.animate-fire-particle {
+  animation: fire-particle 2s ease-out infinite;
+}
+
+.animate-fire-particle-subtle {
+  animation: fire-particle-subtle 3s ease-out infinite;
+}
+
+.animate-flame-flicker {
+  animation: flame-flicker 1.5s ease-in-out infinite;
+}
+
+.animate-bounce-subtle {
+  animation: bounce-subtle 2s ease-in-out infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s linear infinite;
+}
+
+.animate-celebration-glow {
+  animation: celebration-glow 3s ease-in-out infinite;
+}
+
+/* New epic celebration animations */
+.animate-fade-in {
+  animation: fade-in 0.6s ease-out forwards;
+}
+
+.animate-flames-rise {
+  animation: flames-rise 1.2s ease-out forwards;
+}
+
+.animate-flame-dance {
+  animation: flame-dance 3s ease-in-out infinite;
+}
+
+.animate-flame-dance-2 {
+  animation: flame-dance-2 2.5s ease-in-out infinite;
+}
+
+.animate-flame-dance-3 {
+  animation: flame-dance-3 2.8s ease-in-out infinite;
+}
+
+.animate-ember-float {
+  animation: ember-float 4s ease-out infinite;
+}
+
+.animate-celebration-entrance {
+  animation: celebration-entrance 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+.animate-trophy-bounce {
+  animation: trophy-bounce 2s ease-in-out infinite;
+}
+
+.animate-progress-shine {
+  background-size: 200% 100%;
+  animation: progress-shine 3s ease-in-out infinite;
+}
+
+.animate-sparkle {
+  animation: sparkle 2s ease-in-out infinite;
+}
+
+.animate-ambient-glow {
+  animation: ambient-glow 4s ease-in-out infinite;
+}
+
+.animate-pulse-gentle {
+  animation: pulse-gentle 2s ease-in-out infinite;
+}
+
+/* Premium corner celebration animations */
+.animate-premium-flame {
+  animation: premium-flame 2.5s ease-in-out infinite;
+}
+
+.animate-premium-flame-inner {
+  animation: premium-flame-inner 2s ease-in-out infinite;
+}
+
+.animate-flame-tip {
+  animation: flame-tip 1.8s ease-in-out infinite;
+}
+
+.animate-spark-float {
+  animation: spark-float 3s ease-out infinite;
+}
+
+.animate-trophy-pulse {
+  animation: trophy-pulse 2s ease-in-out infinite;
+}
+
+.animate-progress-sweep {
+  animation: progress-sweep 2s ease-in-out infinite;
+}
+
+.animate-sparkle-gentle {
+  animation: sparkle-gentle 3s ease-in-out infinite;
+}
+
+.animate-glow-pulse {
+  animation: glow-pulse 3s ease-in-out infinite;
+}
+
+/* Goal progress bar in floating widget */
+.goal-progress-bar {
+  position: relative;
+  overflow: visible;
+}
+
+.goal-progress-bar::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: 4px;
+  background: linear-gradient(90deg, transparent, rgba(34, 197, 94, 0.8));
+  animation: progress-shine 2s ease-in-out infinite;
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.goal-progress-bar[data-complete="true"]::after {
+  opacity: 1;
+}
+
+@keyframes progress-shine {
+  0% {
+    transform: translateX(-100px);
+  }
+  100% {
+    transform: translateX(100px);
+  }
+}
+
+/* Streak fire effect */
+.streak-fire {
+  position: relative;
+  display: inline-block;
+}
+
+.streak-fire::before,
+.streak-fire::after {
+  content: '🔥';
+  position: absolute;
+  animation: streak-flame 1s ease-in-out infinite;
+}
+
+.streak-fire::before {
+  left: -15px;
+  animation-delay: 0s;
+}
+
+.streak-fire::after {
+  right: -15px;
+  animation-delay: 0.5s;
+}
+
+@keyframes streak-flame {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+    opacity: 0.8;
+  }
+  50% {
+    transform: translateY(-5px) scale(1.2);
+    opacity: 1;
+  }
+}

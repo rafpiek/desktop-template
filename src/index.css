@@ -2,6 +2,7 @@
 @import './styles/zen-mode.css';
 @import './styles/tiptap-editor.css';
 @import './styles/home-animations.css';
+@import './styles/goal-celebration.css';
 @import url('https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&family=Courier+Prime:wght@400;700&family=Fira+Code:wght@400;500;600&family=Space+Mono:wght@400;700&family=Roboto:wght@400;500;700&display=swap');
 /* Note: iA Writer fonts are not on Google Fonts; using fallbacks in CSS stacks. */
 

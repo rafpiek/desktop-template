@@ -32,18 +32,7 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
 
       try {
         const fontSize = (localStorage.getItem('zeyn-font-size') as FontSize) || 'md';
-        const rawFontFamily = localStorage.getItem('zeyn-font-family') as string | null;
-        const migrationMap: Record<string, FontFamily> = {
-          'sans': 'system',
-          'serif': 'times',
-          'mono': 'ia-mono',
-          'ia-mono': 'ia-mono',
-          'ia-duo': 'ia-duo',
-          'typewriter': 'courier-prime',
-          'ibm-plex-mono': 'ia-mono',
-          'special-elite': 'courier-prime',
-        };
-        const fontFamily = (rawFontFamily ? (migrationMap[rawFontFamily] ?? rawFontFamily) : 'system') as FontFamily;
+        const fontFamily = (localStorage.getItem('zeyn-font-family') as FontFamily) || 'sans';
         const lineWidth = localStorage.getItem('zeyn-line-width') || 'default';
         const typewriterMode = (localStorage.getItem('typewriter-settings') ?
           JSON.parse(localStorage.getItem('typewriter-settings')!)?.mode : 'off') as TypewriterMode;
@@ -63,7 +52,6 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
             // Font families
             'font-family-sans', 'font-family-serif', 'font-family-mono',
             'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
-            'font-family-system', 'font-family-roboto', 'font-family-times', 'font-family-courier-prime', 'font-family-ibm-plex-mono', 'font-family-special-elite',
             // Line widths
             'line-width-60', 'line-width-80', 'line-width-120',
             'line-width-160', 'line-width-full', 'line-width-default',
@@ -91,7 +79,6 @@ export function TiptapSettingsIntegration({ editor }: TiptapSettingsIntegrationP
             'font-size-xs', 'font-size-sm', 'font-size-md', 'font-size-lg', 'font-size-zen',
             'font-family-sans', 'font-family-serif', 'font-family-mono',
             'font-family-ia-mono', 'font-family-ia-duo', 'font-family-typewriter',
-            'font-family-system', 'font-family-roboto', 'font-family-times', 'font-family-courier-prime', 'font-family-ibm-plex-mono', 'font-family-special-elite',
             'line-width-60', 'line-width-80', 'line-width-120',
             'line-width-160', 'line-width-full', 'line-width-default'
           );

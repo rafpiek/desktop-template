@@ -221,3 +221,15 @@ body:not(:has(.zen-mode-portal)) {
 .zen-mode-container [data-state] {
   pointer-events: auto !important;
 }
+
+/* Floating Stats Widget in Zen Mode */
+.zen-mode-container [data-floating-stats] {
+  z-index: 10003 !important;
+  position: fixed !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure stats widget stays visible and accessible */
+.zen-mode-container .fixed[data-floating-stats] {
+  z-index: 10003 !important;
+}

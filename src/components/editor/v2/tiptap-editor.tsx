@@ -25,7 +25,7 @@ import {
 interface TiptapEditorProps {
   documentId: string;
   initialContent: TiptapValue;
-  onUpdate: (content: TiptapValue) => void;
+  onUpdate: (content: TiptapValue, stats?: { wordCount: number; charactersWithSpaces: number; charactersWithoutSpaces: number }) => void;
   onReady: (editor: unknown) => void;
   autoFocus: boolean;
   focusMode: boolean;
@@ -64,7 +64,19 @@ export function TiptapEditor({
 
     onUpdate: ({ editor }) => {
       const content = editor.getJSON() as TiptapValue;
-      onUpdate(content);
+      
+      // Get stats from CharacterCount extension
+      const storage = editor.storage.characterCount;
+      if (storage) {
+        const stats = {
+          wordCount: storage.words() || 0,
+          charactersWithSpaces: storage.characters() || 0,
+          charactersWithoutSpaces: editor.state.doc.textContent.replace(/\s/g, '').length
+        };
+        onUpdate(content, stats);
+      } else {
+        onUpdate(content);
+      }
     },
 
     onCreate: ({ editor }) => {

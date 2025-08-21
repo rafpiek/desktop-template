@@ -6,6 +6,8 @@ import { Maximize2, Minimize2 } from 'lucide-react';
 
 import { ZenModeContainer } from '@/components/editor/zen-mode-container';
 import { EditorSettingsSheet } from '@/components/editor/editor-settings-sheet';
+import { FloatingStatsWidget } from '@/components/project/floating-stats-widget';
+import { useProject } from '@/contexts/project-context';
 import { Button } from '@/components/ui/button';
 import { useIsTauri } from '@/hooks/use-is-tauri';
 import { cn } from '@/lib/utils';
@@ -42,8 +44,28 @@ export function DocumentEditorV2({
   const [editor, setEditor] = React.useState<Editor | null>(null);
   const [isZenMode, setIsZenMode] = React.useState(false);
   const [zenModePortalContainer, setZenModePortalContainer] = React.useState<HTMLElement | null>(null);
+  const [isStatsVisible, setIsStatsVisible] = React.useState<boolean>(() => {
+    // Load preference from localStorage, default to true
+    try {
+      const saved = localStorage.getItem('document-stats-visible');
+      return saved ? JSON.parse(saved) : true;
+    } catch {
+      return true;
+    }
+  });
 
   const isTauriApp = useIsTauri();
+  const { selectedProjectId } = useProject();
+
+  // Handle stats widget visibility toggle
+  const handleStatsToggle = (visible: boolean) => {
+    setIsStatsVisible(visible);
+    try {
+      localStorage.setItem('document-stats-visible', JSON.stringify(visible));
+    } catch {
+      // Ignore localStorage errors
+    }
+  };
 
   // Use our custom hooks
   const { focusMode } = useTiptapFocusMode();
@@ -63,8 +85,17 @@ export function DocumentEditorV2({
   }, [content, textStats]);
 
   // Handle content changes from editor
-  const handleContentUpdate = React.useCallback((newContent: TiptapValue) => {
-    setContent(newContent);
+  const handleContentUpdate = React.useCallback((newContent: TiptapValue, stats?: { 
+    wordCount: number; 
+    charactersWithSpaces: number; 
+    charactersWithoutSpaces: number;
+  }) => {
+    // If stats are provided from the editor, use them directly for immediate updates
+    if (stats) {
+      setContent(newContent, stats);
+    } else {
+      setContent(newContent);
+    }
   }, [setContent, documentId]);
 
   // Handle editor ready callback
@@ -96,7 +127,7 @@ export function DocumentEditorV2({
         const newFullscreenState = !isZenMode;
         await currentWindow.setFullscreen(newFullscreenState);
         setIsZenMode(newFullscreenState);
-      } catch (error) {
+      } catch {
         setIsZenMode(!isZenMode);
       }
     } else {
@@ -179,6 +210,15 @@ export function DocumentEditorV2({
         )}
         <TiptapSettingsIntegration editor={editor} />
       </div>
+
+      {/* Floating Stats Widget - Shows in both regular and zen modes */}
+      <FloatingStatsWidget
+        textStats={textStats}
+        isVisible={isStatsVisible}
+        onToggle={handleStatsToggle}
+        documentId={documentId}
+        projectId={selectedProjectId}
+      />
     </ZenModeContainer>
   );
 }
