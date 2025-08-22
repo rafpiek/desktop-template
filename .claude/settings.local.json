@@ -22,7 +22,9 @@
       "Bash(node:*)",
       "Bash(bun install:*)",
       "Bash(mv:*)",
-      "Bash(find:*)"
+      "Bash(find:*)",
+      "WebFetch(domain:v2.tauri.app)",
+      "WebFetch(domain:thatgurjot.com)"
     ],
     "deny": []
   }
