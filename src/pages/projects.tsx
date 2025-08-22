@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Plus, BookOpen, PenTool, Sparkles, ArrowRight, Loader2, AlertCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { AppLayout } from '@/components/app-layout';
@@ -6,6 +6,7 @@ import { ProjectCard } from '@/components/projects/project-card';
 import { ProjectFormDialog } from '@/components/projects/project-form-dialog';
 import { ProjectFilters } from '@/components/projects/project-filters';
 import { useProjects } from '@/hooks/use-projects';
+import { useProjectData } from '@/hooks/use-project-data';
 import { useSeeder } from '@/hooks/use-seeder';
 import { useClearDemo } from '@/hooks/use-clear-demo';
 import { cn } from '@/lib/utils';
@@ -30,6 +31,8 @@ export default function ProjectsPage() {
     toggleArchive,
     getFilteredProjects,
   } = useProjects();
+  
+  const { recalculateChapterWordCounts } = useProjectData();
 
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false);
   const [editingProject, setEditingProject] = useState<Project | undefined>();
@@ -41,6 +44,13 @@ export default function ProjectsPage() {
 
   // Handle demo seeding - set to true to enable seeding
   const { isSeeding, seedCompleted, error: seedError } = useSeeder(true);
+  
+  // Recalculate word counts for all projects when the page loads
+  useEffect(() => {
+    projects.forEach(project => {
+      recalculateChapterWordCounts(project.id);
+    });
+  }, [projects.length]); // Only re-run when number of projects changes
 
   React.useEffect(() => {
     if (seedCompleted) {

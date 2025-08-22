@@ -27,8 +27,17 @@ export function useProjectData() {
       chapters.addDocumentToChapter(input.chapterId, newDocument.id);
     }
 
+    // Update project word count after document creation
+    const allProjectDocs = documents.documents.filter(d => d.projectId === input.projectId);
+    const totalWordCount = allProjectDocs.reduce((sum, doc) => sum + doc.wordCount, 0) + (newDocument.wordCount || 0);
+    
+    projects.updateProject({
+      id: input.projectId,
+      wordCount: totalWordCount
+    });
+
     return newDocument;
-  }, [documents, chapters]);
+  }, [documents, chapters, projects]);
 
   // Delete a document and update related entities
   const deleteDocumentWithUpdates = useCallback((documentId: string) => {
@@ -42,7 +51,18 @@ export function useProjectData() {
 
     // Delete the document
     documents.deleteDocument(documentId);
-  }, [documents, chapters]);
+    
+    // Update project word count after document deletion
+    const remainingDocs = documents.documents.filter(d => 
+      d.projectId === document.projectId && d.id !== documentId
+    );
+    const totalWordCount = remainingDocs.reduce((sum, doc) => sum + doc.wordCount, 0);
+    
+    projects.updateProject({
+      id: document.projectId,
+      wordCount: totalWordCount
+    });
+  }, [documents, chapters, projects]);
 
   // Move document between chapters and update entities
   const moveDocumentBetweenChapters = useCallback((
@@ -84,7 +104,23 @@ export function useProjectData() {
 
     // Delete the chapter
     chapters.deleteChapter(chapterId);
-  }, [documents, chapters]);
+    
+    // Update project word count after chapter operations
+    const remainingDocs = documents.documents.filter(d => {
+      // If we're deleting documents, exclude the ones in this chapter
+      if (!moveDocumentsToDrafts) {
+        return d.projectId === chapter.projectId && !chapter.documentIds.includes(d.id);
+      }
+      // If moving to drafts, include all project documents
+      return d.projectId === chapter.projectId;
+    });
+    const totalWordCount = remainingDocs.reduce((sum, doc) => sum + doc.wordCount, 0);
+    
+    projects.updateProject({
+      id: chapter.projectId,
+      wordCount: totalWordCount
+    });
+  }, [documents, chapters, projects]);
 
   // Update chapter word counts based on its documents
   const recalculateChapterWordCounts = useCallback((projectId: string) => {
@@ -96,7 +132,14 @@ export function useProjectData() {
       const totalWordCount = chapterDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
       chapters.updateChapterWordCount(chapter.id, totalWordCount);
     });
-  }, [documents, chapters]);
+    
+    // Also update project's total word count
+    const totalProjectWordCount = projectDocuments.reduce((sum, doc) => sum + doc.wordCount, 0);
+    projects.updateProject({
+      id: projectId,
+      wordCount: totalProjectWordCount
+    });
+  }, [documents, chapters, projects]);
 
   // Get complete project data including chapters and documents
   const getCompleteProjectData = useCallback((projectId: string) => {

@@ -95,9 +95,24 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     if (!document) return undefined;
     
     documents.updateDocument({ id, ...updates });
+    
+    // Update project word count when document word count changes
+    if (updates.wordCount !== undefined) {
+      const allProjectDocs = documents.documents.filter(d => d.projectId === document.projectId);
+      const totalWordCount = allProjectDocs.reduce((sum, doc) => {
+        // Use updated word count for the current document
+        return sum + (doc.id === id ? (updates.wordCount || 0) : doc.wordCount);
+      }, 0);
+      
+      projects.updateProject({
+        id: document.projectId,
+        wordCount: totalWordCount
+      });
+    }
+    
     refreshProjectData(document.projectId);
     return documents.getDocument(id);
-  }, [documents, refreshProjectData]);
+  }, [documents, projects, refreshProjectData]);
 
   const updateChapter = useCallback((id: string, updates: Partial<Chapter>) => {
     const chapter = chapters.getChapter(id);
@@ -122,8 +137,20 @@ export function ProjectProvider({ children }: ProjectProviderProps) {
     if (!document) return;
     
     deleteDocumentWithUpdates(documentId);
+    
+    // Update project word count after document deletion
+    const remainingDocs = documents.documents.filter(d => 
+      d.projectId === document.projectId && d.id !== documentId
+    );
+    const totalWordCount = remainingDocs.reduce((sum, doc) => sum + doc.wordCount, 0);
+    
+    projects.updateProject({
+      id: document.projectId,
+      wordCount: totalWordCount
+    });
+    
     refreshProjectData(document.projectId);
-  }, [documents, deleteDocumentWithUpdates, refreshProjectData]);
+  }, [documents, projects, deleteDocumentWithUpdates, refreshProjectData]);
   
   const getProjectStats = (projectId: string) => {
     const data = getCompleteProjectData(projectId);

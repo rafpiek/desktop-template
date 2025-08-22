@@ -125,21 +125,14 @@ export function useChapters() {
     ));
   }, [setChapters]);
 
-  // Update chapter word count based on its documents
-  const updateChapterWordCount = useCallback((chapterId: string, documents: { wordCount: number }[]) => {
-    const chapter = chapters.find(c => c.id === chapterId);
-    if (!chapter) return;
-
-    const totalWordCount = documents
-      .filter(doc => chapter.documentIds.includes(doc.id))
-      .reduce((sum, doc) => sum + doc.wordCount, 0);
-
+  // Update chapter word count
+  const updateChapterWordCount = useCallback((chapterId: string, wordCount: number) => {
     setChapters(prev => prev.map(c =>
       c.id === chapterId
-        ? { ...c, wordCount: totalWordCount, updatedAt: new Date().toISOString() }
+        ? { ...c, wordCount, updatedAt: new Date().toISOString() }
         : c
     ));
-  }, [chapters, setChapters]);
+  }, [setChapters]);
 
   // Reorder chapters
   const reorderChapters = useCallback((projectId: string, chapterIds: string[]) => {

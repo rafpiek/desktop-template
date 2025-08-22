@@ -93,10 +93,17 @@ export default function ProjectDetailPage() {
   }>();
   const navigate = useNavigate();
   const { projects } = useProjects();
-  const { createDocumentWithUpdates } = useProjectData();
+  const { createDocumentWithUpdates, recalculateChapterWordCounts } = useProjectData();
   const [expandedChapters, setExpandedChapters] = useState<Set<string>>(new Set(['1']));
   const [isDraftsExpanded, setIsDraftsExpanded] = useState(false);
   const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
+  
+  // Recalculate project word count when the page loads
+  useEffect(() => {
+    if (id) {
+      recalculateChapterWordCounts(id);
+    }
+  }, [id, recalculateChapterWordCounts]);
 
   // Derive current view from URL parameters
   const currentView = draftId ? 'draft-document' : 
