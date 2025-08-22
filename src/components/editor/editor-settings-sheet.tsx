@@ -318,14 +318,14 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
                   className={cn(
                     "w-full text-left p-3 rounded-lg border transition-all",
                     lineWidth === option.value
-                      ? "border-primary bg-primary/5"
-                      : "border-border hover:border-muted-foreground/50"
+                      ? "border-primary bg-primary/20 dark:bg-primary/30 dark:border-primary/60"
+                      : "border-border hover:border-muted-foreground/50 dark:hover:border-muted-foreground/70"
                   )}
                 >
                   <div className="flex items-center justify-between mb-1">
                     <span className={cn(
                       "text-sm font-medium",
-                      lineWidth === option.value && "text-primary"
+                      lineWidth === option.value && "text-primary dark:text-primary-foreground"
                     )}>
                       {option.label}
                     </span>
@@ -337,7 +337,7 @@ export function EditorSettingsSheet({ container }: EditorSettingsSheetProps = {}
                     <div
                       className={cn(
                         "absolute left-0 top-1/2 -translate-y-1/2 h-0.5 bg-foreground/20 transition-all",
-                        lineWidth === option.value && "bg-primary"
+                        lineWidth === option.value && "bg-primary dark:bg-primary-foreground"
                       )}
                       style={{
                         width: option.value === 'default' || option.value === 'full'

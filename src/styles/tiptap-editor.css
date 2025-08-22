@@ -4,19 +4,31 @@
 .tiptap-editor-wrapper {
   width: 100%;
   height: 100%;
+  min-width: 0; /* Prevent flex shrinking issues */
+  overflow-x: hidden; /* Prevent horizontal scroll */
 }
 
 .tiptap-content {
   width: 100%;
   height: 100%;
+  min-width: 0; /* Prevent flex shrinking issues */
+}
+
+/* Ensure the editor container has proper width */
+.tiptap-editor-container {
+  width: 100%;
+  min-width: 0;
+  overflow-x: auto; /* Allow horizontal scroll if needed */
 }
 
 /* TipTap Prose styling - matches existing editor appearance */
 .tiptap-prose {
-  max-width: 65ch; /* Default to reasonable reading width */
-  margin: 0 auto;
+  /* Default width handled by line-width classes */
   color: inherit;
   line-height: var(--lh-body, 1.6);
+  width: 100%;
+  min-width: 0; /* Prevent width from collapsing */
+  box-sizing: border-box;
 }
 
 /* Ensure ProseMirror editor has no default constraints */
@@ -25,6 +37,14 @@
   white-space: pre-wrap;
   word-wrap: break-word;
   width: 100%;
+  min-width: 0; /* Prevent width from collapsing */
+  box-sizing: border-box;
+}
+
+/* Apply default line width when no class is specified */
+.tiptap-editor-container:not([class*="line-width-"]) .tiptap-prose {
+  max-width: 65ch;
+  margin: 0 auto;
 }
 
 .tiptap-prose p {
@@ -32,6 +52,9 @@
   line-height: var(--lh-body, 1.6);
   font-size: var(--fs-body, 1rem);
   font-weight: 500 !important;
+  word-break: normal; /* Prevent aggressive word breaking */
+  overflow-wrap: break-word; /* Only break long words when necessary */
+  hyphens: none; /* Disable automatic hyphenation */
 }
 
 /* TipTap Headings - using existing CSS variables */
@@ -232,36 +255,68 @@
 .font-family-ia-duo .tiptap-prose { font-family: "iA Writer Duo", Georgia, serif; }
 .font-family-typewriter .tiptap-prose { font-family: "Courier New", Courier, monospace; }
 
-/* Line width classes - Simple and effective approach */
-.line-width-60 .tiptap-prose,
-.line-width-60 .ProseMirror {
-  max-width: 60ch !important;
+/* New font family classes */
+.font-family-system .tiptap-prose { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; }
+.font-family-roboto .tiptap-prose { font-family: "Roboto", system-ui, -apple-system, "Segoe UI", "Helvetica Neue", Arial, sans-serif; }
+.font-family-times .tiptap-prose { font-family: "Times New Roman", Times, serif; }
+.font-family-courier-prime .tiptap-prose { font-family: "Courier Prime", "Courier New", monospace; }
+.font-family-ibm-plex-mono .tiptap-prose { font-family: "IBM Plex Mono", "SF Mono", Menlo, monospace; }
+.font-family-special-elite .tiptap-prose { font-family: "Special Elite", "Courier New", monospace; }
+
+/* Line width classes - Fixed for proper text flow */
+.line-width-60 .tiptap-prose {
+  max-width: min(60ch, 600px) !important; /* Fallback to pixels for safety */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100%;
 }
 
-.line-width-80 .tiptap-prose,
-.line-width-80 .ProseMirror {
-  max-width: 80ch !important;
+.line-width-80 .tiptap-prose {
+  max-width: min(80ch, 800px) !important; /* Fallback to pixels for safety */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100%;
 }
 
-.line-width-120 .tiptap-prose,
-.line-width-120 .ProseMirror {
-  max-width: 120ch !important;
+.line-width-120 .tiptap-prose {
+  max-width: min(120ch, 1200px) !important; /* Fallback to pixels for safety */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100%;
 }
 
-.line-width-160 .tiptap-prose,
-.line-width-160 .ProseMirror {
-  max-width: 160ch !important;
+.line-width-160 .tiptap-prose {
+  max-width: min(160ch, 1600px) !important; /* Fallback to pixels for safety */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100%;
 }
 
-.line-width-full .tiptap-prose,
-.line-width-full .ProseMirror {
+.line-width-full .tiptap-prose {
   max-width: none !important;
   width: 100% !important;
 }
 
-.line-width-default .tiptap-prose,
-.line-width-default .ProseMirror {
-  max-width: 65ch !important;
+.line-width-default .tiptap-prose {
+  max-width: min(65ch, 650px) !important; /* Fallback to pixels for safety */
+  margin-left: auto !important;
+  margin-right: auto !important;
+  width: 100%;
+}
+
+/* Ensure ProseMirror content inside tiptap-prose respects parent width */
+.line-width-60 .tiptap-prose .ProseMirror,
+.line-width-80 .tiptap-prose .ProseMirror,
+.line-width-120 .tiptap-prose .ProseMirror,
+.line-width-160 .tiptap-prose .ProseMirror,
+.line-width-default .tiptap-prose .ProseMirror {
+  max-width: 100% !important;
+  width: 100% !important;
+}
+
+.line-width-full .tiptap-prose .ProseMirror {
+  max-width: none !important;
+  width: 100% !important;
 }
 
 /* Dark mode text color fix */
@@ -286,6 +341,9 @@
 .ProseMirror p {
   margin: 0.75rem 0;
   line-height: 1.6;
+  word-break: normal; /* Prevent aggressive word breaking */
+  overflow-wrap: break-word; /* Only break long words when necessary */
+  hyphens: none; /* Disable automatic hyphenation */
 }
 
 .ProseMirror p:first-child {

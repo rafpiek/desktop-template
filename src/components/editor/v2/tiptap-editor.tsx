@@ -51,10 +51,9 @@ export function TiptapEditor({
       attributes: {
         class: cn(
           'tiptap-prose',
-          'min-h-full w-full resize-none',
+          'min-h-full resize-none',
           'focus:outline-none',
-          'px-16 pt-4 pb-16',
-          'sm:px-[max(64px,calc(50%-350px))]' // Same responsive padding as original
+          'px-8 pt-4 pb-16 md:px-16' // Simplified padding for better line width control
         ),
         'data-document-id': documentId,
         'spellcheck': 'true',

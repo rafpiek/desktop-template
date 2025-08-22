@@ -33,7 +33,7 @@ export class SimpleErrorBoundary extends React.Component<SimpleErrorBoundaryProp
     console.error('Error:', error.message);
     console.error('Stack:', error.stack);
     console.error('Component Stack:', errorInfo.componentStack);
-    
+
     // Check for Tiptap-specific errors
     if (error.message.includes('tiptap') || error.message.includes('view') || error.message.includes('editor')) {
       console.error('🎯 This appears to be an editor-related error');
@@ -48,10 +48,10 @@ export class SimpleErrorBoundary extends React.Component<SimpleErrorBoundaryProp
   render() {
     if (this.state.hasError) {
       return (
-        <div style={{ 
-          padding: '20px', 
+        <div style={{
+          padding: '20px',
           margin: '20px',
-          border: '2px solid red', 
+          border: '2px solid red',
           borderRadius: '8px',
           backgroundColor: '#ffe6e6',
           fontFamily: 'monospace'
@@ -59,8 +59,8 @@ export class SimpleErrorBoundary extends React.Component<SimpleErrorBoundaryProp
           <h2 style={{ color: 'red', margin: '0 0 10px 0' }}>
             ⚠️ Editor Error Caught
           </h2>
-          <p><strong>Error:</strong> {this.state.error?.message}</p>
-          <button 
+          <p style={{ color: 'black' }}><strong>Error:</strong> {this.state.error?.message}</p>
+          <button
             onClick={() => this.setState({ hasError: false, error: null })}
             style={{
               padding: '8px 16px',
@@ -74,7 +74,7 @@ export class SimpleErrorBoundary extends React.Component<SimpleErrorBoundaryProp
           >
             Try Again
           </button>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             style={{
               padding: '8px 16px',
@@ -89,10 +89,11 @@ export class SimpleErrorBoundary extends React.Component<SimpleErrorBoundaryProp
           </button>
           <details style={{ marginTop: '10px' }}>
             <summary style={{ cursor: 'pointer' }}>Stack Trace</summary>
-            <pre style={{ 
-              fontSize: '12px', 
-              overflow: 'auto', 
+            <pre style={{
+              fontSize: '12px',
+              overflow: 'auto',
               maxHeight: '200px',
+              color: 'black',
               backgroundColor: 'white',
               padding: '10px',
               margin: '10px 0',
