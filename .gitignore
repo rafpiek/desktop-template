@@ -101,3 +101,7 @@ Cargo.lock
 *.old
 
 /generated/prisma
+
+.playwright-mcp
+screenshots
+

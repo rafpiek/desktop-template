@@ -63,11 +63,11 @@ export function DraftsOverview() {
   ];
 
   return (
-    <div>
-      <div className="mb-8 flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold mb-2">Draft Documents</h1>
-          <p className="text-muted-foreground">
+    <div className="container mx-auto px-4 py-6 max-w-7xl">
+      <div className="mb-8 flex flex-col sm:flex-row sm:justify-between sm:items-start gap-4">
+        <div className="flex-1">
+          <h1 className="text-2xl sm:text-3xl font-bold mb-2">Draft Documents</h1>
+          <p className="text-muted-foreground text-sm sm:text-base">
             Manage your draft documents and ideas
           </p>
         </div>
@@ -77,7 +77,7 @@ export function DraftsOverview() {
             console.log('Button clicked!');
             handleCreateNewDocument();
           }} 
-          className="flex items-center gap-2"
+          className="gap-2 self-start"
         >
           <Plus className="h-4 w-4" />
           New Document
@@ -85,20 +85,20 @@ export function DraftsOverview() {
       </div>
 
       {/* Statistics Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-8">
         {draftsStats.map((stat) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.title}>
-              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <Card key={stat.title} className="hover:shadow-md transition-shadow">
+              <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 px-4 pt-4">
                 <CardTitle className="text-sm font-medium">
                   {stat.title}
                 </CardTitle>
-                <Icon className="h-4 w-4 text-muted-foreground" />
+                <Icon className="h-4 w-4 text-muted-foreground flex-shrink-0" />
               </CardHeader>
-              <CardContent>
-                <div className="text-2xl font-bold">{stat.value}</div>
-                <p className="text-xs text-muted-foreground">
+              <CardContent className="px-4 pb-4">
+                <div className="text-xl sm:text-2xl font-bold">{stat.value}</div>
+                <p className="text-xs text-muted-foreground mt-1">
                   {stat.description}
                 </p>
               </CardContent>
@@ -108,20 +108,22 @@ export function DraftsOverview() {
       </div>
 
       {/* Drafts List */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <PenTool className="h-5 w-5" />
+      <Card className="hover:shadow-md transition-shadow">
+        <CardHeader className="px-4 sm:px-6 pt-4 sm:pt-6">
+          <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+            <PenTool className="h-5 w-5 flex-shrink-0" />
             All Draft Documents
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
+        <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
+          <div className="space-y-3">
             {draftDocuments.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <PenTool className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p className="text-lg font-medium mb-2">No draft documents yet</p>
-                <p className="text-sm mb-4">Start writing by creating your first draft document</p>
+              <div className="text-center py-12 px-6 text-muted-foreground">
+                <PenTool className="h-16 w-16 mx-auto mb-6 opacity-40" />
+                <p className="text-xl font-medium mb-3">No draft documents yet</p>
+                <p className="text-sm mb-6 text-muted-foreground/80 max-w-md mx-auto leading-relaxed">
+                  Start writing by creating your first draft document to capture ideas and experiment with concepts
+                </p>
                 <Button 
                   onClick={(e) => {
                     e.preventDefault();
@@ -138,24 +140,40 @@ export function DraftsOverview() {
               draftDocuments.map((draft) => (
                 <div 
                   key={draft.id} 
-                  className="flex items-center justify-between p-4 border rounded-lg cursor-pointer hover:bg-accent/50 transition-colors"
+                  className="group relative transition-all duration-200 border-2 border-border bg-card hover:border-primary/30 hover:shadow-sm rounded-lg cursor-pointer overflow-hidden"
                   onClick={() => navigate(`/projects/${projectId}/drafts/${draft.id}`)}
                 >
-                  <div>
-                    <h3 className="font-medium">{draft.title || 'Untitled Document'}</h3>
-                    <div className="flex items-center gap-4 mt-1">
-                      <p className="text-sm text-muted-foreground">
-                        {draft.wordCount.toLocaleString()} words
-                      </p>
-                      <p className="text-sm text-muted-foreground">
-                        Created {new Date(draft.createdAt).toLocaleDateString()}
-                      </p>
+                  <div className="p-6">
+                    <div className="flex items-start justify-between">
+                      <div className="flex-1 min-w-0 space-y-3">
+                        <div>
+                          <h3 className="text-lg font-semibold group-hover:text-foreground transition-colors duration-200">
+                            {draft.title || 'Untitled Document'}
+                          </h3>
+                        </div>
+                        
+                        <div className="flex items-center gap-6">
+                          <div className="flex items-center gap-1.5">
+                            <FileText className="h-4 w-4 text-muted-foreground/60" />
+                            <p className="text-sm font-medium text-muted-foreground">
+                              {draft.wordCount.toLocaleString()} words
+                            </p>
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Clock className="h-4 w-4 text-muted-foreground/60" />
+                            <p className="text-sm font-medium text-muted-foreground">
+                              Created {new Date(draft.createdAt).toLocaleDateString()}
+                            </p>
+                          </div>
+                        </div>
+                      </div>
+                      
+                      <div className="flex items-center gap-3 ml-6">
+                        <span className="inline-flex items-center rounded-full px-3 py-1 text-xs font-medium border bg-amber-50 text-amber-700 border-amber-200 dark:bg-amber-900/30 dark:text-amber-300 dark:border-amber-800">
+                          ✍ {draft.status.charAt(0).toUpperCase() + draft.status.slice(1)}
+                        </span>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="px-2 py-1 rounded-full text-xs bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300">
-                      {draft.status.charAt(0).toUpperCase() + draft.status.slice(1)}
-                    </span>
                   </div>
                 </div>
               ))
