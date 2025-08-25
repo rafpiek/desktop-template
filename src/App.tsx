@@ -1,142 +1,123 @@
 import { Routes, Route, Link } from "react-router-dom"
-import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import { AppLayout } from "@/components/app-layout"
-import ProjectsPage from "./pages/projects"
+import AboutPage from "./pages/about"
+import EditorPage from "./pages/editor"
 import SettingsPage from "./pages/settings"
 import StatsPage from "./pages/stats"
-import { ProjectLayout } from "./components/project/project-layout"
-import { ProjectOverviewWrapper } from "./components/project/project-overview-wrapper"
-import { DocumentView } from "./components/project/document-view"
-import { ChapterOverview } from "./components/project/chapter-overview"
-import { ChaptersOverview } from "./components/project/chapters-overview"
-import { DraftsOverview } from "./components/project/drafts-overview"
-import { ContinueOnSection } from "./components/continue-on-section"
-import { BookOpen, Settings, Target, ArrowRight, TrendingUp, Flame } from "lucide-react"
-import { useLastAccessed } from "./contexts/last-accessed-context"
-import { useWritingStats } from "./hooks/use-writing-stats"
+import { 
+  BookOpen, 
+  Settings, 
+  BarChart3, 
+  ArrowRight, 
+  Info, 
+  Edit,
+  Sparkles,
+  Zap,
+  Shield
+} from "lucide-react"
 
 function HomePage() {
-  const { lastAccessed } = useLastAccessed();
-  const hasRecentWork = lastAccessed.project || lastAccessed.chapter || lastAccessed.document;
-  const writingStats = useWritingStats();
-  
-  // Check localStorage for user data
-  const projects = JSON.parse(localStorage.getItem('zeyn-projects') || '[]');
-  const hasProjects = projects.length > 0;
-  const totalWords = writingStats.totalWords;
-  
-  // Streak data and motivational messages
-  const { streak } = writingStats;
-  const getStreakMessage = () => {
-    if (streak.streakStatus === 'none') {
-      return "Ready to start your writing streak?";
-    }
-    if (streak.streakStatus === 'broken') {
-      return "Time to rebuild your streak!";
-    }
-    if (streak.currentStreak === 0) {
-      return "Start your writing journey today!";
-    }
-    if (streak.daysUntilMilestone && streak.daysUntilMilestone <= 3) {
-      return `Almost there! ${streak.daysUntilMilestone} more days to ${streak.nextMilestone}!`;
-    }
-    return `${streak.currentStreak} day${streak.currentStreak !== 1 ? 's' : ''} strong! Keep going!`;
-  };
-
   return (
     <AppLayout showNavigation={true}>
       <div className="max-w-6xl mx-auto space-y-8">
-        {/* Recent Work - Only show if exists */}
-        {hasRecentWork && (
-          <div className="mb-8">
-            <ContinueOnSection />
+        {/* Welcome Section */}
+        <div className="text-center space-y-4 py-8">
+          <div className="inline-flex items-center gap-2 px-3 py-1 bg-primary/10 text-primary text-sm rounded-full">
+            <Sparkles className="w-4 h-4" />
+            Desktop Template
           </div>
-        )}
+          <h1 className="text-4xl font-bold tracking-tight">Welcome to Your Desktop App</h1>
+          <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
+            A modern template built with React, Tauri, TypeScript, and Tailwind CSS. 
+            Everything you need to build beautiful desktop applications.
+          </p>
+        </div>
 
-        {/* Main Navigation - Compact Grid */}
-        <div className="grid md:grid-cols-3 gap-6">
-          {/* Projects */}
-          <Link to="/projects" className="group">
+        {/* Main Navigation - 4 Card Grid */}
+        <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* About */}
+          <Link to="/about" className="group">
             <Card className="h-full border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-blue-500/40 hover:shadow-lg hover:shadow-blue-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-border/10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               
               <CardHeader className="pb-4 relative z-10">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-blue-500/20 to-blue-600/20 flex items-center justify-center">
-                    <BookOpen className="h-5 w-5 text-blue-500" />
+                    <Info className="h-5 w-5 text-blue-500" />
                   </div>
-                  {hasProjects && (
-                    <div className="text-sm font-medium text-muted-foreground">
-                      {projects.length} active
-                    </div>
-                  )}
                 </div>
-                <CardTitle className="text-xl font-bold group-hover:text-blue-600 transition-colors duration-300">
-                  Projects
+                <CardTitle className="text-lg font-bold group-hover:text-blue-600 transition-colors duration-300">
+                  About
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
-                  {hasProjects ? 'Manage your writing projects' : 'Start your first project'}
+                  Learn about this template and its features
                 </CardDescription>
               </CardHeader>
               
               <CardContent className="relative z-10 pt-0">
                 <div className="flex items-center text-sm text-muted-foreground group-hover:text-blue-600 transition-colors duration-300">
-                  <span>{hasProjects ? 'View projects' : 'Get started'}</span>
+                  <span>Template info</span>
                   <ArrowRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform duration-300" />
                 </div>
               </CardContent>
             </Card>
           </Link>
 
-          {/* Stats with Streak */}
+          {/* Editor */}
+          <Link to="/editor" className="group">
+            <Card className="h-full border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-green-500/40 hover:shadow-lg hover:shadow-green-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-border/10">
+              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-green-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
+              
+              <CardHeader className="pb-4 relative z-10">
+                <div className="flex items-center justify-between mb-3">
+                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-green-500/20 to-green-600/20 flex items-center justify-center">
+                    <Edit className="h-5 w-5 text-green-500" />
+                  </div>
+                  <Badge variant="secondary" className="text-xs">Tiptap</Badge>
+                </div>
+                <CardTitle className="text-lg font-bold group-hover:text-green-600 transition-colors duration-300">
+                  Editor
+                </CardTitle>
+                <CardDescription className="text-sm text-muted-foreground">
+                  Rich text editor powered by Tiptap
+                </CardDescription>
+              </CardHeader>
+              
+              <CardContent className="relative z-10 pt-0">
+                <div className="flex items-center text-sm text-muted-foreground group-hover:text-green-600 transition-colors duration-300">
+                  <span>Try editor</span>
+                  <ArrowRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform duration-300" />
+                </div>
+              </CardContent>
+            </Card>
+          </Link>
+
+          {/* Stats */}
           <Link to="/stats" className="group">
             <Card className="h-full border-2 border-border/20 bg-gradient-to-br from-card to-card/50 hover:border-emerald-500/40 hover:shadow-lg hover:shadow-emerald-500/20 transition-all duration-300 hover:-translate-y-1 relative overflow-hidden ring-1 ring-border/10">
               <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent translate-x-[-100%] group-hover:translate-x-[100%] transition-transform duration-700"></div>
               
-              <CardHeader className="pb-3 relative z-10">
+              <CardHeader className="pb-4 relative z-10">
                 <div className="flex items-center justify-between mb-3">
                   <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-emerald-500/20 to-emerald-600/20 flex items-center justify-center">
-                    <Target className="h-5 w-5 text-emerald-500" />
+                    <BarChart3 className="h-5 w-5 text-emerald-500" />
                   </div>
-                  {totalWords > 0 && (
-                    <div className="text-sm font-medium text-muted-foreground">
-                      {totalWords.toLocaleString()} words
-                    </div>
-                  )}
+                  <Badge variant="secondary" className="text-xs">Charts</Badge>
                 </div>
-                <CardTitle className="text-xl font-bold group-hover:text-emerald-600 transition-colors duration-300">
+                <CardTitle className="text-lg font-bold group-hover:text-emerald-600 transition-colors duration-300">
                   Stats
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
-                  {getStreakMessage()}
+                  Data visualization with charts
                 </CardDescription>
               </CardHeader>
               
-              <CardContent className="relative z-10 pt-0 space-y-3">
-                {/* Streak Display */}
-                {streak.currentStreak > 0 && (
-                  <div className="flex items-center gap-2 p-2 rounded-lg bg-gradient-to-r from-orange-500/10 to-orange-600/10 border border-orange-500/20">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-orange-500/30 to-orange-600/30 flex items-center justify-center">
-                      <Flame className="h-3 w-3 text-orange-500" />
-                    </div>
-                    <div className="flex-1">
-                      <div className="text-sm font-semibold text-orange-600">
-                        {streak.currentStreak} Day Streak
-                      </div>
-                      {streak.nextMilestone && (
-                        <div className="text-xs text-muted-foreground">
-                          {streak.daysUntilMilestone} days to {streak.nextMilestone}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-                )}
-                
-                {/* Action */}
+              <CardContent className="relative z-10 pt-0">
                 <div className="flex items-center text-sm text-muted-foreground group-hover:text-emerald-600 transition-colors duration-300">
-                  <span>{streak.currentStreak > 0 ? 'View progress' : 'Start tracking'}</span>
-                  <TrendingUp className="h-4 w-4 ml-auto group-hover:scale-110 transition-transform duration-300" />
+                  <span>View charts</span>
+                  <ArrowRight className="h-4 w-4 ml-auto group-hover:translate-x-1 transition-transform duration-300" />
                 </div>
               </CardContent>
             </Card>
@@ -153,11 +134,11 @@ function HomePage() {
                     <Settings className="h-5 w-5 text-purple-500" />
                   </div>
                 </div>
-                <CardTitle className="text-xl font-bold group-hover:text-purple-600 transition-colors duration-300">
+                <CardTitle className="text-lg font-bold group-hover:text-purple-600 transition-colors duration-300">
                   Settings
                 </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
-                  Customize your writing environment
+                  Configure app preferences and theme
                 </CardDescription>
               </CardHeader>
               
@@ -171,17 +152,50 @@ function HomePage() {
           </Link>
         </div>
 
-        {/* New user CTA - Only show if no projects */}
-        {!hasProjects && (
-          <div className="text-center pt-8">
-            <p className="text-muted-foreground mb-4">Ready to begin your writing journey?</p>
-            <Link to="/projects">
-              <Button className="px-6 py-2 bg-primary hover:bg-primary/90 transition-colors duration-300">
-                Create Your First Project
-              </Button>
-            </Link>
-          </div>
-        )}
+        {/* Feature Highlights */}
+        <div className="grid md:grid-cols-3 gap-6 pt-8">
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <Zap className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Fast & Modern</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Built with the latest React 19, TypeScript, and Vite for optimal performance and developer experience.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <Shield className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Cross Platform</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Powered by Tauri for native desktop performance on Windows, macOS, and Linux.
+              </p>
+            </CardContent>
+          </Card>
+
+          <Card className="text-center">
+            <CardHeader>
+              <div className="w-12 h-12 rounded-lg bg-primary/10 flex items-center justify-center mx-auto mb-2">
+                <BookOpen className="w-6 h-6 text-primary" />
+              </div>
+              <CardTitle className="text-lg">Ready to Use</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-sm text-muted-foreground">
+                Complete with routing, theming, components, and example pages to get you started quickly.
+              </p>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </AppLayout>
   )
@@ -191,17 +205,10 @@ function App() {
   return (
     <Routes>
       <Route path="/" element={<HomePage />} />
-      <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/about" element={<AboutPage />} />
+      <Route path="/editor" element={<EditorPage />} />
       <Route path="/stats" element={<StatsPage />} />
       <Route path="/settings/*" element={<SettingsPage />} />
-      <Route path="/projects/:id" element={<ProjectLayout />}>
-        <Route index element={<ProjectOverviewWrapper />} />
-        <Route path="chapters" element={<ChaptersOverview />} />
-        <Route path="chapters/:chapterId" element={<ChapterOverview />} />
-        <Route path="chapters/:chapterId/documents/:documentId" element={<DocumentView />} />
-        <Route path="drafts" element={<DraftsOverview />} />
-        <Route path="drafts/:draftId" element={<DocumentView />} />
-      </Route>
     </Routes>
   )
 }

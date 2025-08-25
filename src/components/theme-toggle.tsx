@@ -11,7 +11,7 @@ import {
 import { useTheme } from "@/components/theme-provider"
 
 export function ThemeToggle() {
-  const { theme, setTheme } = useTheme()
+  const { setTheme } = useTheme()
   const [mounted, setMounted] = useState(false)
   const [isDark, setIsDark] = useState(false)
 

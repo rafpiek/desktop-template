@@ -1,4 +1,4 @@
-import { ReactNode } from "react"
+import { type ReactNode } from "react"
 import { TopBar } from "@/components/top-bar"
 import { cn } from "@/lib/utils"
 

@@ -38,7 +38,16 @@
       "Bash(true)",
       "mcp__playwright__browser_console_messages",
       "mcp__playwright__browser_evaluate",
-      "mcp__playwright__browser_hover"
+      "mcp__playwright__browser_hover",
+      "Bash(__NEW_LINE__ mv \"Google Chrome 2025-08-22 16.23.33.png\" \"07-stats-all-time.png\")",
+      "Bash(__NEW_LINE__ mv \"Google Chrome 2025-08-22 16.23.27.png\" \"07-stats-this-week.png\")",
+      "Bash(__NEW_LINE__ mv \"Google Chrome 2025-08-22 16.23.30.png\" \"08-writing-goals.png\")",
+      "Bash(__NEW_LINE__ rm -f \"07-project-stats.png\")",
+      "Bash(__NEW_LINE__ mv \"Cursor 2025-08-22 16.23.24.png\" \"dark-07-stats-all-time.png\")",
+      "Bash(__NEW_LINE__ mv \"Google Chrome 2025-08-22 16.23.18.png\" \"dark-07-stats-this-week.png\")",
+      "Bash(__NEW_LINE__ mv \"Google Chrome 2025-08-22 16.23.20.png\" \"dark-08-writing-goals.png\")",
+      "Bash(__NEW_LINE__ rm -f \"dark-07-project-stats.png\")",
+      "mcp__playwright__browser_close"
     ],
     "deny": []
   }

@@ -23,7 +23,7 @@ export const PlaceholderExtension = Extension.create({
         props: {
           decorations: (state) => {
             const doc = state.doc;
-            const { placeholder, showOnlyWhenEditable, showOnlyCurrent } = this.options;
+            const { placeholder, showOnlyWhenEditable } = this.options;
 
             if (showOnlyWhenEditable && !this.editor.isEditable) {
               return null;
@@ -39,7 +39,6 @@ export const PlaceholderExtension = Extension.create({
               return null;
             }
 
-            const decorations: any[] = [];
             const placeholderElement = document.createElement('div');
             placeholderElement.className = 'tiptap-placeholder';
             placeholderElement.innerHTML = placeholder;
@@ -62,6 +61,10 @@ export const PlaceholderExtension = Extension.create({
   },
 });
 
-export const PlaceholderTiptapKit = [PlaceholderExtension.configure({
+// Export as a function to avoid fast refresh issues
+export const getPlaceholderTiptapKit = () => [PlaceholderExtension.configure({
   placeholder: 'Start writing...',
 })];
+
+// Legacy export for compatibility
+export const PlaceholderTiptapKit = getPlaceholderTiptapKit();

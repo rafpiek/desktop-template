@@ -1,22 +1,22 @@
 {
   "$schema": "https://schema.tauri.app/config/2.0.0",
-  "productName": "Zeyn",
-  "version": "0.1.0",
-  "identifier": "com.zeyn.app",
+  "productName": "Desktop Template",
+  "version": "1.0.0",
+  "identifier": "com.desktop-template.app",
   "build": {
     "beforeDevCommand": "bun run dev",
     "beforeBuildCommand": "bun run build",
-    "devUrl": "http://localhost:5000",
+    "devUrl": "http://localhost:5173",
     "frontendDist": "../dist"
   },
   "app": {
     "windows": [
       {
-        "title": "",
-        "width": 1800,
-        "height": 1100,
-        "minWidth": 1200,
-        "minHeight": 800,
+        "title": "Desktop Template",
+        "width": 1400,
+        "height": 900,
+        "minWidth": 1000,
+        "minHeight": 700,
         "resizable": true,
         "fullscreen": false,
         "decorations": true,
@@ -42,9 +42,9 @@
     ],
     "publisher": "",
     "copyright": "",
-    "category": "Productivity",
-    "shortDescription": "The best editor for writers ever",
-    "longDescription": "Zeyn is a distraction-free writing environment designed for focus and creativity.",
+    "category": "DeveloperTool",
+    "shortDescription": "Modern desktop app template",
+    "longDescription": "A modern desktop application template built with React, Tauri, TypeScript, and Tailwind CSS. Perfect for building cross-platform desktop applications with web technologies.",
     "externalBin": [],
     "resources": [],
     "macOS": {

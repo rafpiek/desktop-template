@@ -88,7 +88,7 @@ const DragDropPlugin = Extension.create({
           },
           
           // Handle drop events
-          handleDrop: (view, event, slice, moved) => {
+          handleDrop: () => {
             
             // For now, let the default behavior handle it
             // TODO: Implement custom drop logic for better UX

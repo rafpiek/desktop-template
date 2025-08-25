@@ -1,12 +1,12 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code (claude.ai/code) when working with this desktop app template repository.
 
 ## Commands
 
 ```bash
 # Development
-bun run dev          # Start web dev server at localhost:5000
+bun run dev          # Start web dev server at localhost:5173
 bun run tauri:dev    # Start Tauri desktop app in development mode
 
 IMPORTANT! Never run dev server or tauri dev. Always ask user to do it on it's own.
@@ -15,12 +15,6 @@ IMPORTANT! Never run dev server or tauri dev. Always ask user to do it on it's o
 bun run build        # Build web version with TypeScript check
 bun run tauri:build  # Build desktop app for distribution
 
-# Database (PostgreSQL + Prisma)
-bun run db:generate  # Generate Prisma client to src/generated/prisma/
-bun run db:push      # Push schema changes to database
-bun run db:migrate   # Create and apply migrations
-bun run db:studio    # Open Prisma Studio GUI
-
 # Code Quality
 bun run lint         # Run ESLint
 npx tsc --noEmit     # Type check without emitting files
@@ -28,84 +22,82 @@ npx tsc --noEmit     # Type check without emitting files
 
 ## Architecture
 
-### Core Data Flow
-Projects → Chapters → Documents
+This is a desktop app template built with:
+- **Frontend**: React 19 + TypeScript + Vite
+- **Desktop**: Tauri 2.7 for native desktop capabilities
+- **UI**: Tailwind CSS + shadcn/ui components
+- **Editor**: Tiptap for rich text editing
+- **Charts**: Recharts for data visualization
+- **Routing**: React Router for page navigation
 
-- **Projects**: Top-level writing projects with status tracking, word goals, and deadlines
-- **Chapters**: Ordered sections within projects, can contain multiple documents
-- **Documents**: Individual writing pieces that can belong to chapters or exist as drafts
-- **Drafts**: Documents without a chapter assignment, stored separately in the sidebar
-
-### State Management Pattern
-The app uses React Context for global state with a repository pattern for data persistence:
-
-1. **ProjectContext** (`src/contexts/project-context.tsx`): Central data hub that coordinates between UI and storage
-2. **Repository Layer** (`src/lib/repositories/`): Abstracts data storage (currently localStorage, designed for easy swap to API/database)
-3. **Custom Hooks**: `useProjects`, `useProjectData` provide typed access to data
-4. **Local Storage Keys**: `zeyn-projects`, `zeyn-chapters`, `zeyn-documents`, `zeyn-tags`, `zeyn-sidebar-collapsed`
-
-### Editor Architecture (Plate.js)
-The editor is built as a plugin system where each feature is a "kit":
-
-- **Editor Kits** (`src/components/editor/plugins/`): Modular plugins that compose the editor
-- **PlateEditor** (`src/components/editor/plate-editor.tsx`): Main editor component that orchestrates all plugins
-- **Editor State**: Managed by Plate.js internally, serialized to JSON for storage in documents
-
-Key plugin kits:
-- `ai-kit.tsx`: OpenAI integration for writing assistance
-- `basic-blocks-kit.tsx`: Paragraphs, headings, blockquotes
-- `basic-marks-kit.tsx`: Bold, italic, underline, etc.
-- `suggestion-kit.tsx`: AI-powered text suggestions
-
-### Routing Structure
+### Page Structure
 ```
-/projects                           # Project listing
-/projects/:id                       # Project overview
-/projects/:id/chapters              # All chapters view
-/projects/:id/chapters/:chapterId   # Chapter detail (with editable title)
-/projects/:id/chapters/:chapterId/documents/:documentId  # Document editor
-/projects/:id/drafts                # All drafts view
-/projects/:id/drafts/:draftId       # Draft document editor
-/settings                           # Application settings
+/                    # Home dashboard
+/about               # Template information
+/editor              # Tiptap rich text editor demo
+/stats               # Charts and data visualization
+/settings/general    # App settings - general preferences
+/settings/advanced   # App settings - advanced options
 ```
 
-### UI Component Hierarchy
-- **AppLayout**: Main layout wrapper with navigation
-- **ProjectLayout**: Sidebar + content area for project pages
-  - Sidebar: Collapsible, persists state, shows drafts + chapters
-  - Content: Outlet for nested routes
-- **Document/Chapter Views**: Load data via hooks, render with Plate editor
+### Key Components
+- **AppLayout** (`src/components/app-layout.tsx`): Main layout with navigation
+- **ThemeProvider** (`src/components/theme-provider.tsx`): Dark/light theme management
+- **TiptapEditor** (`src/components/editor/v2/tiptap-editor.tsx`): Rich text editor
+- **UI Components** (`src/components/ui/`): shadcn/ui component library
 
-### Key Patterns
+### State Management
+- **Theme**: Managed by ThemeProvider using localStorage persistence
+- **Settings**: Local state in settings components
+- **Mock Data**: Static mock data for stats/charts demonstration
 
-**Creating New Content Flow** (Notion-like):
-- Clicking "+" immediately creates and navigates to new item
-- Title field auto-focuses for immediate editing
-- Pressing Enter in title moves focus to content body
+### File Organization
+- `/src/pages/` - Page components (about, editor, settings, stats)
+- `/src/components/` - Reusable React components
+- `/src/components/ui/` - shadcn/ui components
+- `/src/hooks/` - Custom React hooks (debounce, localStorage, etc.)
+- `/src/lib/utils.ts` - Utility functions (cn, etc.)
+- `/src/styles/` - CSS files
 
-**Sidebar State Persistence**:
-- Collapsed state saved to localStorage
-- Expanded chapters tracked in component state
-- Draft/chapter areas can be independently expanded
+### Tauri Integration
+- **Desktop Features**: File system access, native notifications
+- **Security**: Secure API with capability-based permissions
+- **Cross-platform**: Windows, macOS, Linux support
+- **Configuration**: `/src-tauri/tauri.conf.json`
 
-**Document Saving**:
-- Auto-save on content change (debounced)
-- Word count updates propagate up to chapter and project levels
-- Status tracking (draft, in_progress, completed)
+## Template Usage
 
-## Technology Stack Details
+This template is designed to be:
+1. **Clean starting point** for desktop apps
+2. **Modern tech stack** with latest versions
+3. **Well-structured** with clear patterns
+4. **Customizable** for different use cases
 
-- **Tauri 2.7.0**: Desktop wrapper providing native app experience
-- **React 19.1.0**: Latest React with TypeScript
-- **Plate.js**: Extensible rich-text editor framework built on Slate
-- **Prisma ORM**: Type-safe database client (schema in `/prisma/schema.prisma`)
-- **Tailwind + shadcn/ui**: Utility-first CSS with pre-built components
-- **Bun**: Fast JavaScript runtime and package manager
+### Adding New Pages
+1. Create component in `/src/pages/`
+2. Add route to `/src/App.tsx`
+3. Update navigation if needed
 
-## AI Integration
+### Customizing UI
+- Modify Tailwind config for design tokens
+- Use shadcn/ui for consistent components
+- Theme system supports light/dark modes
 
-The app includes OpenAI integration through:
-- `/src/app/api/ai/copilot.ts`: Writing suggestions endpoint
-- `/src/app/api/ai/command.ts`: Text transformation commands
-- Requires `OPENAI_API_KEY` environment variable
-- Uses Vercel AI SDK for streaming responses
+### Editor Integration
+- Basic Tiptap setup with essential extensions
+- Easily extensible with additional features
+- See `/src/pages/editor.tsx` for usage example
+
+### Charts & Data
+- Recharts integration for data visualization
+- Multiple chart types (line, bar, area, pie)
+- Responsive design with proper containers
+- See `/src/pages/stats.tsx` for examples
+
+## Development Notes
+
+- Uses Bun as package manager and runtime
+- TypeScript strict mode enabled
+- ESLint configured for React + TypeScript
+- Hot reload works for both web and desktop modes
+- File changes trigger automatic rebuilds

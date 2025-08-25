@@ -5,227 +5,70 @@ import { useEditor, EditorContent } from '@tiptap/react';
 
 import { cn } from '@/lib/utils';
 import { type TiptapValue } from './tiptap-types';
-import { NovelWriterKit } from './plugins/novel-writer-kit';
-import { type TypewriterMode } from '@/hooks/use-typewriter';
-import {
-  isEditorViewReady,
-  safeDispatch,
-  safeDispatchDOMEvent,
-  safeFocus,
-  safeExecuteCommand,
-  waitForEditorView,
-  executeWhenViewReady
-} from '@/lib/utils/tiptap-editor-utils';
-import {
-  isTauriEnvironment,
-  initializeTauriEditor,
-  safeTauriFocus
-} from '@/lib/utils/tauri-focus-manager';
+import { BasicEditorKit } from './plugins/basic-editor-kit';
 
 interface TiptapEditorProps {
-  documentId: string;
-  initialContent: TiptapValue;
-  onUpdate: (content: TiptapValue, stats?: { wordCount: number; charactersWithSpaces: number; charactersWithoutSpaces: number }) => void;
-  onReady: (editor: unknown) => void;
-  autoFocus: boolean;
-  focusMode: boolean;
-  typewriterMode: TypewriterMode;
+  initialContent?: TiptapValue;
+  onUpdate?: (content: TiptapValue) => void;
+  placeholder?: string;
+  className?: string;
+  autoFocus?: boolean;
 }
 
 export function TiptapEditor({
-  documentId,
   initialContent,
   onUpdate,
-  onReady,
-  autoFocus,
-  focusMode,
-  typewriterMode
+  placeholder = 'Start writing...',
+  className,
+  autoFocus = false
 }: TiptapEditorProps) {
-
   const editor = useEditor({
-    extensions: NovelWriterKit,
-
+    extensions: BasicEditorKit,
     content: initialContent,
-
     editorProps: {
       attributes: {
         class: cn(
           'tiptap-prose',
-          'min-h-full resize-none',
+          'min-h-[200px] w-full resize-none',
           'focus:outline-none',
-          'px-8 pt-4 pb-16 md:px-16' // Simplified padding for better line width control
+          'px-4 py-3',
+          'prose prose-sm sm:prose lg:prose-lg xl:prose-xl mx-auto',
+          className
         ),
-        'data-document-id': documentId,
         'spellcheck': 'true',
-        'data-placeholder': 'Start writing...',
+        'data-placeholder': placeholder,
       },
     },
-
     onUpdate: ({ editor }) => {
-      const content = editor.getJSON() as TiptapValue;
-      
-      // Get stats from CharacterCount extension
-      const storage = editor.storage.characterCount;
-      if (storage) {
-        const stats = {
-          wordCount: storage.words() || 0,
-          charactersWithSpaces: storage.characters() || 0,
-          charactersWithoutSpaces: editor.state.doc.textContent.replace(/\s/g, '').length
-        };
-        onUpdate(content, stats);
-      } else {
+      if (onUpdate) {
+        const content = editor.getJSON() as TiptapValue;
         onUpdate(content);
       }
     },
-
     onCreate: ({ editor }) => {
-      const handleEditorCreate = async () => {
-        try {
-          // Initialize Tauri environment if needed
-          if (isTauriEnvironment()) {
-            console.log('🚀 Initializing Tauri editor environment...');
-            const initialized = await initializeTauriEditor(editor);
-            if (!initialized) {
-              console.warn('⚠️ Tauri editor initialization failed, proceeding anyway');
-            } else {
-              console.log('✅ Tauri editor environment ready');
-            }
-          }
-
-          // Notify parent that editor is ready
-          console.log('editor built', editor);
-          onReady(editor);
-
-          // Auto-focus if requested
-          if (autoFocus) {
-            const focusWhenReady = async () => {
-              try {
-                let focusSuccess = false;
-
-                if (isTauriEnvironment()) {
-                  // Use Tauri-specific focus method
-                  focusSuccess = await safeTauriFocus(editor);
-                } else {
-                  // Use regular safe focus for browser
-                  focusSuccess = await safeFocus(editor, 10, 50);
-                }
-
-                if (focusSuccess && typewriterMode === 'center') {
-                  // Activate typewriter mode after successful focus
-                  setTimeout(async () => {
-                    await executeWhenViewReady(editor, (editor) => {
-                      const tr = editor.state.tr;
-                      safeDispatch(editor, tr);
-
-                      const event = new Event('selectionchange');
-                      safeDispatchDOMEvent(editor, event);
-                    });
-                  }, 200);
-                }
-              } catch (error) {
-                console.warn('Focus initialization failed:', error);
-              }
-            };
-
-            // Delay focus based on environment
-            const focusDelay = isTauriEnvironment() ? 300 : 100;
-            setTimeout(focusWhenReady, focusDelay);
-          }
-        } catch (error) {
-          console.error('Editor creation failed:', error);
-          // Still notify parent even if setup fails
-          onReady(editor);
-        }
-      };
-
-      // Start the async initialization
-      handleEditorCreate();
+      if (autoFocus) {
+        // Small delay to ensure the editor is properly mounted
+        setTimeout(() => {
+          editor.commands.focus();
+        }, 100);
+      }
     },
-
-    onDestroy: () => {
-    },
-
-    // Enable immediate updates for better UX
-    injectCSS: false, // We'll handle CSS ourselves
+    injectCSS: false,
   });
-
-  // Update focus mode when prop changes
-  React.useEffect(() => {
-    if (editor) {
-      const focusExtension = editor.extensionManager.extensions.find(ext => ext.name === 'focus');
-      if (focusExtension) {
-        // Update focus mode
-      }
-    }
-  }, [focusMode, documentId]);
-
-  // Update typewriter mode when prop changes
-  React.useEffect(() => {
-    if (editor && editor.isEditable && isEditorViewReady(editor)) {
-      // Update the extension configuration
-      editor.extensionManager.extensions.forEach(extension => {
-        if (extension.name === 'typewriter') {
-          // Update the options
-          extension.options.mode = typewriterMode;
-
-          // Force a transaction to trigger the plugin's apply method
-          const tr = editor.state.tr;
-          safeDispatch(editor, tr);
-
-          // Also manually trigger the selection change handler for immediate effect
-          setTimeout(() => {
-            const event = new Event('selectionchange');
-            safeDispatchDOMEvent(editor, event);
-          }, 50);
-        }
-      });
-    }
-  }, [editor, typewriterMode]);
-
-  // Log character count for debugging
-  React.useEffect(() => {
-    if (editor) {
-      const characterCount = editor.storage.characterCount || {};
-    }
-  }, [documentId]);
-
-  // Handle content updates from props
-  React.useEffect(() => {
-    if (editor && initialContent && !editor.isDestroyed) {
-      const currentContent = editor.getJSON();
-
-      // Only update if content is actually different
-      if (JSON.stringify(currentContent) !== JSON.stringify(initialContent)) {
-        safeExecuteCommand(editor, (ed) => ed.commands.setContent(initialContent, false));
-
-        // If typewriter mode is active, trigger it after content update
-        if (typewriterMode === 'center') {
-          setTimeout(() => {
-            const tr = editor.state.tr;
-            safeDispatch(editor, tr);
-          }, 100);
-        }
-      }
-    }
-  }, [initialContent, documentId, typewriterMode]);
 
   if (!editor) {
     return (
-      <div className="flex items-center justify-center h-64">
-        <div className="text-muted-foreground">Loading TipTap editor...</div>
+      <div className="flex items-center justify-center h-32">
+        <div className="text-muted-foreground">Loading editor...</div>
       </div>
     );
   }
 
   return (
-    <div className={cn(
-      'tiptap-editor-wrapper h-full',
-      focusMode && 'focus-mode-active',
-      typewriterMode === 'center' && 'typewriter-active'
-    )}>
+    <div className="tiptap-editor-wrapper">
       <EditorContent
         editor={editor}
-        className="tiptap-content h-full overflow-y-auto editor-scroll"
+        className="tiptap-content"
       />
     </div>
   );

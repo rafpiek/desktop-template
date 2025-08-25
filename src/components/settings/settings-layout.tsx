@@ -1,8 +1,8 @@
-import { ReactNode } from "react"
+import { type ReactNode } from "react"
 import { Link, useLocation } from "react-router-dom"
 import { Button } from "@/components/ui/button"
 import { Separator } from "@/components/ui/separator"
-import { Settings, Edit, Wrench, FolderOpen, ArrowLeft } from "lucide-react"
+import { Settings, Wrench, ArrowLeft } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 interface SettingsLayoutProps {
@@ -22,18 +22,6 @@ const settingsNavItems: SettingsNavItem[] = [
     label: "General",
     icon: Settings,
     path: "/settings/general"
-  },
-  {
-    id: "backup",
-    label: "Backup",
-    icon: FolderOpen,
-    path: "/settings/backup"
-  },
-  {
-    id: "editor",
-    label: "Editor", 
-    icon: Edit,
-    path: "/settings/editor"
   },
   {
     id: "advanced",

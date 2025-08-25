@@ -3,24 +3,12 @@
 import { Heading } from '@tiptap/extension-heading';
 import { Blockquote } from '@tiptap/extension-blockquote';
 import { HorizontalRule } from '@tiptap/extension-horizontal-rule';
-import { type Extension } from '@tiptap/core';
-
-// Basic blocks kit for novel writers - following existing pattern
-export const BasicBlocksTiptapKit: Extension[] = [
+// Basic blocks kit for template - following existing pattern
+export const BasicBlocksTiptapKit = [
   Heading.configure({
     levels: [1, 2, 3, 4, 5, 6],
     HTMLAttributes: {
       class: 'tiptap-heading',
-    },
-    renderHTML({ node, HTMLAttributes }) {
-      const level = node.attrs.level;
-      const classes = [HTMLAttributes.class || '', `tiptap-heading-${level}`].join(' ').trim();
-      
-      return [
-        `h${level}`,
-        { ...HTMLAttributes, class: classes, 'data-level': level },
-        0,
-      ];
     },
   }),
   

@@ -1,519 +1,335 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState } from 'react';
 import { AppLayout } from '@/components/app-layout';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Progress } from '@/components/ui/progress';
+import { Badge } from '@/components/ui/badge';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import {
-  Target,
   TrendingUp,
-  Settings,
-  Trophy,
-  Flame,
-  Zap,
-  Award,
-  CheckCircle2,
+  TrendingDown,
+  Users,
+  Activity,
   BarChart3,
-  Activity
+  PieChart,
+  DollarSign,
+  Eye
 } from 'lucide-react';
-import { useGoalsContext } from '@/contexts/goals-context';
-import { GoalSettingsDialog } from '@/components/goals/goal-settings-dialog';
-import { DailyTrendChart, WeeklyProgressChart, MonthlyOverviewChart, TodayBarChart } from '@/components/goals/writing-charts';
-import { useWritingStats } from '@/hooks/use-writing-stats';
-import { cn } from '@/lib/utils';
-import { getStartOfWeek, getStartOfMonth, groupActivitiesByPeriod } from '@/lib/utils/goals-utils'; // Assuming you have these utils
+import {
+  LineChart,
+  Line,
+  BarChart,
+  Bar,
+  AreaChart,
+  Area,
+  PieChart as RechartsPieChart,
+  Pie,
+  Cell,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer
+} from 'recharts';
 
-type TimeFilter = 'all' | 'today' | 'week' | 'month' | 'year';
+// Mock data for demonstration
+const dailyActiveUsers = [
+  { date: 'Jan 01', users: 1200, sessions: 2400 },
+  { date: 'Jan 02', users: 1350, sessions: 2550 },
+  { date: 'Jan 03', users: 1100, sessions: 2200 },
+  { date: 'Jan 04', users: 1420, sessions: 2840 },
+  { date: 'Jan 05', users: 1580, sessions: 3160 },
+  { date: 'Jan 06', users: 1680, sessions: 3360 },
+  { date: 'Jan 07', users: 1750, sessions: 3500 },
+  { date: 'Jan 08', users: 1890, sessions: 3780 },
+  { date: 'Jan 09', users: 2100, sessions: 4200 },
+  { date: 'Jan 10', users: 2050, sessions: 4100 },
+  { date: 'Jan 11', users: 2200, sessions: 4400 },
+  { date: 'Jan 12', users: 2350, sessions: 4700 },
+  { date: 'Jan 13', users: 2480, sessions: 4960 },
+  { date: 'Jan 14', users: 2650, sessions: 5300 }
+];
+
+const revenue = [
+  { month: 'Jan', revenue: 4200, profit: 1200 },
+  { month: 'Feb', revenue: 3800, profit: 1100 },
+  { month: 'Mar', revenue: 5200, profit: 1800 },
+  { month: 'Apr', revenue: 4800, profit: 1650 },
+  { month: 'May', revenue: 6100, profit: 2200 },
+  { month: 'Jun', revenue: 5900, profit: 2100 },
+  { month: 'Jul', revenue: 7200, profit: 2800 },
+  { month: 'Aug', revenue: 6800, profit: 2600 },
+  { month: 'Sep', revenue: 8100, profit: 3200 },
+  { month: 'Oct', revenue: 7900, profit: 3100 },
+  { month: 'Nov', revenue: 9200, profit: 3800 },
+  { month: 'Dec', revenue: 8800, profit: 3600 }
+];
+
+const deviceTypes = [
+  { name: 'Desktop', value: 45, color: '#0088FE' },
+  { name: 'Mobile', value: 35, color: '#00C49F' },
+  { name: 'Tablet', value: 20, color: '#FFBB28' }
+];
+
+const pageViews = [
+  { page: 'Home', views: 12453, bounce: 34.2 },
+  { page: 'About', views: 8934, bounce: 28.7 },
+  { page: 'Products', views: 15672, bounce: 22.1 },
+  { page: 'Contact', views: 6789, bounce: 45.3 },
+  { page: 'Blog', views: 9876, bounce: 31.8 }
+];
+
+type TimeFilter = 'today' | 'week' | 'month' | 'year';
 
 export default function StatsPage() {
-  const { stats, getTodayProgress, syncProgressFromDocuments, initializeDefaultGoals, historicalProgress } = useGoalsContext();
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
-  const [activeTab, setActiveTab] = useState<string>('analytics');
+  const [timeFilter, setTimeFilter] = useState<TimeFilter>('month');
+  const [activeTab, setActiveTab] = useState<string>('overview');
 
-  const todayProgress = getTodayProgress();
-  const writingStats = useWritingStats();
-
-  // Initialize goals and sync on mount
-  useEffect(() => {
-    initializeDefaultGoals();
-    syncProgressFromDocuments();
-  }, [initializeDefaultGoals, syncProgressFromDocuments]);
-
-  const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    if (value === 'goals') {
-      initializeDefaultGoals();
-      syncProgressFromDocuments();
-    }
-  };
-
-  const chartData = useMemo(() => {
-    console.log('[StatsPage] Historical progress for charts:', historicalProgress);
-    if (!historicalProgress) return { dailyData: [], weeklyData: [], monthlyData: [] };
-
-    const sortedProgress = [...historicalProgress].sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
-    console.log('[StatsPage] Sorted historical progress for charts:', sortedProgress);
-
-    // This is where we will process the historicalProgress into daily, weekly, and monthly data for the charts
-    const dailyData = sortedProgress.map(p => ({
-      date: p.date,
-      words: p.wordsWritten,
-      label: new Date(p.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    })).slice(-365); // Limit to last year for performance
-
-    const weeklyData = groupActivitiesByPeriod(sortedProgress, 'week').map(week => ({
-      date: week.startDate,
-      words: week.totalWords,
-      label: new Date(week.startDate).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
-    })).slice(-52);
-
-    const monthlyData = groupActivitiesByPeriod(sortedProgress, 'month').map(month => ({
-      date: month.startDate,
-      words: month.totalWords,
-      label: new Date(month.startDate).toLocaleDateString('en-US', { month: 'short' })
-    })).slice(-12);
-
-    return { dailyData, weeklyData, monthlyData };
-  }, [historicalProgress]);
-
-  const filteredChartData = useMemo(() => {
-    const today = new Date();
-    const getDaysAgo = (days: number) => {
-      const d = new Date();
-      d.setDate(today.getDate() - days);
-      return d.toISOString().split('T')[0];
-    };
-
-    switch (timeFilter) {
-      case 'today':
-        return {
-          daily: chartData.dailyData.filter(d => d.date === getDaysAgo(0)),
-          weekly: [],
-          monthly: [],
-        };
-      case 'week':
-        const lastWeekStart = getDaysAgo(6);
-        return {
-          daily: chartData.dailyData.filter(d => d.date >= lastWeekStart),
-          weekly: [],
-          monthly: [],
-        };
-      case 'month':
-        const lastMonthStart = getDaysAgo(29);
-        return {
-          daily: chartData.dailyData.filter(d => d.date >= lastMonthStart),
-          weekly: chartData.weeklyData.slice(-4),
-          monthly: [],
-        };
-      case 'year':
-        return {
-          daily: chartData.dailyData,
-          weekly: chartData.weeklyData,
-          monthly: chartData.monthlyData,
-        };
-      case 'all':
-      default:
-        return {
-          daily: chartData.dailyData,
-          weekly: chartData.weeklyData,
-          monthly: chartData.monthlyData,
-        };
-    }
-  }, [chartData, timeFilter]);
-
-  const todayWords = todayProgress.reduce((sum, p) => sum + p.wordsWritten, 0);
-  const isGoalMet = todayWords >= stats.daily.target;
-  const weeklyProgress = Math.round((stats.weekly.achieved / stats.weekly.target) * 100);
-  const monthlyProgress = Math.round((stats.monthly.achieved / stats.monthly.target) * 100);
-
-  const filterButtons = [
-    { value: 'all' as TimeFilter, label: 'All time' },
-    { value: 'today' as TimeFilter, label: 'Today' },
-    { value: 'week' as TimeFilter, label: 'This week' },
-    { value: 'month' as TimeFilter, label: 'This month' },
-    { value: 'year' as TimeFilter, label: 'This year' },
-  ];
+  // Calculate summary stats
+  const totalUsers = dailyActiveUsers[dailyActiveUsers.length - 1]?.users || 0;
+  const totalSessions = dailyActiveUsers[dailyActiveUsers.length - 1]?.sessions || 0;
+  const userGrowth = ((totalUsers - dailyActiveUsers[0].users) / dailyActiveUsers[0].users * 100).toFixed(1);
+  const totalRevenue = revenue.reduce((sum, item) => sum + item.revenue, 0);
+  const totalPageViews = pageViews.reduce((sum, item) => sum + item.views, 0);
 
   return (
     <AppLayout showNavigation={true}>
-      <div className="max-w-6xl mx-auto space-y-8">
+      <div className="container max-w-7xl mx-auto p-6 space-y-6">
         {/* Header */}
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-3xl font-bold">Writing Statistics</h1>
-            <p className="text-muted-foreground mt-1">Track your progress and analyze your writing patterns</p>
+            <h1 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h1>
+            <p className="text-muted-foreground">
+              Overview of your application metrics and performance data
+            </p>
           </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => setSettingsOpen(true)}
-            className="gap-2 hover:bg-primary/10"
-          >
-            <Settings className="h-4 w-4" />
-            Settings
-          </Button>
+          <div className="flex items-center gap-2">
+            <Select value={timeFilter} onValueChange={(value) => setTimeFilter(value as TimeFilter)}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue placeholder="Select time period" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="today">Today</SelectItem>
+                <SelectItem value="week">This Week</SelectItem>
+                <SelectItem value="month">This Month</SelectItem>
+                <SelectItem value="year">This Year</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {/* Tabbed Content */}
-        <Tabs value={activeTab} onValueChange={handleTabChange} className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2 bg-gradient-to-r from-card to-card/50 border border-border/20">
-            <TabsTrigger
-              value="analytics"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500/90 data-[state=active]:to-blue-600/90 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-blue-500/50 data-[state=active]:shadow-lg data-[state=active]:shadow-blue-500/25 data-[state=active]:font-semibold"
-            >
-              <BarChart3 className="h-4 w-4 mr-2" />
-              Writing Analytics
-            </TabsTrigger>
-            <TabsTrigger
-              value="goals"
-              className="data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500/90 data-[state=active]:to-emerald-600/90 data-[state=active]:text-white data-[state=active]:border data-[state=active]:border-emerald-500/50 data-[state=active]:shadow-lg data-[state=active]:shadow-emerald-500/25 data-[state=active]:font-semibold"
-            >
-              <Target className="h-4 w-4 mr-2" />
-              Writing Goals
-            </TabsTrigger>
+        {/* Summary Cards */}
+        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Active Users</CardTitle>
+              <Users className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalUsers.toLocaleString()}</div>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
+                +{userGrowth}% from last period
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Sessions</CardTitle>
+              <Activity className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalSessions.toLocaleString()}</div>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
+                +12.3% from last period
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">${totalRevenue.toLocaleString()}</div>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <TrendingUp className="mr-1 h-3 w-3 text-green-500" />
+                +8.7% from last period
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Page Views</CardTitle>
+              <Eye className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{totalPageViews.toLocaleString()}</div>
+              <div className="flex items-center text-xs text-muted-foreground">
+                <TrendingDown className="mr-1 h-3 w-3 text-red-500" />
+                -2.1% from last period
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Charts Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="users">Users</TabsTrigger>
+            <TabsTrigger value="revenue">Revenue</TabsTrigger>
+            <TabsTrigger value="traffic">Traffic</TabsTrigger>
           </TabsList>
-
-          {/* Writing Goals Tab */}
-          <TabsContent value="goals" className="space-y-8">
-            {/* Hero Daily Goal Section */}
-            <div className="grid lg:grid-cols-3 gap-8">
-              {/* Main Today's Goal */}
-              <div className="lg:col-span-2">
-                <Card className={cn(
-                  "border-2 relative overflow-hidden h-full transition-all duration-500",
-                  isGoalMet
-                    ? "border-emerald-400/60 bg-gradient-to-br from-emerald-500/20 via-green-500/15 to-emerald-600/20 shadow-2xl shadow-emerald-500/25 ring-2 ring-emerald-400/30 animate-in fade-in duration-1000"
-                    : "border-border/20 bg-gradient-to-br from-card to-card/50 ring-1 ring-border/10"
-                )}>
-                  <div className={cn(
-                    "absolute inset-0 transition-transform duration-1000",
-                    isGoalMet
-                      ? "bg-gradient-to-r from-transparent via-emerald-400/20 to-transparent animate-in slide-in-from-left duration-1500"
-                      : "bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] hover:translate-x-[100%]"
-                  )}></div>
-
-                  {/* Celebration sparkles when goal achieved */}
-                  {isGoalMet && (
-                    <>
-                      <div className="absolute top-4 right-4 animate-in bounce-in duration-700 delay-100">✨</div>
-                      <div className="absolute top-8 right-12 animate-in bounce-in duration-800 delay-200">🎉</div>
-                      <div className="absolute top-6 right-20 animate-in bounce-in duration-700 delay-300">⭐</div>
-                      <div className="absolute bottom-8 left-8 animate-in bounce-in duration-800 delay-150">🚀</div>
-                      <div className="absolute bottom-12 left-16 animate-in bounce-in duration-700 delay-250">💪</div>
-                    </>
-                  )}
-
-                  <CardHeader className="relative z-10 pb-4">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-3">
-                        <div className={cn(
-                          "w-12 h-12 rounded-xl flex items-center justify-center transition-all duration-500",
-                          isGoalMet
-                            ? "bg-gradient-to-br from-emerald-400/30 to-green-500/30 animate-in zoom-in duration-700 shadow-lg shadow-emerald-400/25"
-                            : "bg-gradient-to-br from-emerald-500/20 to-emerald-600/20"
-                        )}>
-                          <Target className={cn(
-                            "h-6 w-6 transition-all duration-500",
-                            isGoalMet ? "text-emerald-400 animate-in spin-in-180 duration-800" : "text-emerald-500"
-                          )} />
-                        </div>
-                        <div>
-                          <CardTitle className={cn(
-                            "text-2xl font-bold transition-all duration-500",
-                            isGoalMet ? "text-emerald-300 animate-in slide-in-from-left duration-600" : ""
-                          )}>Today's Progress</CardTitle>
-                          <p className={cn(
-                            "text-sm mt-1 font-semibold transition-all duration-500",
-                            isGoalMet ? "text-emerald-200 text-lg animate-in slide-in-from-left duration-700" : "text-muted-foreground"
-                          )}>
-                            {isGoalMet ? '🎉 GOAL ACHIEVED! 🎉' : `${(stats.daily.target - todayWords).toLocaleString()} words to go`}
-                          </p>
-                        </div>
-                      </div>
-                      {isGoalMet && (
-                        <div className="flex items-center gap-2">
-                          <Trophy className="h-10 w-10 text-yellow-400 animate-in bounce-in duration-1000 shadow-lg shadow-yellow-400/25" />
-                          <div className="text-4xl animate-in bounce-in duration-1200 delay-200">🏆</div>
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="relative z-10 space-y-6">
-                    <div className="text-center space-y-2">
-                      <div className={cn(
-                        "text-6xl font-bold transition-all duration-500",
-                        isGoalMet
-                          ? "bg-gradient-to-r from-emerald-300 via-green-300 to-emerald-400 bg-clip-text text-transparent animate-in zoom-in duration-800 drop-shadow-lg"
-                          : "bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent"
-                      )}>
-                        {todayWords.toLocaleString()}
-                      </div>
-                      <div className={cn(
-                        "text-lg transition-all duration-500",
-                        isGoalMet ? "text-emerald-200 font-semibold" : "text-muted-foreground"
-                      )}>
-                        {isGoalMet ? `🎯 Target CRUSHED! (${stats.daily.target.toLocaleString()} words)` : `of ${stats.daily.target.toLocaleString()} words`}
-                      </div>
-                    </div>
-
-                    <div className="space-y-3">
-                      <div className="flex justify-between text-sm">
-                        <span className={cn(
-                          "font-medium transition-all duration-500",
-                          isGoalMet ? "text-emerald-200 text-base animate-in slide-in-from-left duration-900" : ""
-                        )}>{stats.daily.percentage}% Complete</span>
-                        <span className={cn(
-                          "font-bold transition-all duration-500",
-                          isGoalMet ? "text-emerald-300 text-xl animate-in slide-in-from-right duration-900" : "text-muted-foreground"
-                        )}>
-                          {isGoalMet ? `${stats.daily.percentage}% 🔥` : `${stats.daily.percentage}%`}
-                        </span>
-                      </div>
-                      <div className="relative">
-                        <Progress
-                          value={stats.daily.percentage}
-                          className={cn(
-                            "h-3 transition-all duration-500",
-                            isGoalMet ? "h-4 bg-emerald-900/30" : "bg-muted"
-                          )}
-                        />
-                        <div className={cn(
-                          "absolute inset-0 rounded-full transition-transform duration-1000",
-                          isGoalMet
-                            ? "bg-gradient-to-r from-emerald-400/30 via-emerald-300/40 to-emerald-400/30 animate-in slide-in-from-left duration-1000"
-                            : "bg-gradient-to-r from-transparent via-white/20 to-transparent translate-x-[-100%] group-hover:translate-x-[100%]"
-                        )}></div>
-
-                        {/* Celebration glow effect */}
-                        {isGoalMet && (
-                          <div className="absolute inset-0 bg-gradient-to-r from-emerald-400/20 to-green-400/20 rounded-full animate-in zoom-in duration-800"></div>
-                        )}
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Quick Stats */}
-              <div className="space-y-4">
-                {/* Streak Card */}
-                <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                  <CardContent className="relative z-10 p-4">
-                    <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-orange-500/20 to-orange-600/20 flex items-center justify-center">
-                        <Flame className="h-5 w-5 text-orange-500" />
-                      </div>
-                      <div>
-                        <div className="text-2xl font-bold">{stats.daily.streak}</div>
-                        <div className="text-sm text-muted-foreground">day streak</div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Weekly Progress */}
-                <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                  <CardContent className="relative z-10 p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <TrendingUp className="h-4 w-4 text-blue-500" />
-                        <span className="text-sm font-medium">Weekly</span>
-                      </div>
-                      <span className="text-sm font-bold">{weeklyProgress}%</span>
-                    </div>
-                    <Progress value={weeklyProgress} className="h-2 bg-muted" />
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {stats.weekly.achieved.toLocaleString()} / {stats.weekly.target.toLocaleString()}
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Monthly Progress */}
-                <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
-                  <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                  <CardContent className="relative z-10 p-4">
-                    <div className="flex items-center justify-between mb-2">
-                      <div className="flex items-center gap-2">
-                        <Award className="h-4 w-4 text-purple-500" />
-                        <span className="text-sm font-medium">Monthly</span>
-                      </div>
-                      <span className="text-sm font-bold">{monthlyProgress}%</span>
-                    </div>
-                    <Progress value={monthlyProgress} className="h-2 bg-muted" />
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {stats.monthly.achieved.toLocaleString()} / {stats.monthly.target.toLocaleString()}
-                    </div>
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-
-            {/* Compact Analytics Row */}
-            <div className="grid md:grid-cols-4 gap-6">
-              <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                <CardContent className="relative z-10 p-4">
-                  <div className="text-2xl font-bold">
-                    {stats.daily.totalDays > 0
-                      ? Math.round((stats.daily.successfulDays / stats.daily.totalDays) * 100)
-                      : 0}%
-                  </div>
-                  <div className="text-xs text-muted-foreground">Success rate</div>
+          
+          <TabsContent value="overview" className="space-y-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+              <Card className="col-span-4">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5" />
+                    User Activity
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <AreaChart data={dailyActiveUsers}>
+                      <CartesianGrid strokeDasharray="3 3" />
+                      <XAxis dataKey="date" />
+                      <YAxis />
+                      <Tooltip />
+                      <Area type="monotone" dataKey="users" stackId="1" stroke="#8884d8" fill="#8884d8" fillOpacity={0.6} />
+                      <Area type="monotone" dataKey="sessions" stackId="1" stroke="#82ca9d" fill="#82ca9d" fillOpacity={0.6} />
+                    </AreaChart>
+                  </ResponsiveContainer>
                 </CardContent>
               </Card>
-
-              <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                <CardContent className="relative z-10 p-4">
-                  <div className="text-2xl font-bold">{stats.weekly.averageWords}</div>
-                  <div className="text-xs text-muted-foreground">Daily average</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-orange-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                <CardContent className="relative z-10 p-4">
-                  <div className="text-2xl font-bold">{stats.daily.bestStreak}</div>
-                  <div className="text-xs text-muted-foreground">Best streak</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                <CardContent className="relative z-10 p-4">
-                  <div className="text-2xl font-bold">{stats.daily.successfulDays}</div>
-                  <div className="text-xs text-muted-foreground">Days completed</div>
+              
+              <Card className="col-span-3">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <PieChart className="h-5 w-5" />
+                    Device Types
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <ResponsiveContainer width="100%" height={300}>
+                    <RechartsPieChart>
+                      <Pie
+                        dataKey="value"
+                        data={deviceTypes}
+                        cx="50%"
+                        cy="50%"
+                        outerRadius={80}
+                        label={({ name, value }) => `${name}: ${value}%`}
+                      >
+                        {deviceTypes.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip />
+                    </RechartsPieChart>
+                  </ResponsiveContainer>
                 </CardContent>
               </Card>
             </div>
-
-            {/* Recent Achievements */}
-            <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 relative overflow-hidden ring-1 ring-border/10">
-              <div className="absolute inset-0 bg-gradient-to-r from-transparent via-primary/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-1000"></div>
-              <CardHeader className="relative z-10 pb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-yellow-500/20 to-yellow-600/20 flex items-center justify-center">
-                    <Trophy className="h-5 w-5 text-yellow-500" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg font-bold">Recent Wins</CardTitle>
-                    <p className="text-sm text-muted-foreground">Your latest achievements</p>
-                  </div>
+          </TabsContent>
+          
+          <TabsContent value="users" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Daily Active Users</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">14 days</Badge>
+                  <span className="text-sm text-muted-foreground">
+                    Showing user activity for the last two weeks
+                  </span>
                 </div>
               </CardHeader>
-
-              <CardContent className="relative z-10 space-y-3">
-                <div className="grid md:grid-cols-3 gap-4">
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500" />
-                    <div>
-                      <div className="text-sm font-medium">Daily goal</div>
-                      <div className="text-xs text-muted-foreground">2h ago</div>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <LineChart data={dailyActiveUsers}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="date" />
+                    <YAxis />
+                    <Tooltip />
+                    <Line type="monotone" dataKey="users" stroke="#8884d8" strokeWidth={2} />
+                    <Line type="monotone" dataKey="sessions" stroke="#82ca9d" strokeWidth={2} />
+                  </LineChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="revenue" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Revenue & Profit</CardTitle>
+                <div className="flex items-center gap-2">
+                  <Badge variant="secondary">12 months</Badge>
+                  <span className="text-sm text-muted-foreground">
+                    Monthly revenue and profit data
+                  </span>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <ResponsiveContainer width="100%" height={400}>
+                  <BarChart data={revenue}>
+                    <CartesianGrid strokeDasharray="3 3" />
+                    <XAxis dataKey="month" />
+                    <YAxis />
+                    <Tooltip />
+                    <Bar dataKey="revenue" fill="#8884d8" />
+                    <Bar dataKey="profit" fill="#82ca9d" />
+                  </BarChart>
+                </ResponsiveContainer>
+              </CardContent>
+            </Card>
+          </TabsContent>
+          
+          <TabsContent value="traffic" className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle>Page Performance</CardTitle>
+                <div className="text-sm text-muted-foreground">
+                  Views and bounce rates by page
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {pageViews.map((page, index) => (
+                    <div key={index} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex flex-col">
+                        <span className="font-medium">{page.page}</span>
+                        <span className="text-sm text-muted-foreground">
+                          {page.views.toLocaleString()} views
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-4">
+                        <div className="text-right">
+                          <div className="text-sm font-medium">{page.bounce}%</div>
+                          <div className="text-xs text-muted-foreground">bounce rate</div>
+                        </div>
+                        <div className="w-16">
+                          <div className="h-2 bg-muted rounded-full overflow-hidden">
+                            <div 
+                              className="h-full bg-primary rounded-full transition-all"
+                              style={{ width: `${100 - page.bounce}%` }}
+                            />
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-orange-500/10 border border-orange-500/20">
-                    <Flame className="h-5 w-5 text-orange-500" />
-                    <div>
-                      <div className="text-sm font-medium">{stats.daily.streak}-day streak</div>
-                      <div className="text-xs text-muted-foreground">Active</div>
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-3 p-3 rounded-lg bg-blue-500/10 border border-blue-500/20">
-                    <Zap className="h-5 w-5 text-blue-500" />
-                    <div>
-                      <div className="text-sm font-medium">On fire!</div>
-                      <div className="text-xs text-muted-foreground">Keep going</div>
-                    </div>
-                  </div>
+                  ))}
                 </div>
               </CardContent>
             </Card>
           </TabsContent>
-
-          {/* Writing Analytics Tab */}
-          <TabsContent value="analytics" className="space-y-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <h2 className="text-2xl font-bold">Writing Analytics</h2>
-                <p className="text-muted-foreground">Visualize your writing patterns and progress</p>
-              </div>
-              <div className="text-sm text-muted-foreground">
-                Total: {writingStats.totalWords.toLocaleString()} words
-              </div>
-            </div>
-
-            {/* Time Filter Buttons */}
-            <div className="flex items-center gap-2 flex-wrap">
-              <span className="text-sm font-medium text-muted-foreground mr-2">Filter:</span>
-              {filterButtons.map((filter) => (
-                <Button
-                  key={filter.value}
-                  variant={timeFilter === filter.value ? "default" : "outline"}
-                  size="sm"
-                  onClick={() => setTimeFilter(filter.value)}
-                  className={cn(
-                    "transition-all duration-300",
-                    timeFilter === filter.value
-                      ? "bg-gradient-to-r from-blue-500/90 to-blue-600/90 hover:from-blue-500 hover:to-blue-600 text-white shadow-lg shadow-blue-500/25"
-                      : "border-border/40 hover:border-blue-500/30 hover:bg-blue-500/5"
-                  )}
-                >
-                  {filter.label}
-                </Button>
-              ))}
-            </div>
-
-            {/* Charts based on processed historical data */}
-            <div className="space-y-8">
-              {filteredChartData.daily.length > 1 && <DailyTrendChart dailyData={filteredChartData.daily} />}
-              {filteredChartData.daily.length === 1 && <TodayBarChart todayData={filteredChartData.daily} />}
-
-              <div className="grid lg:grid-cols-2 gap-8">
-                {filteredChartData.weekly.length > 0 && <WeeklyProgressChart weeklyData={filteredChartData.weekly} />}
-                {filteredChartData.monthly.length > 0 && <MonthlyOverviewChart monthlyData={filteredChartData.monthly} />}
-              </div>
-            </div>
-
-            {/* Writing Insights Cards */}
-            <div className="grid md:grid-cols-3 gap-6">
-              <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-emerald-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                <CardContent className="relative z-10 p-6">
-                  <div className="text-3xl font-bold text-emerald-600">{writingStats.streak.bestStreak}</div>
-                  <div className="text-sm text-muted-foreground">Best streak (days)</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-blue-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                <CardContent className="relative z-10 p-6">
-                  <div className="text-3xl font-bold text-blue-600">{writingStats.averageWordsPerDay}</div>
-                  <div className="text-sm text-muted-foreground">Daily average</div>
-                </CardContent>
-              </Card>
-
-              <Card className="border-2 border-border/20 bg-gradient-to-br from-card to-card/50 text-center relative overflow-hidden ring-1 ring-border/10">
-                <div className="absolute inset-0 bg-gradient-to-r from-transparent via-purple-500/5 to-transparent translate-x-[-100%] hover:translate-x-[100%] transition-transform duration-700"></div>
-                <CardContent className="relative z-10 p-6">
-                  <div className="text-3xl font-bold text-purple-600">{writingStats.consistencyScore}%</div>
-                  <div className="text-sm text-muted-foreground">Consistency score</div>
-                </CardContent>
-              </Card>
-            </div>
-          </TabsContent>
         </Tabs>
       </div>
-
-      <GoalSettingsDialog
-        open={settingsOpen}
-        onOpenChange={setSettingsOpen}
-      />
     </AppLayout>
   );
 }
